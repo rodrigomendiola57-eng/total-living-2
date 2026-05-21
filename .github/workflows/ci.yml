@@ -9,23 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: total_living
-          POSTGRES_PASSWORD: total_living
-          POSTGRES_DB: total_living_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U total_living -d total_living_test"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # SQLite en CI: migrate/tests estables en cada push.
+    # PostgreSQL se valida en staging/prod con `migrate` contra RDS (ver ESTADO_Y_PLAN.md).
     env:
       DJANGO_SETTINGS_MODULE: total_living.settings.development
-      DATABASE_URL: postgresql://total_living:total_living@localhost:5432/total_living_test
+      DATABASE_URL: sqlite:///ci_test.sqlite3
       SECRET_KEY: ci-test-secret-key-not-for-production-use-only-32chars
       ALLOWED_HOSTS: localhost,127.0.0.1
       ENFORCE_STRONG_SECRET_KEY: "False"
@@ -47,7 +35,7 @@ jobs:
         run: python manage.py check
 
       - name: Migrations
-        run: python manage.py migrate --noinput --verbosity=2 || (python manage.py showmigrations && exit 1)
+        run: python manage.py migrate --noinput --verbosity=2
 
       - name: Tests
         run: python manage.py test properties panel search contact accounts developments --verbosity=1
