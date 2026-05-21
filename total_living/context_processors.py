@@ -13,6 +13,11 @@ def map_tiles(request):
     }
 
 
+def public_site(request):
+    """Base HTTPS del sitio para enlaces canónicos (compartir, etc.)."""
+    return {'PUBLIC_SITE_URL': getattr(settings, 'PUBLIC_SITE_URL', '')}
+
+
 def property_catalog(request):
     """
     Catálogo global de tipos/operaciones para mantener consistencia

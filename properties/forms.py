@@ -17,7 +17,7 @@ class PropertyForm(forms.ModelForm):
             'title', 'description', 'property_type', 'operation_type', 'status',
             'price', 'currency', 'address', 'city', 'state', 'zip_code', 'country',
             'latitude', 'longitude', 'bedrooms', 'bathrooms', 'parking_spaces',
-            'construction_area', 'lot_area', 'floors', 'year_built',
+            'construction_area', 'lot_area', 'technical_sheet', 'floors', 'year_built',
             'is_featured', 'is_new', 'is_advisor_exclusive', 'exclusive_advisor', 'financing_options', 'published_at'
         ]
         widgets = {
@@ -80,6 +80,10 @@ class PropertyForm(forms.ModelForm):
                 'class': 'form-control',
                 'step': '0.01',
                 'min': '0'
+            }),
+            'technical_sheet': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.doc,.docx',
             }),
             'floors': forms.NumberInput(attrs={
                 'class': 'form-control',

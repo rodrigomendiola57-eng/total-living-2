@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.text import slugify
 from .image_security import validate_image_upload, optimize_image_for_storage
+from .technical_sheet import technical_sheet_basename
 
 
 class PropertyType(models.TextChoices):
@@ -368,6 +369,13 @@ class Property(models.Model):
         blank=True,
         verbose_name='Cuota de Mantenimiento'
     )
+    technical_sheet = models.FileField(
+        upload_to='properties/technical_sheets/%Y/%m/',
+        blank=True,
+        null=True,
+        verbose_name='Ficha técnica (archivo)',
+        help_text='PDF o Word (.doc/.docx) subido por el equipo. Máximo 15 MB.',
+    )
     
     amenities = models.ManyToManyField(
         Amenity,
@@ -503,6 +511,17 @@ class Property(models.Model):
     def get_financing_options_display(self):
         labels = dict(self.FINANCING_CHOICES)
         return [labels.get(code, code) for code in (self.financing_options or [])]
+
+    def has_technical_sheet(self):
+        return bool(self.technical_sheet)
+
+    def get_technical_sheet_display_name(self):
+        return technical_sheet_basename(self)
+
+    def get_open_graph_meta(self, request):
+        """Metadatos Open Graph para compartir en redes (WhatsApp, etc.)."""
+        from .og_meta import build_property_open_graph
+        return build_property_open_graph(self, request)
 
 
 class PropertyImage(models.Model):

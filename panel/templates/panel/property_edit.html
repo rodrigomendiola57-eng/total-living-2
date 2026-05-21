@@ -43,7 +43,7 @@
         <a href="{% url 'panel:properties' %}" class="btn-secondary">← Volver</a>
     </div>
 
-    <form method="post" class="edit-form">
+    <form method="post" class="edit-form" enctype="multipart/form-data">
         {% csrf_token %}
         
         <div class="form-section">
@@ -319,6 +319,32 @@
                         {% endfor %}
                     </select>
                 </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Ficha técnica (archivo)</h3>
+            <p class="text-muted small mb-2">
+                Sube el PDF o Word que preparó el cliente. Ya no se genera ficha automática desde el sistema.
+            </p>
+            {% if property.has_technical_sheet %}
+            <div class="mb-3 p-3" style="background:#f4f6f8;border-radius:10px;border:1px solid #dde3eb;">
+                <strong>Archivo actual:</strong>
+                <a href="{% url 'properties:technical_sheet' property.pk %}" target="_blank" rel="noopener">
+                    <i class="bi bi-file-earmark-pdf"></i> {{ property.get_technical_sheet_display_name }}
+                </a>
+                <div class="mt-2">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remove_technical_sheet" value="1">
+                        Eliminar ficha técnica actual
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+            <div class="form-group">
+                <label>{% if property.has_technical_sheet %}Reemplazar ficha técnica{% else %}Subir ficha técnica{% endif %}</label>
+                <input type="file" name="technical_sheet" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <small class="text-muted">PDF, DOC o DOCX. Máximo 15 MB. Si subes un archivo nuevo, reemplaza al anterior.</small>
             </div>
         </div>
 

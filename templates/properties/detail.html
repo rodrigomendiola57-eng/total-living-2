@@ -3,6 +3,24 @@
 
 {% block title %}{{ property.title }} - Total Living{% endblock %}
 
+{% block meta_description %}{{ og.description }}{% endblock %}
+
+{% block open_graph %}
+<meta property="og:type" content="{{ og.type }}">
+<meta property="og:site_name" content="{{ og.site_name }}">
+<meta property="og:locale" content="es_MX">
+<meta property="og:title" content="{{ og.title }}">
+<meta property="og:description" content="{{ og.description }}">
+<meta property="og:url" content="{{ og.url }}">
+<meta property="og:image" content="{{ og.image }}">
+<meta property="og:image:alt" content="{{ og.title }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ og.title }}">
+<meta name="twitter:description" content="{{ og.description }}">
+<meta name="twitter:image" content="{{ og.image }}">
+<link rel="canonical" href="{{ og.url }}">
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -282,6 +300,40 @@
         background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
         color: #ffffff;
         border-color: #c82333;
+    }
+
+    .property-share-btn {
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        padding: 0.75rem 1rem;
+    }
+    .property-share-toast {
+        position: fixed;
+        left: 50%;
+        bottom: calc(1.25rem + env(safe-area-inset-bottom));
+        transform: translateX(-50%) translateY(120%);
+        z-index: 1080;
+        max-width: min(92vw, 420px);
+        padding: 0.85rem 1.1rem;
+        border-radius: 12px;
+        background: #38382e;
+        color: #f2ece0;
+        font-size: 0.92rem;
+        line-height: 1.4;
+        text-align: center;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.28s ease, opacity 0.28s ease;
+    }
+    .property-share-toast.is-visible {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    @media (min-width: 768px) {
+        .property-share-toast {
+            bottom: 1.5rem;
+        }
     }
     
     @media (max-width: 991.98px) {
@@ -614,20 +666,25 @@
                     {% endif %}
                 </div>
 
-                <a href="{% url 'properties:download_pdf' property.pk %}" 
-                   class="btn btn-success btn-lg w-100 mb-3 property-tools-block">
+                {% if property.has_technical_sheet %}
+                <a href="{% url 'properties:technical_sheet' property.pk %}"
+                   class="btn btn-success btn-lg w-100 mb-3 property-tools-block"
+                   target="_blank" rel="noopener">
                     <i class="bi bi-file-earmark-pdf"></i> Descargar Ficha Técnica
                 </a>
+                {% endif %}
 
                 <div class="d-flex flex-column gap-3 property-tools-block">
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="window.print()">
-                            <i class="bi bi-printer"></i> Imprimir
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="shareProperty()">
-                            <i class="bi bi-share"></i> Compartir
-                        </button>
-                    </div>
+                    <button type="button"
+                            id="property-share-btn"
+                            class="btn btn-outline-secondary w-100 property-share-btn"
+                            data-share-title="{{ property.title|escape }}"
+                            data-share-text="Mira esta propiedad en Total Living: {{ property.title|escape }}"
+                            data-share-url="{{ og.url }}"
+                            aria-label="Compartir esta propiedad">
+                        <i class="bi bi-share" aria-hidden="true"></i> Compartir propiedad
+                    </button>
+                    <div id="property-share-toast" class="property-share-toast" role="status" aria-live="polite" hidden></div>
                     {% if user.is_staff %}
                     <div class="border-top pt-3">
                         <h6 class="text-muted mb-2 small fw-semibold text-uppercase" style="letter-spacing: 1px;">
@@ -941,19 +998,118 @@
 <div class="property-detail-contact-spacer d-md-none" aria-hidden="true"></div>
 
 <script>
-function shareProperty() {
-    if (navigator.share) {
-        navigator.share({
-            title: '{{ property.title }}',
-            text: 'Mira esta propiedad: {{ property.title }}',
-            url: window.location.href
-        });
-    } else {
-        // Fallback: copiar URL al portapapeles
-        navigator.clipboard.writeText(window.location.href);
-        alert('URL copiada al portapapeles');
+(function () {
+    var btn = document.getElementById('property-share-btn');
+    var toast = document.getElementById('property-share-toast');
+    if (!btn || !toast) return;
+
+    var toastTimer = null;
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.hidden = false;
+        toast.classList.add('is-visible');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+            toast.classList.remove('is-visible');
+            setTimeout(function () { toast.hidden = true; }, 320);
+        }, 4000);
     }
-}
+
+    function getShareUrl() {
+        return (btn.dataset.shareUrl || window.location.href).trim();
+    }
+
+    function getShareTitle() {
+        return (btn.dataset.shareTitle || document.title || 'Total Living').trim();
+    }
+
+    function getShareText() {
+        return (btn.dataset.shareText || ('Mira esta propiedad en Total Living: ' + getShareTitle())).trim();
+    }
+
+    function canShareData(data) {
+        if (!navigator.share) return false;
+        if (typeof navigator.canShare !== 'function') return true;
+        try {
+            return navigator.canShare(data);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function tryNativeShare() {
+        var url = getShareUrl();
+        var title = getShareTitle();
+        var text = getShareText();
+        var full = { title: title, text: text, url: url };
+        var urlOnly = { url: url };
+
+        if (canShareData(full)) {
+            await navigator.share(full);
+            return true;
+        }
+        if (canShareData(urlOnly)) {
+            await navigator.share(urlOnly);
+            return true;
+        }
+        if (navigator.share) {
+            await navigator.share(full);
+            return true;
+        }
+        return false;
+    }
+
+    async function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        var ok = false;
+        try {
+            ok = document.execCommand('copy');
+        } catch (e) {
+            ok = false;
+        }
+        document.body.removeChild(ta);
+        return ok;
+    }
+
+    btn.addEventListener('click', async function () {
+        var url = getShareUrl();
+
+        if (navigator.share) {
+            try {
+                var shared = await tryNativeShare();
+                if (shared) return;
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+            }
+        }
+
+        try {
+            if (await copyToClipboard(url)) {
+                showToast('Enlace copiado. Pégalo en WhatsApp, correo o donde quieras.');
+                return;
+            }
+        } catch (e) { /* sigue al fallback */ }
+
+        var manual = window.prompt('Copia este enlace para compartir la propiedad:', url);
+        if (manual !== null) {
+            showToast('Selecciona el enlace del cuadro y cópialo (Ctrl+C o mantén pulsado).');
+        }
+    });
+})();
 </script>
 {% endblock %}
 

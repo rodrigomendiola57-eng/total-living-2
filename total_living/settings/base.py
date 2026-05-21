@@ -66,6 +66,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'total_living.context_processors.map_tiles',
+                'total_living.context_processors.public_site',
                 'total_living.context_processors.property_catalog',
             ],
         },
@@ -178,6 +179,10 @@ WHATSAPP_LEAD_NUMBER = config('WHATSAPP_LEAD_NUMBER', default='')
 # Puedes sobrescribirlas por entorno con variables .env.
 ADMIN_URL_PATH = config('ADMIN_URL_PATH', default='gestion-total-living-2026/')
 PANEL_URL_PATH = config('PANEL_URL_PATH', default='acceso-interno-staff-2026/')
+
+# URL pública canónica del sitio (sin barra final). En producción/staging fija el enlace
+# al compartir (WhatsApp, etc.). Vacío en local → se usa el host de la petición (127.0.0.1).
+PUBLIC_SITE_URL = config('PUBLIC_SITE_URL', default='').strip().rstrip('/')
 
 # Solo para pruebas locales/predeploy con Docker: servir MEDIA desde Django
 # aun cuando DEBUG=False. En producción real mantenerlo en False y servir media desde R2 (u otro almacenamiento en nube).

@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="description" content="Total Living - Encuentra tu propiedad ideal. Casas, departamentos, terrenos y más en venta y renta.">
+    <meta name="description" content="{% block meta_description %}Total Living - Encuentra tu propiedad ideal. Casas, departamentos, terrenos y más en venta y renta.{% endblock %}">
     <title>{% block title %}Total Living - Inmobiliaria{% endblock %}</title>
+    {% block open_graph %}{% endblock %}
     
     <!-- Favicon -->
     {% load static i18n %}

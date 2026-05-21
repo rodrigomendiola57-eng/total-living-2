@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from decimal import Decimal
 from django.db.utils import OperationalError, ProgrammingError
 from django.utils.text import slugify
@@ -24,6 +24,11 @@ from .models import (
     ServiceFeature,
 )
 from .money import parse_coordinate, parse_decimal_value, parse_mx_money
+from .technical_sheet import (
+    apply_technical_sheet,
+    technical_sheet_basename,
+    validate_technical_sheet_upload,
+)
 from .forms import PropertyForm, PropertyImageForm
 from regions.models import Region
 
@@ -1155,7 +1160,7 @@ def similar_properties_for_detail(property_obj, limit=4):
 def property_detail(request, pk):
     """Vista para mostrar el detalle de una propiedad"""
     property_obj = get_object_or_404(
-        Property.objects.select_related('region'),
+        Property.objects.select_related('region').prefetch_related('images'),
         pk=pk,
     )
     
@@ -1172,6 +1177,7 @@ def property_detail(request, pk):
         'images': images,
         'features': features,
         'related_properties': related_properties,
+        'og': property_obj.get_open_graph_meta(request),
     }
     
     return render(request, 'properties/detail.html', context)
@@ -1205,6 +1211,11 @@ def add_property(request):
             construction_area_value = _to_decimal(construction_area_raw)
             if construction_area_value is None:
                 raise ValueError('El campo "Área Construcción (m²)" es obligatorio.')
+
+            uploaded_sheet = request.FILES.get('technical_sheet')
+            if uploaded_sheet:
+                validate_technical_sheet_upload(uploaded_sheet)
+
             property_obj = Property(
                 title=request.POST.get('title'),
                 description=request.POST.get('description'),
@@ -1243,6 +1254,11 @@ def add_property(request):
             )
             
             property_obj.save()
+
+            if uploaded_sheet:
+                apply_technical_sheet(property_obj, uploaded_file=uploaded_sheet)
+                property_obj.save(update_fields=['technical_sheet'])
+
             amenity_ids = request.POST.getlist('amenities')
             if amenity_ids:
                 property_obj.amenities.set(
@@ -1371,318 +1387,17 @@ def manage_images(request, pk):
 
 
 
-def download_property_pdf(request, pk):
-    """PDF de ficha informativa (ReportLab): encabezado repetido en cada página, fotos optimizadas."""
-    from django.http import HttpResponse
-    from django.conf import settings
-    from io import BytesIO
-    from PIL import Image
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib import colors
-    from reportlab.lib.units import inch
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image as RLImage
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.enums import TA_LEFT, TA_CENTER
-    from xml.sax.saxutils import escape
-    import os
+def download_technical_sheet(request, pk):
+    """Descarga la ficha técnica subida por el equipo (PDF/Word)."""
+    property_obj = get_object_or_404(Property, pk=pk)
+    if not property_obj.technical_sheet:
+        raise Http404('Esta propiedad no tiene ficha técnica adjunta.')
 
-    property_obj = get_object_or_404(Property.objects.prefetch_related('images'), pk=pk)
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="TotalLiving_{property_obj.slug}.pdf"'
-    styles = getSampleStyleSheet()
-    content = []
+    filename = technical_sheet_basename(property_obj) or f'TotalLiving_{property_obj.slug}.pdf'
+    try:
+        file_handle = property_obj.technical_sheet.open('rb')
+    except FileNotFoundError as exc:
+        raise Http404('El archivo de ficha técnica no está disponible.') from exc
 
-    dark = colors.HexColor('#13161a')
-    muted = colors.HexColor('#5f6671')
-    line = colors.HexColor('#d8dde3')
-
-    s_small = ParagraphStyle('s_small', parent=styles['Normal'], fontName='Helvetica', fontSize=9, textColor=muted, leading=12)
-    s_title = ParagraphStyle('s_title', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=18, textColor=dark, leading=22)
-    s_price = ParagraphStyle('s_price', parent=styles['Heading2'], fontName='Helvetica-Bold', fontSize=15, textColor=dark, alignment=TA_LEFT)
-    s_body = ParagraphStyle('s_body', parent=styles['Normal'], fontName='Helvetica', fontSize=9.5, textColor=dark, leading=13)
-    s_metric = ParagraphStyle('s_metric', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=dark, alignment=TA_CENTER, leading=11)
-    s_section = ParagraphStyle('s_section', parent=styles['Heading3'], fontName='Helvetica-Bold', fontSize=11, textColor=dark, spaceAfter=4, spaceBefore=2)
-
-    def txt(v):
-        return escape(str(v or '').strip())
-
-    def break_title_for_pdf(title_text, max_chars=36):
-        """Inserta un salto de línea en el espacio más cercano al límite para separar título/precio."""
-        t = (title_text or '').strip()
-        if len(t) <= max_chars:
-            return txt(t)
-        split_at = t.rfind(' ', 0, max_chars + 1)
-        if split_at < 12:
-            split_at = t.find(' ', max_chars)
-        if split_at == -1:
-            return txt(t)
-        left = txt(t[:split_at])
-        right = txt(t[split_at + 1:])
-        return f'{left}<br/>{right}'
-
-    def img(path, w, h):
-        if not path or not os.path.exists(path):
-            return None
-        try:
-            return RLImage(path, width=w, height=h)
-        except (OSError, ValueError, TypeError):
-            return None
-
-    def load_pil_from_property_image(image_model):
-        """Abre la imagen desde disco o almacenamiento de objetos (p. ej. R2)."""
-        if not image_model.image:
-            return None
-        rel = str(image_model.image.name)
-        if not rel:
-            return None
-        abs_path = os.path.join(settings.MEDIA_ROOT, rel)
-        try:
-            if os.path.exists(abs_path):
-                im = Image.open(abs_path)
-            else:
-                image_model.image.open('rb')
-                raw = image_model.image.read()
-                image_model.image.close()
-                im = Image.open(BytesIO(raw))
-            if im.mode != 'RGB':
-                im = im.convert('RGB')
-            return im
-        except (OSError, ValueError, TypeError):
-            try:
-                image_model.image.close()
-            except (AttributeError, OSError, ValueError):
-                pass
-            return None
-
-    def rl_image_for_pdf(pil_im, max_w_inch, max_h_inch, jpeg_quality=80, decode_max=480):
-        """JPEG redimensionado antes de ReportLab: PDF más liviano y scroll más fluido."""
-        if pil_im is None:
-            return None
-        try:
-            pil_im = pil_im.copy()
-            pil_im.thumbnail((decode_max, decode_max), Image.Resampling.LANCZOS)
-            iw, ih = pil_im.size
-            if iw < 1 or ih < 1:
-                return None
-            box_w, box_h = max_w_inch, max_h_inch
-            ar = iw / ih
-            br = box_w / box_h
-            if ar > br:
-                disp_w = box_w
-                disp_h = box_w / ar
-            else:
-                disp_h = box_h
-                disp_w = box_h * ar
-            disp_w_pt = disp_w * 72
-            disp_h_pt = disp_h * 72
-            buf = BytesIO()
-            pil_im.save(buf, format='JPEG', quality=jpeg_quality, optimize=True)
-            buf.seek(0)
-            return RLImage(buf, width=disp_w_pt, height=disp_h_pt)
-        except (OSError, ValueError, TypeError):
-            return None
-
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'SharedScreenshot.png')
-    image_objs = list(property_obj.images.all().order_by('-is_main', 'order'))
-    first_four = image_objs[:4]
-    rest_images = image_objs[4:]
-    usable_w = 7.40 * inch
-    col4 = usable_w / 4.0
-
-    # Mismo encabezado que antes (barra + tabla logo/contacto), reutilizado en cada página vía drawOn.
-    pdf_header_sep = Table([['']], colWidths=[usable_w], rowHeights=[0.03 * inch])
-    pdf_header_sep.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), line),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-    ]))
-    left_logo = img(logo_path, 0.72 * inch, 0.72 * inch) or Paragraph('', s_small)
-    contact = Paragraph(
-        '<b><font size="13">Total Living</font></b><br/>'
-        '<font size="10">Celular: +52 442 866 9965</font><br/>'
-        '<font size="10">Oficina: 442 866 9965</font><br/>'
-        '<font size="10">totalliving2026@gmail.com</font>',
-        s_small,
-    )
-    pdf_header_block = Table([[left_logo, contact]], colWidths=[0.9 * inch, 6.50 * inch])
-    pdf_header_block.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-    ]))
-    header_gap = 0.06 * inch
-    # Aire arriba + línea + hueco antes de la barra gris (mismo en todas las páginas).
-    header_top_pad = 0.16 * inch
-    post_line_gap = 0.06 * inch
-    _wrap_h_max = 4 * inch
-    _, h_sep = pdf_header_sep.wrap(usable_w, _wrap_h_max)
-    _, h_hdr = pdf_header_block.wrap(usable_w, _wrap_h_max)
-    header_bottom_slack_pt = 4
-    pdf_top_margin = header_top_pad + post_line_gap + h_sep + header_gap + h_hdr + header_bottom_slack_pt
-
-    doc = SimpleDocTemplate(
-        response,
-        pagesize=letter,
-        topMargin=pdf_top_margin,
-        bottomMargin=0.32 * inch,
-        leftMargin=0.40 * inch,
-        rightMargin=0.40 * inch,
-    )
-
-    def draw_pdf_page_header(canvas, doc):
-        page_w, page_h = doc.pagesize
-        lm = doc.leftMargin
-        rm = doc.rightMargin
-        canvas.saveState()
-        y_line = page_h - header_top_pad
-        canvas.setStrokeColor(line)
-        canvas.setLineWidth(0.85)
-        canvas.line(lm, y_line, page_w - rm, y_line)
-        y_bar = page_h - header_top_pad - post_line_gap - h_sep
-        pdf_header_sep.wrap(usable_w, pdf_top_margin)
-        pdf_header_sep.drawOn(canvas, lm, y_bar)
-        y_hdr = y_bar - header_gap - h_hdr
-        pdf_header_block.wrap(usable_w, pdf_top_margin)
-        pdf_header_block.drawOn(canvas, lm, y_hdr)
-        canvas.restoreState()
-
-    # Título + precio + operación
-    title_row = Table([[
-        Paragraph(break_title_for_pdf(property_obj.title).upper(), s_title),
-        '',
-        Paragraph(f'{txt(property_obj.get_price_display())}<br/><font size="9" color="#6b7280">{txt(property_obj.get_operation_type_display())}</font>', s_price),
-    ]], colWidths=[5.35 * inch, 0.12 * inch, 1.93 * inch])
-    title_row.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('ALIGN', (2, 0), (2, 0), 'LEFT'),
-    ]))
-    content.append(title_row)
-    loc = property_obj.get_location_line_display() or 'Ubicación no especificada'
-    content.append(Paragraph(txt(loc), s_small))
-    content.append(Spacer(1, 0.06 * inch))
-
-    # Cuatro miniaturas en una fila (menos alto que dos fotos grandes → más espacio para descripción en hoja 1)
-    top_row_cells = []
-    for i in range(4):
-        if i < len(first_four):
-            pil = load_pil_from_property_image(first_four[i])
-            cell_flow = rl_image_for_pdf(pil, max_w_inch=1.78, max_h_inch=1.05)
-        else:
-            cell_flow = None
-        top_row_cells.append(cell_flow if cell_flow else Paragraph('', s_small))
-
-    photos_top = Table([top_row_cells], colWidths=[col4, col4, col4, col4], rowHeights=[1.12 * inch])
-    photos_top.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('GRID', (0, 0), (-1, -1), 0.35, line),
-        ('LEFTPADDING', (0, 0), (-1, -1), 2),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-        ('TOPPADDING', (0, 0), (-1, -1), 2),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-    ]))
-    content.append(photos_top)
-    content.append(Spacer(1, 0.07 * inch))
-
-    # Métricas alineadas y menos saturadas (2 x 3)
-    metric_pairs = [
-        (property_obj.bedrooms or 0, 'Recámaras'),
-        (property_obj.bathrooms or 0, 'Baños'),
-        (property_obj.parking_spaces or 0, 'Estacionamientos'),
-        (f"{property_obj.construction_area or 'N/A'} m²" if property_obj.construction_area else 'N/A', 'Construcción'),
-        (property_obj.floors or 'N/A', 'Niveles'),
-        (txt(property_obj.get_property_type_display()), 'Tipo'),
-    ]
-    metric_cells = []
-    for val, lab in metric_pairs:
-        metric_cells.append(Paragraph(f'{txt(val)}<br/><font size="8.5" color="#6b7280">{txt(lab)}</font>', s_metric))
-
-    metrics = Table([metric_cells[:3], metric_cells[3:]], colWidths=[usable_w / 3.0] * 3)
-    metrics.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BACKGROUND', (0, 0), (-1, -1), colors.white),
-        ('GRID', (0, 0), (-1, -1), 0.3, line),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-    ]))
-    content.append(metrics)
-    content.append(Spacer(1, 0.07 * inch))
-
-    # Descripción + Amenidades parejo
-    amenities = list(property_obj.amenities.values_list('display_name', flat=True))
-
-    desc = txt((property_obj.description or '').strip()).replace('\n', '<br/>')
-    amen = '<br/>'.join([f'• {txt(a)}' for a in amenities]) if amenities else 'Sin amenidades registradas.'
-    cols = Table([[
-        Paragraph('<b>Descripción</b><br/>' + (desc or 'Sin descripción.'), s_body),
-        Paragraph('<b>Amenidades</b><br/>' + amen, s_body),
-    ]], colWidths=[4.25 * inch, 3.15 * inch])
-    cols.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-    ]))
-    content.append(cols)
-
-    if rest_images:
-        content.append(Spacer(1, 0.09 * inch))
-        content.append(Paragraph('<b>Más fotografías</b>', s_section))
-        half_w = usable_w / 2.0
-        gallery_rows = []
-        for i in range(0, len(rest_images), 2):
-            row = []
-            for j in range(2):
-                idx = i + j
-                if idx < len(rest_images):
-                    pil = load_pil_from_property_image(rest_images[idx])
-                    row.append(
-                        rl_image_for_pdf(pil, max_w_inch=3.62, max_h_inch=2.45, decode_max=560)
-                        or Paragraph('', s_small)
-                    )
-                else:
-                    row.append(Paragraph('', s_small))
-            gallery_rows.append(row)
-        gallery = Table(gallery_rows, colWidths=[half_w, half_w])
-        gallery.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('GRID', (0, 0), (-1, -1), 0.35, line),
-            ('LEFTPADDING', (0, 0), (-1, -1), 2),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ]))
-        content.append(gallery)
-
-    content.append(Spacer(1, 0.08 * inch))
-    if property_obj.google_maps_url:
-        content.append(Paragraph(f'<b>Mapa:</b> {txt(property_obj.google_maps_url)}', s_small))
-    content.append(Paragraph(
-        '<font size="8" color="#6b7280">Ficha informativa | Total Living</font>',
-        ParagraphStyle('s_footer', parent=s_small, alignment=TA_CENTER)
-    ))
-
-    # Importante: no envolver todo en una sola celda de tabla.
-    bottom_sep = Table([['']], colWidths=[usable_w], rowHeights=[0.03 * inch])
-    bottom_sep.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), line),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-    ]))
-
-    elements = [Spacer(1, 0.04 * inch)] + content + [Spacer(1, 0.06 * inch), bottom_sep]
-    doc.build(elements, onFirstPage=draw_pdf_page_header, onLaterPages=draw_pdf_page_header)
-    return response
-
-
+    content_type = 'application/pdf' if filename.lower().endswith('.pdf') else 'application/octet-stream'
+    return FileResponse(file_handle, as_attachment=True, filename=filename, content_type=content_type)

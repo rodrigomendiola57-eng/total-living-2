@@ -11,6 +11,8 @@ from django.core.paginator import Paginator
 from django.db.models import Case, Count, IntegerField, Q, When
 from properties.models import Amenity, CarouselSlide, InteriorFeature, Property, PropertyImage, PropertyType, ServiceFeature
 from properties.money import parse_coordinate, parse_decimal_value, parse_mx_money
+from properties.technical_sheet import apply_technical_sheet
+from django.core.exceptions import ValidationError
 from regions.models import Region
 from contact.models import Contact, ContactNote
 
@@ -26,7 +28,6 @@ INBOX_SOURCE_FILTER_CHOICES = [
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.db.utils import OperationalError, ProgrammingError
-from django.core.exceptions import ValidationError
 from .models import HomeContent, NosotrosContent, OrganigramMember
 from .forms import NosotrosContentForm, OrganigramMemberForm
 
@@ -377,6 +378,11 @@ def panel_property_edit(request, pk):
             ).first() if exclusive_advisor_id else None
             property_obj.exclusive_advisor = selected_advisor if property_obj.is_advisor_exclusive else None
             property_obj.financing_options = request.POST.getlist('financing_options')
+
+            if request.POST.get('remove_technical_sheet') == '1':
+                apply_technical_sheet(property_obj, remove=True)
+            elif request.FILES.get('technical_sheet'):
+                apply_technical_sheet(property_obj, uploaded_file=request.FILES['technical_sheet'])
             
             property_obj.save()
             amenity_ids = request.POST.getlist('amenities')

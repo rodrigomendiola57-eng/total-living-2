@@ -20,5 +20,5 @@ urlpatterns = [
     path('agregar/', views.add_property, name='add'),
     path('<int:pk>/editar/', views.edit_property, name='edit'),
     path('<int:pk>/imagenes/', views.manage_images, name='manage_images'),
-    path('<int:pk>/pdf/', views.download_property_pdf, name='download_pdf'),
+    path('<int:pk>/ficha-tecnica/', views.download_technical_sheet, name='technical_sheet'),
 ]

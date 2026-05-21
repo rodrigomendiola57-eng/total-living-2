@@ -3,10 +3,15 @@ from io import BytesIO
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import Client, TestCase
+from django.urls import reverse
 from PIL import Image
 
 from properties.money import parse_coordinate, parse_decimal_value
+from django.test import RequestFactory, override_settings
+
+from properties.og_meta import absolute_media_uri, build_property_open_graph
+from properties.technical_sheet import apply_technical_sheet, validate_technical_sheet_upload
 from properties.models import (
     Property,
     PropertyImage,
@@ -52,6 +57,70 @@ class PropertyConstructionAreaTests(TestCase):
         )
         with self.assertRaises(ValidationError):
             prop.save()
+
+
+class OpenGraphMetaTests(TestCase):
+    @override_settings(PUBLIC_SITE_URL='https://totalliving.example')
+    def test_og_urls_use_public_site(self):
+        prop = Property.objects.create(
+            title='Casa con vista',
+            description='Hermosa casa en la zona.',
+            property_type=PropertyType.CASA,
+            operation_type=PropertyOperation.VENTA,
+            status=PropertyStatus.DISPONIBLE,
+            process=PropertyProcess.NO_APLICA,
+            price=Decimal('2500000'),
+            currency='MXN',
+            address='Av. 1',
+            city='Querétaro',
+            state='Qro.',
+            construction_area=Decimal('120'),
+        )
+        request = RequestFactory().get('/properties/1/')
+        og = build_property_open_graph(prop, request)
+        self.assertEqual(og['url'], f'https://totalliving.example{prop.get_absolute_url()}')
+        self.assertTrue(og['image'].startswith('https://totalliving.example'))
+        self.assertIn('Casa con vista', og['title'])
+
+    def test_absolute_media_uri_with_request(self):
+        request = RequestFactory().get('/properties/1/')
+        uri = absolute_media_uri('/media/x.jpg', request)
+        self.assertIn('/media/x.jpg', uri)
+
+
+class TechnicalSheetTests(TestCase):
+    def test_validate_rejects_invalid_extension(self):
+        bad = SimpleUploadedFile('ficha.exe', b'x', content_type='application/octet-stream')
+        with self.assertRaises(ValidationError):
+            validate_technical_sheet_upload(bad)
+
+    def test_apply_and_download_pdf(self):
+        prop = Property.objects.create(
+            title='Con ficha',
+            description='d',
+            property_type=PropertyType.CASA,
+            operation_type=PropertyOperation.VENTA,
+            status=PropertyStatus.DISPONIBLE,
+            process=PropertyProcess.NO_APLICA,
+            price=Decimal('500000'),
+            currency='MXN',
+            address='A',
+            city='C',
+            state='S',
+            construction_area=Decimal('90'),
+        )
+        pdf = SimpleUploadedFile('mi-ficha.pdf', b'%PDF-1.4 test', content_type='application/pdf')
+        apply_technical_sheet(prop, uploaded_file=pdf)
+        prop.save(update_fields=['technical_sheet'])
+        prop.refresh_from_db()
+        self.assertTrue(prop.has_technical_sheet())
+        self.assertTrue(prop.get_technical_sheet_display_name().endswith('.pdf'))
+
+        client = Client()
+        url = reverse('properties:technical_sheet', kwargs={'pk': prop.pk})
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('attachment', response.get('Content-Disposition', ''))
 
 
 class PropertyMainImageTests(TestCase):

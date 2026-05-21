@@ -93,6 +93,9 @@ class PropertyAdmin(admin.ModelAdmin):
                 'year_built'
             )
         }),
+        ('Documentos', {
+            'fields': ('technical_sheet',),
+        }),
         ('Opciones', {
             'fields': ('is_featured', 'is_new', 'is_advisor_exclusive', 'exclusive_advisor', 'financing_options', 'published_at')
         }),
