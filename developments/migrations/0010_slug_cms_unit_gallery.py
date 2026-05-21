@@ -36,18 +36,19 @@ def apply_development_slug_unique_database(apps, schema_editor):
     if schema_editor.connection.vendor == 'postgresql':
         qn = schema_editor.quote_name
         constraint = f'{table}_slug_key'
-        like_idx = f'{table}_slug_64edfc09_like'
         with schema_editor.connection.cursor() as cursor:
             cursor.execute(
                 f'ALTER TABLE {qn(table)} DROP CONSTRAINT IF EXISTS {qn(constraint)}'
             )
+            # Quitar cualquier índice previo sobre slug (el hash _like varía entre entornos Django).
             cursor.execute(
                 """
                 SELECT indexname FROM pg_indexes
-                WHERE schemaname = 'public' AND tablename = %s
-                  AND (indexname LIKE %s OR indexname = %s)
+                WHERE schemaname = current_schema()
+                  AND tablename = %s
+                  AND indexname ILIKE %s
                 """,
-                [table, '%slug%like', like_idx],
+                [table, '%slug%'],
             )
             for (idx_name,) in cursor.fetchall():
                 cursor.execute(f'DROP INDEX IF EXISTS {qn(idx_name)}')
@@ -55,16 +56,26 @@ def apply_development_slug_unique_database(apps, schema_editor):
                 f'ALTER TABLE {qn(table)} ADD CONSTRAINT {qn(constraint)} '
                 f'UNIQUE ({qn("slug")})'
             )
+            like_name = f'{table}_slug_like'
             cursor.execute(
-                f'CREATE INDEX IF NOT EXISTS {qn(like_idx)} ON {qn(table)} '
-                f'({qn("slug")} varchar_pattern_ops)'
+                """
+                SELECT 1 FROM pg_indexes
+                WHERE schemaname = current_schema()
+                  AND tablename = %s
+                  AND indexname = %s
+                """,
+                [table, like_name],
             )
-        # Django encola el mismo CREATE INDEX en deferred_sql (p. ej. tras add_field)
-        # y lo ejecuta en schema_editor.__exit__ → "already exists" si ya lo creamos.
+            if not cursor.fetchone():
+                cursor.execute(
+                    f'CREATE INDEX {qn(like_name)} ON {qn(table)} '
+                    f'({qn("slug")} varchar_pattern_ops)'
+                )
+        # Evitar que Django vuelva a crear índices slug en deferred_sql al cerrar el editor.
         schema_editor.deferred_sql = [
             stmt
             for stmt in schema_editor.deferred_sql
-            if like_idx not in str(stmt).replace('"', '')
+            if 'slug' not in str(stmt).lower()
         ]
         return
 
@@ -84,15 +95,13 @@ def apply_development_slug_unique_database(apps, schema_editor):
 
 
 def scrub_deferred_development_slug_like_index(apps, schema_editor):
-    """Quita CREATE INDEX …slug…_like duplicado antes del flush en __exit__ del schema editor."""
+    """Quita CREATE INDEX …slug… duplicado antes del flush en __exit__ del schema editor."""
     if schema_editor.connection.vendor != 'postgresql':
         return
-    Development = apps.get_model('developments', 'Development')
-    like_idx = f'{Development._meta.db_table}_slug_64edfc09_like'
     schema_editor.deferred_sql = [
         stmt
         for stmt in schema_editor.deferred_sql
-        if like_idx not in str(stmt).replace('"', '')
+        if 'slug' not in str(stmt).lower()
     ]
 
 
