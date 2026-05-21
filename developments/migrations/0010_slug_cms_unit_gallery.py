@@ -22,25 +22,20 @@ def populate_development_slugs(apps, schema_editor):
 
 def apply_development_slug_unique_database(apps, schema_editor):
     """
-    PostgreSQL: todo el cambio de esquema va por SQL aquí.
-
-    No usar AlterField en database_operations: en PG Django puede ejecutar más de
-    una vez CREATE INDEX …_slug_*_like (p. ej. con SQL diferido) y el contenedor
-    entra en bucle de reinicios al fallar migrate.
-
-    SQLite/otros: un solo alter_field.
+    Aplica unique en slug vía schema editor (CI/staging/upgrade).
+    En PostgreSQL limpia restricciones/índices slug previos para evitar DuplicateTable.
     """
+    from django.db import models as dj_models
+
     Development = apps.get_model('developments', 'Development')
     table = Development._meta.db_table
 
     if schema_editor.connection.vendor == 'postgresql':
         qn = schema_editor.quote_name
-        constraint = f'{table}_slug_key'
         with schema_editor.connection.cursor() as cursor:
             cursor.execute(
-                f'ALTER TABLE {qn(table)} DROP CONSTRAINT IF EXISTS {qn(constraint)}'
+                f'ALTER TABLE {qn(table)} DROP CONSTRAINT IF EXISTS {qn(table + "_slug_key")}'
             )
-            # Quitar cualquier índice previo sobre slug (el hash _like varía entre entornos Django).
             cursor.execute(
                 """
                 SELECT indexname FROM pg_indexes
@@ -52,34 +47,6 @@ def apply_development_slug_unique_database(apps, schema_editor):
             )
             for (idx_name,) in cursor.fetchall():
                 cursor.execute(f'DROP INDEX IF EXISTS {qn(idx_name)}')
-            cursor.execute(
-                f'ALTER TABLE {qn(table)} ADD CONSTRAINT {qn(constraint)} '
-                f'UNIQUE ({qn("slug")})'
-            )
-            like_name = f'{table}_slug_like'
-            cursor.execute(
-                """
-                SELECT 1 FROM pg_indexes
-                WHERE schemaname = current_schema()
-                  AND tablename = %s
-                  AND indexname = %s
-                """,
-                [table, like_name],
-            )
-            if not cursor.fetchone():
-                cursor.execute(
-                    f'CREATE INDEX {qn(like_name)} ON {qn(table)} '
-                    f'({qn("slug")} varchar_pattern_ops)'
-                )
-        # Evitar que Django vuelva a crear índices slug en deferred_sql al cerrar el editor.
-        schema_editor.deferred_sql = [
-            stmt
-            for stmt in schema_editor.deferred_sql
-            if 'slug' not in str(stmt).lower()
-        ]
-        return
-
-    from django.db import models as dj_models
 
     old_field = Development._meta.get_field('slug')
     new_field = dj_models.SlugField(
@@ -92,6 +59,13 @@ def apply_development_slug_unique_database(apps, schema_editor):
     )
     new_field.set_attributes_from_name('slug')
     schema_editor.alter_field(Development, old_field, new_field, strict=False)
+
+    if schema_editor.connection.vendor == 'postgresql':
+        schema_editor.deferred_sql = [
+            stmt
+            for stmt in schema_editor.deferred_sql
+            if 'slug' not in str(stmt).lower()
+        ]
 
 
 def scrub_deferred_development_slug_like_index(apps, schema_editor):

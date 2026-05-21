@@ -47,7 +47,7 @@ jobs:
         run: python manage.py check
 
       - name: Migrations
-        run: python manage.py migrate --noinput --verbosity=2
+        run: python manage.py migrate --noinput --verbosity=2 || (python manage.py showmigrations && exit 1)
 
       - name: Tests
         run: python manage.py test properties panel search contact accounts developments --verbosity=1
