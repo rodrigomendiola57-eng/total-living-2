@@ -1,0 +1,38 @@
+{% extends 'panel/base.html' %}
+
+{% block title %}Hero desarrollos{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-image"></i> Fondo del hero en /desarrollos/</h1>
+        <a href="{% url 'developments:panel_list' %}" class="btn-secondary">← Volver</a>
+    </div>
+
+    <p class="text-muted mb-4" style="max-width: 640px;">
+        La imagen aparece detrás del bloque «Desarrollos únicos en Querétaro» en el sitio público.
+        Se aplica una capa oscura automática para que el texto siga legible.
+    </p>
+
+    {% if config.hero_background %}
+    <div class="mb-4" style="border-radius: 12px; overflow: hidden; max-width: 720px; box-shadow: 0 4px 24px rgba(0,0,0,0.12);">
+        <img src="{{ config.hero_background.url }}" alt="Vista previa hero" style="width: 100%; height: auto; display: block;">
+    </div>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="clear_hero" value="1">
+        <button type="submit" class="btn-secondary"><i class="bi bi-trash"></i> Quitar imagen</button>
+    </form>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="form-section" style="max-width: 520px;">
+        {% csrf_token %}
+        <h2 class="section-title"><i class="bi bi-cloud-upload"></i> Subir o reemplazar</h2>
+        <div class="form-group full">
+            <label for="hero_background">Archivo (JPG, PNG, WebP)</label>
+            <input type="file" id="hero_background" name="hero_background" class="form-control form-control-lg" accept="image/*" required>
+        </div>
+        <button type="submit" class="btn-primary"><i class="bi bi-check2"></i> Guardar</button>
+    </form>
+</div>
+{% endblock %}

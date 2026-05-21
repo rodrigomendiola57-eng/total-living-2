@@ -1,0 +1,1090 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}Nosotros - Total Living{% endblock %}
+
+{% block extra_css %}
+<style>
+    html { overflow-x: clip !important; overflow-y: scroll !important; }
+    body { overflow-x: clip !important; }
+
+    /* ── Página ───────────────────────────────── */
+    .philosophy-page {
+        background: #f5f4f0;
+        padding-bottom: 88px;
+        overflow-x: clip;
+    }
+
+    /* ── Hero vídeo — cubre toda la pantalla, se adapta a cualquier resolución ─── */
+    .story-hero {
+        position: relative;
+        overflow: hidden;
+        min-height: calc(100vh - 4.25rem);
+        min-height: calc(100dvh - 4.25rem);
+        background: #0a0b08;
+    }
+    .story-hero-video {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;           /* llena la pantalla completa, sin barras negras */
+        object-position: center center;
+        z-index: 0;
+    }
+    /* En móvil vertical el video se centra en la parte media para evitar ver sólo fondo */
+    @media (max-width: 767.98px) {
+        .story-hero-video { object-position: center 30%; }
+    }
+
+    /* ── Botón sonido (glass pill) ────────────── */
+    .story-hero-audio-btn {
+        position: absolute;
+        bottom: clamp(0.85rem, 2.5vw, 1.35rem);
+        right: clamp(0.85rem, 2.5vw, 1.35rem);
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.28);
+        background: rgba(255,255,255,0.1);
+        color: rgba(252,252,250,0.92);
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        backdrop-filter: blur(14px) saturate(1.3);
+        -webkit-backdrop-filter: blur(14px) saturate(1.3);
+        transition: background 0.2s, border-color 0.2s, transform 0.2s;
+        flex-shrink: 0;
+    }
+    .story-hero-audio-btn:hover {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.44);
+        transform: translateY(-1px);
+    }
+    .story-hero-audio-btn[aria-pressed="true"] {
+        border-color: rgba(201,166,110,0.5);
+        background: rgba(201,166,110,0.14);
+    }
+    .story-hero-audio-btn:focus-visible {
+        outline: 2px solid rgba(255,255,255,0.8);
+        outline-offset: 3px;
+    }
+    .story-hero-audio-btn .bi { font-size: 1.05rem; opacity: 0.9; }
+
+    /* ── Bloque Filosofía + manifiesto ───────── */
+    .story-philosophy-block {
+        padding: clamp(3.5rem, 6vw, 5.5rem) 0 clamp(3rem, 5vw, 4.5rem);
+        position: relative;
+        background: #f5f4f0;
+    }
+    .story-philosophy-block::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 60px; height: 2px;
+        background: linear-gradient(90deg, transparent, #c9a66e 50%, transparent);
+        border-radius: 2px;
+    }
+    .story-philosophy-block .container { max-width: 1200px; }
+
+    .story-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+    .story-eyebrow {
+        display: inline-block;
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.38em;
+        text-transform: uppercase;
+        color: #8a7450;
+        margin: 0 0 1rem;
+        padding: 0.32rem 1rem;
+        border-radius: 999px;
+        border: 1px solid rgba(201,166,110,0.38);
+        background: rgba(201,166,110,0.08);
+    }
+    .story-title {
+        font-family: 'Raleway', sans-serif;
+        font-size: clamp(1.6rem, 3vw, 2.4rem);
+        letter-spacing: 0.1em;
+        margin: 0 0 0.65rem;
+        color: #1a1e18;
+        line-height: 1.14;
+        font-weight: 200;
+        text-transform: uppercase;
+    }
+    .story-copy {
+        max-width: 36rem;
+        margin: 0 auto clamp(2.25rem, 4vw, 3.25rem);
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: clamp(0.9rem, 1.1vw, 1rem);
+        line-height: 1.72;
+        font-weight: 300;
+        color: #5e6854;
+    }
+
+    /* ── Manifiesto: cuadrícula 5 columnas verticales ─── */
+    .story-manifest-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+        width: 100%;
+        max-width: 1160px;
+        margin: 0 auto;
+        align-items: stretch;
+    }
+    .story-manifest-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.75rem 1rem 1.5rem;
+        background: linear-gradient(155deg, #4a5242 0%, #343b2f 55%, #262c22 100%);
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow:
+            0 12px 32px rgba(10,12,8,0.32),
+            0 2px 8px rgba(10,12,8,0.18);
+        position: relative;
+        overflow: hidden;
+        transition:
+            transform 0.32s cubic-bezier(0.22,1,0.36,1),
+            box-shadow 0.32s ease,
+            border-color 0.32s ease;
+    }
+    /* Brillo sutil en la cima de cada card */
+    .story-manifest-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 15%; right: 15%; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(215,178,122,0.55), transparent);
+        border-radius: 1px;
+    }
+    /* Letra de fondo como watermark decorativo */
+    .story-manifest-card::after {
+        content: attr(data-letter);
+        position: absolute;
+        bottom: -0.4rem; right: 0.3rem;
+        font-family: 'Raleway', sans-serif;
+        font-size: 5.5rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.03);
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+        letter-spacing: -0.05em;
+    }
+    .story-manifest-card:hover {
+        transform: translateY(-8px);
+        box-shadow:
+            0 24px 52px rgba(10,12,8,0.42),
+            0 0 0 1px rgba(201,166,110,0.3),
+            0 0 28px rgba(201,166,110,0.08);
+        border-color: rgba(201,166,110,0.28);
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .story-manifest-card { transition: box-shadow 0.2s ease; }
+        .story-manifest-card:hover { transform: none; }
+    }
+
+    .story-manifest-card-media {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    .story-manifest-card-media-inner {
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        background: rgba(201,166,110,0.1);
+        border: 1px solid rgba(201,166,110,0.38);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+            0 0 18px rgba(201,166,110,0.14),
+            inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .story-manifest-letter {
+        font-family: 'Raleway', sans-serif;
+        font-size: 1.45rem;
+        font-weight: 300;
+        line-height: 1;
+        color: #d7b27a;
+        display: block;
+        letter-spacing: 0;
+    }
+    .story-manifest-card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.4rem;
+        padding: 0;
+    }
+    .story-manifest-card-title {
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.67rem;
+        font-weight: 300;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: rgba(252,248,240,0.96);
+        margin: 0;
+        line-height: 1.35;
+        hyphens: none;
+        -webkit-hyphens: none;
+        word-break: normal;
+    }
+    .story-manifest-card-copy {
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.8rem;
+        font-weight: 300;
+        color: rgba(210,204,192,0.6);
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    /* ── Valores Total Living — REDISEÑO PREMIUM ─── */
+    .values-total-outer {
+        background: linear-gradient(160deg, #181c14 0%, #1f2518 40%, #14170f 100%);
+        margin: 0 calc(50% - 50vw);
+        width: 100vw;
+        max-width: 100vw;
+        padding: clamp(3.5rem, 6vw, 5.5rem) 24px clamp(3.5rem, 6vw, 5.5rem);
+        box-sizing: border-box;
+        border-top: 1px solid rgba(201,166,110,0.16);
+        position: relative;
+        overflow: hidden;
+    }
+    /* Textura decorativa sutil de fondo */
+    .values-total-outer::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            radial-gradient(ellipse 60% 40% at 20% 80%, rgba(201,166,110,0.04) 0%, transparent 70%),
+            radial-gradient(ellipse 50% 50% at 80% 20%, rgba(74,82,66,0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .values-total-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+    .values-total-title {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 200;
+        font-size: clamp(2rem, 4.5vw, 3.2rem);
+        color: #d7b27a;
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.12em;
+        line-height: 1.1;
+        text-transform: uppercase;
+    }
+    .values-total-subtitle {
+        text-align: center;
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.92rem;
+        color: rgba(200,195,184,0.52);
+        font-weight: 300;
+        margin: 0 0 clamp(2.25rem, 4vw, 3.25rem);
+        letter-spacing: 0.02em;
+    }
+    .values-total-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 16px;
+    }
+    .values-total-card {
+        text-align: center;
+        padding: 2rem 1.1rem 1.75rem;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 22px;
+        background: rgba(255,255,255,0.035);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        transition:
+            transform 0.32s cubic-bezier(0.22,1,0.36,1),
+            border-color 0.32s ease,
+            background 0.32s ease,
+            box-shadow 0.32s ease;
+        cursor: default;
+    }
+    /* Línea dorada decorativa en la parte superior */
+    .values-total-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 20%; right: 20%; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(201,166,110,0.5), transparent);
+        border-radius: 1px;
+    }
+    /* Número de orden en segundo plano */
+    .values-total-card::after {
+        content: attr(data-num);
+        position: absolute;
+        bottom: -0.5rem; right: 0.6rem;
+        font-family: 'Raleway', sans-serif;
+        font-size: 4.5rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.025);
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+    }
+    .values-total-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(201,166,110,0.32);
+        background: rgba(255,255,255,0.065);
+        box-shadow:
+            0 20px 48px rgba(5,6,4,0.45),
+            0 0 32px rgba(201,166,110,0.07);
+    }
+    .values-total-emoji {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 3.25rem; height: 3.25rem;
+        margin: 0 auto 1.1rem;
+        font-size: 1.25rem;
+        color: #d7b27a;
+        border: 1px solid rgba(201,166,110,0.32);
+        border-radius: 50%;
+        background: rgba(201,166,110,0.08);
+        box-shadow:
+            0 0 24px rgba(201,166,110,0.1),
+            inset 0 1px 0 rgba(255,255,255,0.08);
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+    .values-total-card:hover .values-total-emoji {
+        box-shadow:
+            0 0 36px rgba(201,166,110,0.22),
+            inset 0 1px 0 rgba(255,255,255,0.12);
+        transform: scale(1.08);
+    }
+    .values-total-name {
+        margin: 0 0 0.6rem;
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.66rem;
+        font-weight: 400;
+        color: rgba(238,230,214,0.95);
+        letter-spacing: 0.16em;
+        line-height: 1.4;
+        text-transform: uppercase;
+        position: relative;
+        z-index: 1;
+    }
+    .values-total-line {
+        margin: 0;
+        font-size: 0.79rem;
+        color: rgba(200,194,180,0.55);
+        line-height: 1.6;
+        font-weight: 300;
+        font-family: 'Nunito', system-ui, sans-serif;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ── Secciones internas ───────────────────── */
+    .philosophy-section { margin-top: clamp(2rem, 4vw, 3.5rem); }
+    .section-title {
+        font-family: 'Raleway', sans-serif;
+        font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+        color: #1e231c;
+        margin: 0 0 clamp(1.25rem, 2vw, 1.75rem);
+        font-weight: 200;
+        text-align: center;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 36px; height: 2px;
+        background: #c9a66e;
+        margin: 0.55rem auto 0;
+        border-radius: 2px;
+    }
+
+    /* ── Bento misión/visión ──────────────────── */
+    .bento-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .bento-card {
+        border-radius: 24px;
+        border: 1px solid rgba(242,236,224,0.14);
+        min-height: 300px;
+        box-shadow: 0 20px 48px rgba(22,24,20,0.18);
+        padding: 36px 32px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background-size: cover;
+        background-position: center;
+    }
+    .bento-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(160deg, rgba(12,16,10,0.74) 0%, rgba(20,25,18,0.58) 100%);
+        pointer-events: none;
+    }
+    .bento-card > * { position: relative; z-index: 1; }
+    .bento-card:hover { transform: translateY(-5px); box-shadow: 0 32px 60px rgba(22,24,20,0.26); }
+    .bento-card.mision-bg { background-image: url("{% static 'images/mision-card.png' %}"); }
+    .bento-card.vision-bg  { background-image: url("{% static 'images/vision-card.png' %}"); }
+    .bento-head { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .bento-icon {
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        background: rgba(201,166,110,0.16);
+        border: 1px solid rgba(201,166,110,0.28);
+        color: #d7b27a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    .bento-title {
+        margin: 0;
+        font-size: clamp(1.5rem, 2.4vw, 1.95rem);
+        font-family: 'Raleway', sans-serif;
+        color: #ffffff;
+        font-weight: 200;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+    .bento-copy {
+        margin: 0;
+        color: rgba(255,255,255,0.88);
+        line-height: 1.72;
+        font-size: clamp(0.93rem, 1.15vw, 1.06rem);
+        font-weight: 300;
+        max-width: 88%;
+        margin-left: auto;
+        margin-right: auto;
+        font-family: 'Nunito', system-ui, sans-serif;
+    }
+
+    /* ── Team banner ──────────────────────────── */
+    .team-banner {
+        margin-top: 20px;
+        min-height: 460px;
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 20px 48px rgba(22,24,20,0.14);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+    .team-banner-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+    .team-banner::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(10,13,8,0.68) 0%, rgba(10,13,8,0.14) 52%, transparent 100%);
+        pointer-events: none;
+    }
+    .team-banner-title {
+        position: relative;
+        z-index: 1;
+        margin: 0 0 clamp(1.5rem, 3.5vw, 2.5rem);
+        color: #ffffff;
+        font-family: 'Raleway', sans-serif;
+        font-size: clamp(1.6rem, 3.8vw, 3.2rem);
+        letter-spacing: 0.1em;
+        font-weight: 200;
+        text-transform: uppercase;
+        text-shadow: 0 2px 18px rgba(0,0,0,0.4);
+        padding: 0 20px;
+        line-height: 1.1;
+    }
+
+    /* ── Organigrama ──────────────────────────── */
+    .orgchart-container {
+        margin-top: clamp(2rem, 3.5vw, 3rem);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+    }
+    .org-level { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; width: 100%; }
+    .org-card {
+        border-radius: 20px;
+        border: 1px solid rgba(47,52,45,0.07);
+        background: #ffffff;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(20,22,18,0.05);
+        width: 260px;
+        transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease, border-color 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+    }
+    .org-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 40px rgba(201,166,110,0.17);
+        border-color: rgba(201,166,110,0.26);
+    }
+    .org-card.director { width: 300px; border-color: rgba(201,166,110,0.16); background: linear-gradient(160deg,#ffffff,#fffef9); }
+    .org-card.manager  { width: 280px; }
+    .org-photo-container {
+        height: 220px;
+        overflow: hidden;
+        position: relative;
+        background: linear-gradient(145deg, #f2f3f0 0%, #e8ebe4 100%);
+    }
+    .org-photo { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+    .org-card:hover .org-photo { transform: scale(1.04); }
+    .org-photo-placeholder {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(64,69,46,0.28);
+        font-size: 3.5rem;
+        font-weight: 200;
+        font-family: 'Raleway', sans-serif;
+        letter-spacing: -1px;
+    }
+    .org-body { padding: 20px; text-align: center; }
+    .org-name {
+        margin: 0 0 5px;
+        font-size: 1.1rem;
+        color: #1a1d18;
+        font-family: 'Raleway', sans-serif;
+        font-weight: 300;
+        letter-spacing: 0.02em;
+    }
+    .org-role {
+        margin: 0 0 12px;
+        color: #8b9299;
+        font-size: 0.7rem;
+        font-weight: 500;
+        font-family: 'Nunito', sans-serif;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+    .org-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border-radius: 100px;
+        background: rgba(201,166,110,0.09);
+        color: #7d6840;
+        font-size: 0.72rem;
+        font-weight: 500;
+        font-family: 'Nunito', sans-serif;
+        padding: 5px 12px;
+        margin-bottom: 12px;
+    }
+    .org-tag i { font-size: 0.8rem; }
+    .org-bio { margin: 0 0 14px; color: #6b7280; font-size: 0.83rem; line-height: 1.62; font-family: 'Nunito', sans-serif; font-weight: 300; }
+    .org-actions { display: flex; gap: 8px; justify-content: center; }
+    .org-action {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(47,52,45,0.1);
+        color: #6b7280;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        background: #f8f7f4;
+        transition: background 0.2s, color 0.2s, transform 0.2s, border-color 0.2s;
+        font-size: 0.85rem;
+    }
+    .org-action:hover { background: #3d4436; color: #fff; border-color: #3d4436; transform: translateY(-2px); }
+    .org-connector {
+        width: 1px; height: 28px;
+        background: linear-gradient(180deg, rgba(201,166,110,0.44), rgba(201,166,110,0.07));
+        margin: 0 auto;
+    }
+    .org-view-more {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 6px;
+        color: #c9a66e;
+        font-size: 0.78rem;
+        font-weight: 500;
+        font-family: 'Nunito', sans-serif;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+    .org-card:hover .org-view-more { opacity: 1; }
+
+    .reveal { opacity: 1; transform: translateY(0); }
+    .reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ───────────────────────────── */
+    @media (max-width: 1199.98px) {
+        .story-manifest-grid { max-width: 100%; gap: 10px; }
+        .story-manifest-card { padding: 1.4rem 0.8rem 1.2rem; }
+    }
+    @media (max-width: 991.98px) {
+        .story-manifest-grid { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+        .values-total-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+        .bento-grid { grid-template-columns: 1fr; }
+        .org-card { width: 100% !important; max-width: 340px; }
+        .team-banner { min-height: 360px; }
+    }
+    @media (max-width: 767.98px) {
+        .story-hero { min-height: calc(100vh - 4rem); min-height: calc(100dvh - 4rem); }
+        .story-philosophy-block { padding: clamp(2.25rem, 5vw, 3.5rem) 0 clamp(2rem, 4.5vw, 3rem); }
+        /* Tarjetas manifiesto: 1 columna en móvil */
+        .story-manifest-grid {
+            grid-template-columns: 1fr;
+            gap: 0.65rem;
+            max-width: 420px;
+        }
+        .story-manifest-card {
+            flex-direction: row;
+            align-items: center;
+            text-align: left;
+            gap: 1rem;
+            padding: 1rem 1.1rem;
+            border-radius: 18px;
+        }
+        .story-manifest-card-media { margin-bottom: 0; }
+        .story-manifest-card-media-inner { width: 46px; height: 46px; }
+        .story-manifest-letter { font-size: 1.2rem; }
+        .story-manifest-card-body { align-items: flex-start; text-align: left; }
+        .story-manifest-card-title { font-size: 0.65rem; letter-spacing: 0.1em; }
+        .story-manifest-card-copy { font-size: 0.81rem; }
+
+        /* ── Animación scroll móvil: sube + escala, escalonada ── */
+        .story-manifest-card--mobile-reveal {
+            opacity: 0;
+            transform: translate3d(0, 32px, 0) scale(0.93);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: opacity, transform;
+            transition:
+                opacity 0.55s cubic-bezier(0.22,1,0.36,1),
+                transform 0.55s cubic-bezier(0.22,1,0.36,1);
+        }
+        .story-manifest-card--mobile-reveal.is-revealed {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .story-hero-audio-btn { bottom: 0.75rem; right: 0.75rem; padding: 0.4rem 0.7rem; font-size: 0.7rem; }
+        .story-hero-audio-btn .bi { font-size: 0.9rem; }
+        .values-total-grid { grid-template-columns: 1fr; }
+        .org-level { flex-direction: column; align-items: center; }
+        .team-banner { min-height: 280px; border-radius: 16px; }
+        .team-banner-title { font-size: clamp(1.3rem, 5.5vw, 1.9rem); margin-bottom: 1.25rem; }
+        .bento-card { min-height: 260px; padding: 28px 20px; }
+    }
+    /* En desktop y tablet las tarjetas no tienen animación de reveal */
+    @media (min-width: 768px) {
+        .story-manifest-card--mobile-reveal { opacity: 1 !important; transform: none !important; }
+    }
+    @media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
+        .story-manifest-card--mobile-reveal { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="story-hero" aria-label="{% trans 'Vídeo de presentación' %}">
+    <video class="story-hero-video" autoplay muted loop playsinline preload="metadata" webkit-playsinline>
+        <source src="{{ nosotros_hero_video_url }}" type="video/mp4">
+    </video>
+    <button type="button"
+            class="story-hero-audio-btn"
+            id="nosotros-hero-audio-btn"
+            aria-pressed="false"
+            data-label-off="{% trans 'Activar sonido' %}"
+            data-label-on="{% trans 'Silenciar' %}">
+        <i class="bi bi-volume-mute-fill" id="nosotros-hero-audio-icon" aria-hidden="true"></i>
+        <span id="nosotros-hero-audio-label">{% trans "Activar sonido" %}</span>
+    </button>
+</section>
+
+<section class="philosophy-page">
+    <div class="story-philosophy-block">
+        <div class="container">
+            <div class="story-content">
+                <span class="story-eyebrow">{% trans "Método Total" %}</span>
+                <h1 class="story-title">{{ nosotros_content.hero_title }}</h1>
+                <p class="story-copy">
+                    {{ nosotros_content.hero_line_1 }}<br>
+                    {{ nosotros_content.hero_line_2 }}
+                </p>
+                <div class="story-manifest-grid" id="story-manifest-grid">
+                    <article class="story-manifest-card story-manifest-card--mobile-reveal" data-letter="T">
+                        <div class="story-manifest-card-media">
+                            <div class="story-manifest-card-media-inner">
+                                <span class="story-manifest-letter" aria-hidden="true">T</span>
+                            </div>
+                        </div>
+                        <div class="story-manifest-card-body">
+                            <h3 class="story-manifest-card-title">{{ nosotros_content.manifest_t_meaning }}</h3>
+                            <p class="story-manifest-card-copy">{{ nosotros_content.manifest_t_desc }}</p>
+                        </div>
+                    </article>
+                    <article class="story-manifest-card story-manifest-card--mobile-reveal" data-letter="O">
+                        <div class="story-manifest-card-media">
+                            <div class="story-manifest-card-media-inner">
+                                <span class="story-manifest-letter" aria-hidden="true">O</span>
+                            </div>
+                        </div>
+                        <div class="story-manifest-card-body">
+                            <h3 class="story-manifest-card-title">{{ nosotros_content.manifest_o_meaning }}</h3>
+                            <p class="story-manifest-card-copy">{{ nosotros_content.manifest_o_desc }}</p>
+                        </div>
+                    </article>
+                    <article class="story-manifest-card story-manifest-card--mobile-reveal" data-letter="T">
+                        <div class="story-manifest-card-media">
+                            <div class="story-manifest-card-media-inner">
+                                <span class="story-manifest-letter" aria-hidden="true">T</span>
+                            </div>
+                        </div>
+                        <div class="story-manifest-card-body">
+                            <h3 class="story-manifest-card-title">{{ nosotros_content.manifest_t2_meaning }}</h3>
+                            <p class="story-manifest-card-copy">{{ nosotros_content.manifest_t2_desc }}</p>
+                        </div>
+                    </article>
+                    <article class="story-manifest-card story-manifest-card--mobile-reveal" data-letter="A">
+                        <div class="story-manifest-card-media">
+                            <div class="story-manifest-card-media-inner">
+                                <span class="story-manifest-letter" aria-hidden="true">A</span>
+                            </div>
+                        </div>
+                        <div class="story-manifest-card-body">
+                            <h3 class="story-manifest-card-title">{{ nosotros_content.manifest_a_meaning }}</h3>
+                            <p class="story-manifest-card-copy">{{ nosotros_content.manifest_a_desc }}</p>
+                        </div>
+                    </article>
+                    <article class="story-manifest-card story-manifest-card--mobile-reveal" data-letter="L">
+                        <div class="story-manifest-card-media">
+                            <div class="story-manifest-card-media-inner">
+                                <span class="story-manifest-letter" aria-hidden="true">L</span>
+                            </div>
+                        </div>
+                        <div class="story-manifest-card-body">
+                            <h3 class="story-manifest-card-title">{{ nosotros_content.manifest_l_meaning }}</h3>
+                            <p class="story-manifest-card-copy">{{ nosotros_content.manifest_l_desc }}</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="values-total-outer reveal">
+        <div class="values-total-inner">
+            <h2 class="values-total-title">{{ nosotros_content.values_title }}</h2>
+            <p class="values-total-subtitle">{{ nosotros_content.values_subtitle }}</p>
+            <div class="values-total-grid">
+                <article class="values-total-card" data-num="01">
+                    <i class="bi {{ nosotros_content.value_1_icon|default:'bi-heart' }} values-total-emoji" aria-hidden="true"></i>
+                    <h3 class="values-total-name">{{ nosotros_content.value_1_title }}</h3>
+                    <p class="values-total-line">{{ nosotros_content.value_1_text }}</p>
+                </article>
+                <article class="values-total-card" data-num="02">
+                    <i class="bi {{ nosotros_content.value_2_icon|default:'bi-shield-check' }} values-total-emoji" aria-hidden="true"></i>
+                    <h3 class="values-total-name">{{ nosotros_content.value_2_title }}</h3>
+                    <p class="values-total-line">{{ nosotros_content.value_2_text }}</p>
+                </article>
+                <article class="values-total-card" data-num="03">
+                    <i class="bi {{ nosotros_content.value_3_icon|default:'bi-people' }} values-total-emoji" aria-hidden="true"></i>
+                    <h3 class="values-total-name">{{ nosotros_content.value_3_title }}</h3>
+                    <p class="values-total-line">{{ nosotros_content.value_3_text }}</p>
+                </article>
+                <article class="values-total-card" data-num="04">
+                    <i class="bi {{ nosotros_content.value_4_icon|default:'bi-globe2' }} values-total-emoji" aria-hidden="true"></i>
+                    <h3 class="values-total-name">{{ nosotros_content.value_4_title }}</h3>
+                    <p class="values-total-line">{{ nosotros_content.value_4_text }}</p>
+                </article>
+                <article class="values-total-card" data-num="05">
+                    <i class="bi {{ nosotros_content.value_5_icon|default:'bi-gem' }} values-total-emoji" aria-hidden="true"></i>
+                    <h3 class="values-total-name">{{ nosotros_content.value_5_title }}</h3>
+                    <p class="values-total-line">{{ nosotros_content.value_5_text }}</p>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="philosophy-section reveal">
+            <h2 class="section-title">{{ nosotros_content.mission_vision_title }}</h2>
+            <div class="bento-grid">
+                <article class="bento-card mision-bg">
+                    <div class="bento-head">
+                        <div class="bento-icon"><i class="bi bi-grid-1x2"></i></div>
+                        <h3 class="bento-title">{{ nosotros_content.mission_title }}</h3>
+                    </div>
+                    <p class="bento-copy">
+                        {{ nosotros_content.mission_text }}
+                    </p>
+                </article>
+                <article class="bento-card vision-bg">
+                    <div class="bento-head">
+                        <div class="bento-icon"><i class="bi bi-compass"></i></div>
+                        <h3 class="bento-title">{{ nosotros_content.vision_title }}</h3>
+                    </div>
+                    <p class="bento-copy">
+                        {{ nosotros_content.vision_text }}
+                    </p>
+                </article>
+            </div>
+        </div>
+
+        <div class="philosophy-section reveal">
+            <article class="team-banner">
+                <img class="team-banner-photo" src="{% static 'images/equipo-total-living-banner-v2.png' %}" alt="Equipo Total Living">
+                <h2 class="team-banner-title">{{ nosotros_content.team_banner_title }}</h2>
+            </article>
+        </div>
+
+        <div class="philosophy-section reveal">
+            <h2 class="section-title">Estructura de equipo</h2>
+            <div class="orgchart-container">
+                {% if organigram_directors %}
+                <div class="org-level">
+                    {% for m in organigram_directors %}
+                    <a href="{% url 'team_member_detail' m.slug %}" class="org-card director">
+                        <div class="org-photo-container">
+                            {% if m.photo %}
+                                <img src="{{ m.photo.url }}" alt="{{ m.full_name }}" class="org-photo">
+                            {% else %}
+                                <div class="org-photo-placeholder">{{ m.initials }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="org-body">
+                            <p class="org-name">{{ m.full_name }}</p>
+                            <p class="org-role">{{ m.role_label }}</p>
+                            {% if m.tag_label %}
+                            <span class="org-tag"><i class="bi {{ m.tag_icon|default:'bi-briefcase' }}"></i> {{ m.tag_label }}</span>
+                            {% endif %}
+                            <p class="org-bio">{{ m.bio }}</p>
+                            <div class="org-actions" onclick="event.preventDefault(); event.stopPropagation();">
+                                {% if m.email %}<a class="org-action" href="mailto:{{ m.email }}" aria-label="Correo"><i class="bi bi-envelope"></i></a>{% endif %}
+                                {% if m.url_whatsapp %}<a class="org-action" href="{{ m.url_whatsapp }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>{% endif %}
+                                {% if m.url_instagram %}<a class="org-action" href="{{ m.url_instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="bi bi-instagram"></i></a>{% endif %}
+                                {% if m.url_facebook %}<a class="org-action" href="{{ m.url_facebook }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a>{% endif %}
+                                {% if m.url_linkedin %}<a class="org-action" href="{{ m.url_linkedin }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>{% endif %}
+                                {% if m.url_tiktok %}<a class="org-action" href="{{ m.url_tiktok }}" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>{% endif %}
+                                {% if m.url_x %}<a class="org-action" href="{{ m.url_x }}" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="bi bi-twitter-x"></i></a>{% endif %}
+                            </div>
+                            <span class="org-view-more">Ver perfil completo <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if organigram_managers %}
+                {% if organigram_directors %}<div class="org-connector"></div>{% endif %}
+                <div class="org-level">
+                    {% for m in organigram_managers %}
+                    <a href="{% url 'team_member_detail' m.slug %}" class="org-card manager">
+                        <div class="org-photo-container">
+                            {% if m.photo %}
+                                <img src="{{ m.photo.url }}" alt="{{ m.full_name }}" class="org-photo">
+                            {% else %}
+                                <div class="org-photo-placeholder">{{ m.initials }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="org-body">
+                            <p class="org-name">{{ m.full_name }}</p>
+                            <p class="org-role">{{ m.role_label }}</p>
+                            {% if m.tag_label %}
+                            <span class="org-tag"><i class="bi {{ m.tag_icon|default:'bi-briefcase' }}"></i> {{ m.tag_label }}</span>
+                            {% endif %}
+                            <p class="org-bio">{{ m.bio }}</p>
+                            <div class="org-actions" onclick="event.preventDefault(); event.stopPropagation();">
+                                {% if m.email %}<a class="org-action" href="mailto:{{ m.email }}" aria-label="Correo"><i class="bi bi-envelope"></i></a>{% endif %}
+                                {% if m.url_whatsapp %}<a class="org-action" href="{{ m.url_whatsapp }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>{% endif %}
+                                {% if m.url_instagram %}<a class="org-action" href="{{ m.url_instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="bi bi-instagram"></i></a>{% endif %}
+                                {% if m.url_facebook %}<a class="org-action" href="{{ m.url_facebook }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a>{% endif %}
+                                {% if m.url_linkedin %}<a class="org-action" href="{{ m.url_linkedin }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>{% endif %}
+                                {% if m.url_tiktok %}<a class="org-action" href="{{ m.url_tiktok }}" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>{% endif %}
+                                {% if m.url_x %}<a class="org-action" href="{{ m.url_x }}" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="bi bi-twitter-x"></i></a>{% endif %}
+                            </div>
+                            <span class="org-view-more">Ver perfil completo <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if organigram_advisors %}
+                {% if organigram_directors or organigram_managers %}<div class="org-connector"></div>{% endif %}
+                <div class="org-level">
+                    {% for m in organigram_advisors %}
+                    <a href="{% url 'team_member_detail' m.slug %}" class="org-card">
+                        <div class="org-photo-container">
+                            {% if m.photo %}
+                                <img src="{{ m.photo.url }}" alt="{{ m.full_name }}" class="org-photo">
+                            {% else %}
+                                <div class="org-photo-placeholder">{{ m.initials }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="org-body">
+                            <p class="org-name">{{ m.full_name }}</p>
+                            <p class="org-role">{{ m.role_label }}</p>
+                            {% if m.tag_label %}
+                            <span class="org-tag"><i class="bi {{ m.tag_icon|default:'bi-house-heart' }}"></i> {{ m.tag_label }}</span>
+                            {% endif %}
+                            <p class="org-bio">{{ m.bio }}</p>
+                            <div class="org-actions" onclick="event.preventDefault(); event.stopPropagation();">
+                                {% if m.email %}<a class="org-action" href="mailto:{{ m.email }}" aria-label="Correo"><i class="bi bi-envelope"></i></a>{% endif %}
+                                {% if m.url_whatsapp %}<a class="org-action" href="{{ m.url_whatsapp }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>{% endif %}
+                                {% if m.url_instagram %}<a class="org-action" href="{{ m.url_instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="bi bi-instagram"></i></a>{% endif %}
+                                {% if m.url_facebook %}<a class="org-action" href="{{ m.url_facebook }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a>{% endif %}
+                                {% if m.url_linkedin %}<a class="org-action" href="{{ m.url_linkedin }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>{% endif %}
+                                {% if m.url_tiktok %}<a class="org-action" href="{{ m.url_tiktok }}" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>{% endif %}
+                                {% if m.url_x %}<a class="org-action" href="{{ m.url_x }}" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="bi bi-twitter-x"></i></a>{% endif %}
+                            </div>
+                            <span class="org-view-more">Ver perfil completo <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% elif not organigram_directors and not organigram_managers %}
+                <div class="org-level">
+                    <article class="org-card">
+                        <div class="org-photo-container">
+                            <div class="org-photo-placeholder">TL</div>
+                        </div>
+                        <div class="org-body">
+                            <p class="org-name">Equipo Total Living</p>
+                            <p class="org-role">Próximamente</p>
+                            <span class="org-tag"><i class="bi bi-people"></i> Organigrama</span>
+                            <p class="org-bio">Las fichas del equipo se configuran desde el panel de administración.</p>
+                            <div class="org-actions">
+                                <a class="org-action" href="{% url 'contact:contact' %}" aria-label="Contacto"><i class="bi bi-chat-dots"></i></a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('nosotros-hero-audio-btn');
+    var video = document.querySelector('.story-hero-video');
+    var icon = document.getElementById('nosotros-hero-audio-icon');
+    var label = document.getElementById('nosotros-hero-audio-label');
+    if (btn && video && icon && label) {
+        var off = btn.getAttribute('data-label-off') || 'Activar sonido';
+        var on = btn.getAttribute('data-label-on') || 'Silenciar';
+        function sync() {
+            var unmuted = !video.muted;
+            btn.setAttribute('aria-pressed', unmuted ? 'true' : 'false');
+            icon.className = 'bi ' + (unmuted ? 'bi-volume-up-fill' : 'bi-volume-mute-fill');
+            label.textContent = unmuted ? on : off;
+        }
+        btn.addEventListener('click', function () {
+            video.muted = !video.muted;
+            if (!video.muted) {
+                video.play().catch(function () {});
+            }
+            sync();
+        });
+        sync();
+    }
+
+    /* Manifiesto móvil: cada tarjeta anima escalonada al entrar en viewport */
+    var mqMobile = window.matchMedia('(max-width: 767.98px)');
+    var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var manifestCards = Array.prototype.slice.call(
+        document.querySelectorAll('.story-manifest-card--mobile-reveal')
+    );
+    var manifestObserver = null;
+
+    function revealCard(card, delayMs) {
+        if (card.classList.contains('is-revealed')) return;
+        setTimeout(function () {
+            requestAnimationFrame(function () {
+                card.classList.add('is-revealed');
+            });
+        }, delayMs || 0);
+    }
+
+    function revealAllManifestCards() {
+        manifestCards.forEach(function (c) { c.classList.add('is-revealed'); });
+    }
+
+    function setupManifestReveal() {
+        if (manifestObserver) { manifestObserver.disconnect(); manifestObserver = null; }
+        if (!manifestCards.length) return;
+        if (!mqMobile.matches || mqReduce.matches) { revealAllManifestCards(); return; }
+
+        /* Observamos cada card individualmente.
+           Al entrar en el viewport se activa inmediatamente con un pequeño
+           delay escalonado según el orden de la tarjeta en la lista visible. */
+        manifestObserver = new IntersectionObserver(
+            function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    var idx = manifestCards.indexOf(entry.target);
+                    /* Delay base 0ms + 60ms por posición relativa para el efecto escalonado */
+                    revealCard(entry.target, Math.max(0, idx) * 60);
+                    manifestObserver.unobserve(entry.target);
+                });
+            },
+            {
+                root: null,
+                /* rootMargin negativo en el borde inferior: la tarjeta tiene que entrar
+                   un poco en la pantalla antes de que dispare la animación → efecto
+                   "aparece justo cuando bajas" muy preciso */
+                rootMargin: '0px 0px -8% 0px',
+                threshold: 0.06
+            }
+        );
+        manifestCards.forEach(function (card) {
+            if (!card.classList.contains('is-revealed')) {
+                manifestObserver.observe(card);
+            }
+        });
+    }
+
+    setupManifestReveal();
+    if (typeof mqMobile.addEventListener === 'function') {
+        mqMobile.addEventListener('change', setupManifestReveal);
+        mqReduce.addEventListener('change', setupManifestReveal);
+    } else {
+        mqMobile.addListener(setupManifestReveal);
+        mqReduce.addListener(setupManifestReveal);
+    }
+});
+</script>
+{% endblock %}

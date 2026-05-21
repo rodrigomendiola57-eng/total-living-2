@@ -1,0 +1,547 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Asesoría compra" %} - Total Living{% endblock %}
+
+{% block extra_css %}
+<style>
+    .advisory-purchase-shell {
+        background: radial-gradient(circle at top right, rgba(188, 164, 113, 0.2), transparent 46%),
+                    linear-gradient(160deg, #f7f4ec 0%, #ffffff 62%);
+    }
+    .advisory-form-card {
+        border: 0;
+        border-radius: 1.2rem;
+        box-shadow: 0 18px 42px rgba(25, 27, 24, 0.1);
+    }
+    .advisory-progress {
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(56, 56, 46, 0.12);
+        overflow: hidden;
+    }
+    .advisory-progress-bar {
+        height: 100%;
+        width: 33.33%;
+        background: linear-gradient(90deg, #9e8658, #d7b27a);
+        border-radius: 999px;
+        transition: width 0.3s ease;
+    }
+    .advisory-step-label {
+        font-size: 0.88rem;
+        color: #6f6f65;
+        letter-spacing: 0.02em;
+    }
+    .advisory-step {
+        display: none;
+    }
+    .advisory-step.is-active {
+        display: block;
+        animation: fadeStep 0.28s ease;
+    }
+    .advisory-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #38382e;
+        margin-bottom: 0.42rem;
+    }
+    .advisory-input {
+        border-radius: 0.75rem;
+        border: 1px solid rgba(56, 56, 46, 0.2);
+        transition: all 0.3s ease;
+    }
+    .advisory-input:focus {
+        border-color: #9e8658;
+        box-shadow: 0 0 0 0.2rem rgba(158, 134, 88, 0.22);
+    }
+    .choice-grid {
+        display: grid;
+        gap: 10px;
+    }
+    .choice-grid.type-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .choice-grid.budget-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .choice-card {
+        border: 1px solid rgba(56, 56, 46, 0.2);
+        border-radius: 0.9rem;
+        background: #fff;
+        color: #34342b;
+        padding: 12px 10px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .choice-card i {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+    }
+    .choice-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(158, 134, 88, 0.7);
+        box-shadow: 0 10px 20px rgba(56, 56, 46, 0.08);
+    }
+    .choice-card.is-selected {
+        border-color: #9e8658;
+        background: rgba(215, 178, 122, 0.15);
+        box-shadow: 0 0 0 1px rgba(158, 134, 88, 0.25);
+    }
+    .choice-text {
+        font-size: 0.88rem;
+        font-weight: 600;
+    }
+    .step-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+    }
+    .advisory-error {
+        display: none;
+        font-size: 0.85rem;
+        color: #b84242;
+        margin-top: 8px;
+    }
+    .advisory-error.is-visible {
+        display: block;
+    }
+    .purchase-intro-wrapper {
+        margin-bottom: 1.6rem;
+    }
+    .purchase-process-wrapper {
+        margin-top: 0;
+    }
+    .purchase-process-title {
+        text-align: center;
+        margin-bottom: 1.4rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        font-weight: 600;
+        color: #2f342d;
+        letter-spacing: 0.2px;
+    }
+    .purchase-mini-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 1.6rem;
+    }
+    .purchase-mini-card {
+        background: #ffffff;
+        border: 1px solid rgba(56, 56, 46, 0.1);
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 10px 24px rgba(20, 22, 19, 0.08);
+    }
+    .purchase-mini-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #2f342d;
+        color: #f2ece0;
+        margin-bottom: 0.6rem;
+    }
+    .purchase-mini-card h3 {
+        font-size: 1.15rem;
+        margin-bottom: 0.35rem;
+        color: #232620;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+    }
+    .purchase-mini-card p {
+        margin: 0;
+        color: #5f655b;
+        font-size: 0.93rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        line-height: 1.55;
+    }
+    .purchase-steps-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .purchase-step-card {
+        border-radius: 1rem;
+        padding: 1rem 0.95rem;
+        min-height: 146px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 10px 24px rgba(20, 22, 19, 0.08);
+        text-align: left;
+        gap: 0.2rem;
+    }
+    .purchase-step-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 30px rgba(20, 22, 19, 0.13);
+    }
+    .purchase-step-card--accent {
+        background: linear-gradient(140deg, #2f342d 0%, #414b3d 100%);
+        color: #ffffff;
+    }
+    .purchase-step-card--accent .purchase-step-number,
+    .purchase-step-card--accent h4,
+    .purchase-step-card--accent p {
+        color: #ffffff !important;
+    }
+    .purchase-step-card--light {
+        background: #f2eee6;
+        color: #2f342d;
+        border: 1px solid rgba(158, 134, 88, 0.22);
+    }
+    .purchase-step-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.35rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    .purchase-step-card h4 {
+        margin: 0 0 0.3rem;
+        font-size: 1.02rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+    }
+    .purchase-step-card p {
+        margin: 0;
+        font-size: 0.86rem;
+        line-height: 1.5;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    @keyframes fadeStep {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 991.98px) {
+        .choice-grid.type-grid,
+        .choice-grid.budget-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .purchase-mini-grid,
+        .purchase-steps-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 575.98px) {
+        .choice-grid.type-grid,
+        .choice-grid.budget-grid {
+            grid-template-columns: 1fr;
+        }
+        .purchase-mini-grid,
+        .purchase-steps-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 advisory-purchase-shell">
+    <div class="container">
+        <div class="purchase-intro-wrapper">
+            <h2 class="purchase-process-title">{% trans "Te acompañamos en todo el proceso de compra" %}</h2>
+            <div class="purchase-mini-grid">
+                <article class="purchase-mini-card">
+                    <div class="purchase-mini-icon"><i class="bi bi-person-check"></i></div>
+                    <h3>{% trans "Asesórate" %}</h3>
+                    <p>{% trans "Definimos contigo objetivos reales de compra y opciones de financiamiento." %}</p>
+                </article>
+                <article class="purchase-mini-card">
+                    <div class="purchase-mini-icon"><i class="bi bi-search"></i></div>
+                    <h3>{% trans "Encuentra" %}</h3>
+                    <p>{% trans "Seleccionamos propiedades alineadas a tu perfil y zona ideal." %}</p>
+                </article>
+                <article class="purchase-mini-card">
+                    <div class="purchase-mini-icon"><i class="bi bi-cash-coin"></i></div>
+                    <h3>{% trans "Compra" %}</h3>
+                    <p>{% trans "Cerramos tu operación con estrategia, seguridad jurídica y claridad." %}</p>
+                </article>
+            </div>
+        </div>
+
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-5">
+                <div class="purchase-process-wrapper">
+                    <h3 class="purchase-process-title">{% trans "Proceso de compra" %}</h3>
+                    <div class="purchase-steps-grid">
+                        <article class="purchase-step-card purchase-step-card--accent">
+                            <span class="purchase-step-number">1</span>
+                            <h4>{% trans "Contacto inicial" %}</h4>
+                            <p>{% trans "Recibimos tu solicitud y entendemos tus necesidades de compra." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--light">
+                            <span class="purchase-step-number">2</span>
+                            <h4>{% trans "Perfil de búsqueda" %}</h4>
+                            <p>{% trans "Definimos presupuesto, zonas, tipo de propiedad y tiempos de decisión." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--accent">
+                            <span class="purchase-step-number">3</span>
+                            <h4>{% trans "Asesor asignado" %}</h4>
+                            <p>{% trans "Un especialista de Total Living toma tu caso de forma personalizada." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--light">
+                            <span class="purchase-step-number">4</span>
+                            <h4>{% trans "Análisis financiero" %}</h4>
+                            <p>{% trans "Evaluamos escenarios de crédito, enganche y viabilidad de inversión." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--accent">
+                            <span class="purchase-step-number">5</span>
+                            <h4>{% trans "Búsqueda activa" %}</h4>
+                            <p>{% trans "Filtramos y validamos opciones para mostrarte solo propiedades viables." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--light">
+                            <span class="purchase-step-number">6</span>
+                            <h4>{% trans "Visitas y comparación" %}</h4>
+                            <p>{% trans "Coordinamos recorridos y comparamos pros, riesgos y plusvalía." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--accent">
+                            <span class="purchase-step-number">7</span>
+                            <h4>{% trans "Negociación" %}</h4>
+                            <p>{% trans "Defendemos tus intereses para obtener mejores condiciones de compra." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--light">
+                            <span class="purchase-step-number">8</span>
+                            <h4>{% trans "Revisión legal y firma" %}</h4>
+                            <p>{% trans "Validamos documentos y acompañamos la firma con proceso seguro." %}</p>
+                        </article>
+                        <article class="purchase-step-card purchase-step-card--accent">
+                            <span class="purchase-step-number">9</span>
+                            <h4>{% trans "Postventa" %}</h4>
+                            <p>{% trans "Te damos seguimiento final para que cierres con tranquilidad." %}</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card advisory-form-card h-100">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-2">{% trans "Comienza tu asesoría en 3 pasos" %}</h2>
+                        <p class="text-muted mb-3">{% trans "Un asesor de Total Living te contactará con un plan de compra personalizado." %}</p>
+
+                        <div class="advisory-progress mb-2" aria-hidden="true">
+                            <div class="advisory-progress-bar" id="advisoryProgressBar"></div>
+                        </div>
+                        <div class="advisory-step-label mb-4" id="advisoryStepLabel">{% trans "Paso 1 de 3: Perfil de búsqueda" %}</div>
+
+                        <form method="post" id="advisoryPurchaseForm" novalidate>
+                            {% csrf_token %}
+                            <input type="text" name="website" tabindex="-1" autocomplete="off"
+                                   style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
+                                   aria-hidden="true">
+
+                            <input type="hidden" id="property_type" name="property_type" value="{% if form_data %}{{ form_data.property_type }}{% endif %}">
+                            <input type="hidden" id="budget" name="budget" value="{% if form_data %}{{ form_data.budget }}{% endif %}">
+
+                            <div class="advisory-step is-active" data-step="1">
+                                <div class="mb-3">
+                                    <label for="city" class="advisory-label">{% trans "Ciudad o zona de interés" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control advisory-input" id="city" name="city" value="{% if form_data %}{{ form_data.city }}{% endif %}">
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="advisory-label">{% trans "Tipo de propiedad" %}</div>
+                                    <div class="choice-grid type-grid" id="propertyTypeChoices">
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Casa">
+                                            <i class="bi bi-house-door"></i><span class="choice-text">{% trans "Casa" %}</span>
+                                        </button>
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Departamento">
+                                            <i class="bi bi-buildings"></i><span class="choice-text">{% trans "Departamento" %}</span>
+                                        </button>
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Terreno">
+                                            <i class="bi bi-tree"></i><span class="choice-text">{% trans "Terreno" %}</span>
+                                        </button>
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Oficina">
+                                            <i class="bi bi-briefcase"></i><span class="choice-text">{% trans "Oficina" %}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="advisory-label">{% trans "Presupuesto estimado" %}</div>
+                                    <div class="choice-grid budget-grid" id="budgetChoices">
+                                        <button type="button" class="choice-card" data-target-input="budget" data-value="Hasta $2,000,000 MXN">
+                                            <i class="bi bi-currency-dollar"></i><span class="choice-text">{% trans "Hasta $2 M" %}</span>
+                                        </button>
+                                        <button type="button" class="choice-card" data-target-input="budget" data-value="$2,000,000 a $4,000,000 MXN">
+                                            <i class="bi bi-cash-stack"></i><span class="choice-text">{% trans "$2 M - $4 M" %}</span>
+                                        </button>
+                                        <button type="button" class="choice-card" data-target-input="budget" data-value="$4,000,000 a $8,000,000 MXN">
+                                            <i class="bi bi-graph-up-arrow"></i><span class="choice-text">{% trans "$4 M - $8 M" %}</span>
+                                        </button>
+                                        <button type="button" class="choice-card" data-target-input="budget" data-value="Más de $8,000,000 MXN">
+                                            <i class="bi bi-gem"></i><span class="choice-text">{% trans "Más de $8 M" %}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="advisory-error" id="step1Error">{% trans "Para continuar, indícanos al menos la ciudad o zona de interés." %}</div>
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-dark px-4" data-next-step>{% trans "Siguiente" %}</button>
+                                </div>
+                            </div>
+
+                            <div class="advisory-step" data-step="2">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="name" class="advisory-label">{% trans "Nombre completo" %} <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control advisory-input" id="name" name="name" value="{% if form_data %}{{ form_data.name }}{% endif %}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="advisory-label">{% trans "Correo electrónico" %} <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control advisory-input" id="email" name="email" value="{% if form_data %}{{ form_data.email }}{% endif %}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="phone" class="advisory-label">{% trans "Teléfono" %}</label>
+                                        <input type="tel" class="form-control advisory-input" id="phone" name="phone" value="{% if form_data %}{{ form_data.phone }}{% endif %}">
+                                    </div>
+                                </div>
+
+                                <div class="advisory-error" id="step2Error">{% trans "Completa nombre y correo electrónico para continuar." %}</div>
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-outline-secondary px-4" data-prev-step>{% trans "Atrás" %}</button>
+                                    <button type="button" class="btn btn-dark px-4" data-next-step>{% trans "Siguiente" %}</button>
+                                </div>
+                            </div>
+
+                            <div class="advisory-step" data-step="3">
+                                <div class="mb-3">
+                                    <label for="message" class="advisory-label">{% trans "Cuéntanos qué estás buscando" %}</label>
+                                    <textarea class="form-control advisory-input" id="message" name="message" rows="5">{% if form_data %}{{ form_data.message }}{% endif %}</textarea>
+                                </div>
+                                <p class="small text-muted mb-0">
+                                    {% trans "Al enviar, un asesor revisará tu perfil y te contactará con opciones alineadas a tu objetivo de compra." %}
+                                </p>
+
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-outline-secondary px-4" data-prev-step>{% trans "Atrás" %}</button>
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="bi bi-send me-1"></i> {% trans "Enviar solicitud de asesoría" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const form = document.getElementById('advisoryPurchaseForm');
+        if (!form) return;
+
+        const steps = Array.from(form.querySelectorAll('.advisory-step'));
+        const progressBar = document.getElementById('advisoryProgressBar');
+        const stepLabel = document.getElementById('advisoryStepLabel');
+        const stepText = {
+            1: 'Paso 1 de 3: Perfil de búsqueda',
+            2: 'Paso 2 de 3: Datos de contacto',
+            3: 'Paso 3 de 3: Mensaje final',
+        };
+        let currentStep = 1;
+
+        const updateStepUI = () => {
+            steps.forEach((step) => {
+                const isActive = Number(step.dataset.step) === currentStep;
+                step.classList.toggle('is-active', isActive);
+            });
+            progressBar.style.width = `${(currentStep / 3) * 100}%`;
+            stepLabel.textContent = stepText[currentStep] || '';
+        };
+
+        const setError = (id, visible) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('is-visible', visible);
+        };
+
+        const validateCurrentStep = () => {
+            if (currentStep === 1) {
+                const city = (document.getElementById('city')?.value || '').trim();
+                const valid = city.length > 0;
+                setError('step1Error', !valid);
+                return valid;
+            }
+            if (currentStep === 2) {
+                const name = (document.getElementById('name')?.value || '').trim();
+                const email = (document.getElementById('email')?.value || '').trim();
+                const valid = name.length > 0 && email.length > 0;
+                setError('step2Error', !valid);
+                return valid;
+            }
+            return true;
+        };
+
+        form.querySelectorAll('[data-next-step]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (!validateCurrentStep()) return;
+                if (currentStep < 3) {
+                    currentStep += 1;
+                    updateStepUI();
+                }
+            });
+        });
+
+        form.querySelectorAll('[data-prev-step]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    currentStep -= 1;
+                    updateStepUI();
+                }
+            });
+        });
+
+        const bindChoiceCards = () => {
+            const cards = Array.from(form.querySelectorAll('.choice-card'));
+            cards.forEach((card) => {
+                const inputId = card.dataset.targetInput;
+                const input = document.getElementById(inputId);
+                if (!input) return;
+
+                if ((input.value || '').trim() === (card.dataset.value || '').trim()) {
+                    card.classList.add('is-selected');
+                }
+
+                card.addEventListener('click', () => {
+                    const siblingCards = form.querySelectorAll(`.choice-card[data-target-input="${inputId}"]`);
+                    siblingCards.forEach((s) => s.classList.remove('is-selected'));
+                    card.classList.add('is-selected');
+                    input.value = card.dataset.value || '';
+                });
+            });
+        };
+
+        form.addEventListener('submit', (event) => {
+            currentStep = 3;
+            updateStepUI();
+            if (!(document.getElementById('city')?.value || '').trim()) {
+                currentStep = 1;
+                updateStepUI();
+                setError('step1Error', true);
+                event.preventDefault();
+                return;
+            }
+            if (!(document.getElementById('name')?.value || '').trim() || !(document.getElementById('email')?.value || '').trim()) {
+                currentStep = 2;
+                updateStepUI();
+                setError('step2Error', true);
+                event.preventDefault();
+            }
+        });
+
+        bindChoiceCards();
+        updateStepUI();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,755 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Agregar Propiedad{% endblock %}
+
+{% block extra_css %}<style>
+.form-wrapper {
+    background: linear-gradient(180deg, #f4f6f8 0%, #eef1f5 100%);
+    padding: 28px 14px 38px;
+    min-height: calc(100vh - 120px);
+}
+
+.form-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 26px;
+    border-radius: 16px;
+    border: 1px solid #e9edf2;
+    box-shadow: 0 16px 38px rgba(24, 32, 43, 0.08);
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 26px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e9edf2;
+}
+
+.page-title {
+    color: #2d3120;
+    font-size: clamp(1.45rem, 2.2vw, 2rem);
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.page-subtitle {
+    color: #707785;
+    font-size: 0.95rem;
+}
+
+.form-section {
+    background: #fff;
+    padding: 18px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    border: 1px solid #e9edf2;
+}
+
+.section-title {
+    color: #2d3120;
+    font-size: 1.08rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.section-title i {
+    color: #c4a572;
+    font-size: 1.15rem;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #2f3846;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.form-group label .required {
+    color: #d14848;
+    margin-left: 2px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d4dbe4;
+    border-radius: 10px;
+    font-size: 0.93rem;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #b89965;
+    box-shadow: 0 0 0 3px rgba(184, 153, 101, 0.18);
+}
+
+.form-group textarea {
+    min-height: 130px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    color: #737b88;
+    font-size: 0.78rem;
+}
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.row-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 9px 10px;
+    background: #fbfcfd;
+    border-radius: 9px;
+    border: 1px solid #dde3eb;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.checkbox-item:hover {
+    border-color: #b89965;
+    background: #fff;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #40452E;
+}
+
+.checkbox-item label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.84rem;
+}
+
+.map-help {
+    background: #fff7e8;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #f0dcae;
+    margin-top: 10px;
+    color: #6f5b2a;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.map-help strong {
+    color: #5b4a21;
+}
+
+.btn-container {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e9edf2;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #40452E 0%, #2f3222 100%);
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.94rem;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 10px 22px rgba(64, 69, 46, 0.22);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px rgba(64, 69, 46, 0.26);
+}
+
+    .btn-submit i {
+        font-size: 1rem;
+    }
+
+    #property-pick-map {
+        height: 320px;
+        border-radius: 12px;
+        border: 1px solid #dde3eb;
+        margin-top: 8px;
+        z-index: 1;
+    }
+
+    .map-picker-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 12px;
+    }
+
+    .map-picker-actions button[type="button"] {
+        background: #40452E;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .map-picker-actions button[type="button"]:hover {
+        opacity: 0.92;
+    }
+
+    #map-pick-status {
+        font-size: 0.82rem;
+        color: #707785;
+    }
+
+.feature-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 12px;
+    background: #fbfcfd;
+    border: 1px solid #dde3eb;
+    border-radius: 999px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.84rem;
+}
+
+.feature-badge:hover {
+    background: #f4f6f9;
+    border-color: #b89965;
+}
+
+.feature-badge input[type="checkbox"] {
+    margin-right: 7px;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+@media (max-width: 992px) {
+    .row-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .checkbox-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .form-wrapper {
+        padding: 12px 8px 24px;
+    }
+
+    .form-container {
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .page-header {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .page-subtitle {
+        font-size: 0.84rem;
+    }
+
+    .form-section {
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    .row,
+    .row-3,
+    .row-4,
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+
+    .feature-badge {
+        width: 100%;
+        justify-content: flex-start;
+        margin-right: 0;
+    }
+
+    .btn-submit {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
+{% block content %}
+<div class="form-wrapper">
+<div class="form-container">
+<div class="page-header">
+<h1 class="page-title">AGREGAR PROPIEDAD</h1>
+<p class="page-subtitle">Complete el formulario con los detalles de la propiedad</p>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+
+<!-- Información Básica -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-info-circle-fill"></i>Información Básica</h2>
+<div class="form-group">
+<label>Título de la Propiedad<span class="required">*</span></label>
+<input type="text" name="title" required placeholder="Ej: Hermosa Casa en Polanco con Jardín">
+<small>Título descriptivo y atractivo para la propiedad</small>
+</div>
+<div class="row">
+<div class="form-group">
+<label>Tipo de Propiedad<span class="required">*</span></label>
+<select name="property_type" required>
+{% for value, label in property_types|default:property_types_catalog %}
+<option value="{{ value }}">{{ label }}</option>
+{% endfor %}
+</select>
+</div>
+<div class="form-group">
+<label>Tipo de Operación<span class="required">*</span></label>
+<select name="operation_type" required>
+<option value="venta">Venta</option>
+<option value="renta">Renta</option>
+<option value="venta_renta">Venta o Renta</option>
+</select>
+</div>
+</div>
+<div class="form-group">
+<label>Precio (MXN)<span class="required">*</span></label>
+<input type="text" name="price" inputmode="decimal" autocomplete="off" required placeholder="Ej. 2170000, 2.170.000 o 2,170,000">
+<small>Precio en pesos mexicanos; puede usar puntos o comas como separadores de miles.</small>
+</div>
+<div class="form-group">
+<label>Descripción Detallada<span class="required">*</span></label>
+<textarea name="description" required placeholder="Describa las características, ventajas y detalles especiales de la propiedad..."></textarea>
+<small>Sea descriptivo y mencione los puntos más atractivos</small>
+</div>
+</div>
+
+<!-- Ubicación -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-geo-alt-fill"></i>Ubicación</h2>
+<div class="form-group">
+<label>Dirección Completa<span class="required">*</span></label>
+<input type="text" name="address" required placeholder="Calle, número, colonia">
+</div>
+<div class="row-3">
+<div class="form-group">
+<label>Región</label>
+<select name="region">
+<option value="">Selecciona una región</option>
+{% for region in regions %}
+<option value="{{ region.id }}">{{ region.name }}</option>
+{% endfor %}
+</select>
+</div>
+<div class="form-group">
+<label>Estado<span class="required">*</span></label>
+<select name="state" id="state-select-add" required>
+<option value="">Selecciona un estado</option>
+</select>
+</div>
+<div class="form-group">
+<label>Ciudad<span class="required">*</span></label>
+<select name="city" id="city-select-add" required disabled>
+<option value="">Primero selecciona un estado</option>
+</select>
+</div>
+<div class="form-group">
+<label>Código Postal</label>
+<input type="text" name="zip_code" placeholder="00000">
+</div>
+</div>
+<div class="form-group">
+<label>Link de Google Maps</label>
+<input type="url" name="google_maps_url" placeholder="https://maps.google.com/...">
+<small>Pegue el enlace de Google Maps de la ubicación exacta</small>
+</div>
+<div class="map-help">
+<strong>¿Cómo obtener el link de Google Maps?</strong><br>
+1. Abre Google Maps y busca la dirección<br>
+2. Haz clic derecho en el marcador<br>
+3. Selecciona "Compartir" o "Copiar enlace"<br>
+4. Pega el enlace aquí
+</div>
+<div class="form-group">
+<label><i class="bi bi-pin-map"></i> Ubicación en el mapa (recomendado)</label>
+<small>El mapa de la web y el mapa público usan <strong>latitud y longitud</strong>: haz clic en el mapa o usa «Buscar con mi dirección». Eso sí se guarda al enviar el formulario (a diferencia de un mapa incrustado solo como imagen).</small>
+<div id="property-pick-map"></div>
+<div class="map-picker-actions">
+<button type="button" id="btn-geocode-address">Buscar con mi dirección</button>
+<span id="map-pick-status"></span>
+</div>
+</div>
+<div class="row">
+<div class="form-group">
+<label>Latitud</label>
+<input type="number" name="latitude" id="id_latitude" step="any" placeholder="Ej. 20.588793">
+</div>
+<div class="form-group">
+<label>Longitud</label>
+<input type="number" name="longitude" id="id_longitude" step="any" placeholder="Ej. -100.389888">
+</div>
+</div>
+</div>
+
+<!-- Características -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-house-fill"></i>Características Principales</h2>
+<div class="row-4">
+<div class="form-group">
+<label>Recámaras</label>
+<input type="number" name="bedrooms" min="0" value="0">
+</div>
+<div class="form-group">
+<label>Baños Completos</label>
+<input type="number" name="bathrooms" min="0" value="0">
+</div>
+<div class="form-group">
+<label>Medios Baños</label>
+<input type="number" name="half_bathrooms" min="0" value="0">
+</div>
+<div class="form-group">
+<label>Estacionamientos</label>
+<input type="number" name="parking_spaces" min="0" value="0">
+</div>
+</div>
+<div class="row-4">
+<div class="form-group">
+<label>Área Construcción (m²)<span class="required">*</span></label>
+<input type="number" name="construction_area" step="0.01" min="0" required placeholder="0.00">
+<small>Área construida</small>
+</div>
+<div class="form-group">
+<label>Área Terreno (m²)</label>
+<input type="number" name="lot_area" step="0.01" min="0" placeholder="0.00">
+<small>Área del terreno</small>
+</div>
+<div class="form-group">
+<label>Niveles/Pisos</label>
+<input type="number" name="floors" min="1" value="1">
+<small>Número de niveles</small>
+</div>
+</div>
+<div class="row-3">
+<div class="form-group">
+<label>Medida Frente (m)</label>
+<input type="number" name="front_measure" step="0.01" min="0" placeholder="0.00">
+</div>
+<div class="form-group">
+<label>Medida Fondo (m)</label>
+<input type="number" name="back_measure" step="0.01" min="0" placeholder="0.00">
+</div>
+<div class="form-group">
+<label>Año Construcción</label>
+<input type="number" name="year_built" min="1900" max="2030" placeholder="2020">
+</div>
+</div>
+<div class="row-3">
+<div class="form-group">
+<label>Año Construcción</label>
+<input type="number" name="year_built" min="1900" max="2030" placeholder="2020">
+</div>
+<div class="form-group">
+<label>Ambientes</label>
+<input type="number" name="rooms" min="0" value="0">
+</div>
+<div class="form-group">
+<label>Cuota Mantenimiento</label>
+<input type="number" name="maintenance_fee" step="0.01" min="0" placeholder="0.00">
+</div>
+</div>
+</div>
+
+<div class="form-section" data-amenity-selector>
+<h2 class="section-title"><i class="bi bi-layout-three-columns"></i>Distribución Interior (catálogo)</h2>
+<input type="text" data-amenity-search class="form-control mb-2" placeholder="Buscar distribución...">
+<small>Seleccionadas: <strong data-amenity-counter>0</strong></small>
+<div class="mt-2 d-flex gap-2">
+<button type="button" class="btn btn-sm btn-outline-secondary" data-amenity-select-visible>Seleccionar visibles</button>
+<button type="button" class="btn btn-sm btn-outline-danger" data-amenity-clear>Limpiar</button>
+</div>
+<div data-amenity-chips style="margin-bottom:10px;"></div>
+<div class="checkbox-grid">
+{% for feature in interior_feature_catalog %}
+<div class="checkbox-item" data-amenity-card data-amenity-text="{{ feature.name }} {{ feature.slug }}">
+<input type="checkbox" name="interior_features" id="interior_{{ forloop.counter }}" value="{{ feature.id }}">
+<label for="interior_{{ forloop.counter }}"><i class="bi {{ feature.icon }}" style="color:#40452E;"></i> <span data-amenity-label>{{ feature.name }}</span></label>
+</div>
+{% endfor %}
+</div>
+</div>
+
+<!-- Catálogo maestro de amenidades -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-grid-3x3-gap-fill"></i>Catálogo maestro de amenidades</h2>
+<div data-amenity-selector>
+<div class="form-group">
+<input type="text" data-amenity-search class="form-control" placeholder="Buscar amenidad... (gym, alberca, coworking)">
+<small>Seleccionadas: <strong data-amenity-counter>0</strong></small>
+<div class="mt-2 d-flex gap-2">
+<button type="button" class="btn btn-sm btn-outline-secondary" data-amenity-select-visible>Seleccionar visibles</button>
+<button type="button" class="btn btn-sm btn-outline-danger" data-amenity-clear>Limpiar</button>
+</div>
+</div>
+<div data-amenity-chips style="margin-bottom:10px;"></div>
+<div class="checkbox-grid">
+{% for amenity in amenity_catalog %}
+<div class="checkbox-item" data-amenity-card data-amenity-text="{{ amenity.display_name }} {{ amenity.slug }} {{ amenity.category.name }}">
+<input type="checkbox" name="amenities" id="amenity_{{ forloop.counter }}" value="{{ amenity.id }}">
+<label for="amenity_{{ forloop.counter }}">
+<i class="bi {{ amenity.icon_class }}" style="color:#40452E;"></i> <span data-amenity-label>{{ amenity.display_name }}</span>
+</label>
+</div>
+{% empty %}
+<div class="text-muted">No hay amenidades en catálogo aún.</div>
+{% endfor %}
+</div>
+</div>
+</div>
+
+<div class="form-section" data-amenity-selector>
+<h2 class="section-title"><i class="bi bi-tools"></i>Servicios Disponibles (catálogo)</h2>
+<input type="text" data-amenity-search class="form-control mb-2" placeholder="Buscar servicio...">
+<small>Seleccionados: <strong data-amenity-counter>0</strong></small>
+<div class="mt-2 d-flex gap-2">
+<button type="button" class="btn btn-sm btn-outline-secondary" data-amenity-select-visible>Seleccionar visibles</button>
+<button type="button" class="btn btn-sm btn-outline-danger" data-amenity-clear>Limpiar</button>
+</div>
+<div data-amenity-chips style="margin-bottom:10px;"></div>
+<div class="checkbox-grid">
+{% for feature in service_feature_catalog %}
+<div class="checkbox-item" data-amenity-card data-amenity-text="{{ feature.name }} {{ feature.slug }}">
+<input type="checkbox" name="service_features" id="service_{{ forloop.counter }}" value="{{ feature.id }}">
+<label for="service_{{ forloop.counter }}"><i class="bi {{ feature.icon }}" style="color:#40452E;"></i> <span data-amenity-label>{{ feature.name }}</span></label>
+</div>
+{% endfor %}
+</div>
+</div>
+
+<!-- Gestión interna -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-person-badge-fill"></i>Exclusiva de Asesor (interno)</h2>
+<div class="feature-badge">
+<input type="checkbox" name="is_advisor_exclusive" id="is_advisor_exclusive">
+<label for="is_advisor_exclusive">Esta propiedad es exclusiva de asesor</label>
+</div>
+<div class="form-group" style="margin-top: 12px;">
+<label>Asesor responsable de la exclusiva</label>
+<select name="exclusive_advisor" id="exclusive_advisor">
+<option value="">Sin asignar</option>
+{% for advisor in advisors %}
+<option value="{{ advisor.id }}">{{ advisor.get_full_name|default:advisor.username }}</option>
+{% endfor %}
+</select>
+<small>Visible solo en panel administrativo.</small>
+</div>
+</div>
+
+<!-- Financiamiento -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-cash-coin"></i>Opciones de financiamiento</h2>
+<div class="checkbox-grid">
+{% for code, label in financing_choices %}
+<div class="checkbox-item">
+<input type="checkbox" name="financing_options" id="financing_{{ forloop.counter }}" value="{{ code }}">
+<label for="financing_{{ forloop.counter }}">{{ label }}</label>
+</div>
+{% endfor %}
+</div>
+<small style="margin-top:10px; display:block;">Selecciona todas las opciones disponibles para esta propiedad.</small>
+</div>
+
+<!-- Imágenes -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-images"></i>Fotografías de la Propiedad</h2>
+<div class="form-group">
+<label>Seleccionar Imágenes (múltiples)</label>
+<input type="file" name="images" multiple accept="image/*" style="padding:20px;border:3px dashed #C4A572;background:#fff">
+<small>La primera imagen será la principal. Formatos: JPG, PNG. Máximo 10MB por imagen.</small>
+</div>
+</div>
+
+<!-- Opciones -->
+<div class="form-section">
+<h2 class="section-title"><i class="bi bi-toggles"></i>Opciones de Publicación</h2>
+<div class="feature-badge">
+<input type="checkbox" name="is_featured" id="is_featured">
+<label for="is_featured">★ DESTACADA (Carrusel Principal)</label>
+</div>
+<div class="feature-badge">
+<input type="checkbox" name="is_new" id="is_new">
+<label for="is_new">• NUEVA</label>
+</div>
+</div>
+
+<div class="btn-container">
+<button type="submit" class="btn-submit"><i class="bi bi-check-circle-fill"></i>GUARDAR PROPIEDAD</button>
+</div>
+</form>
+</div>
+</div>
+<script>
+(function () {
+    const stateSelect = document.getElementById('state-select-add');
+    const citySelect = document.getElementById('city-select-add');
+    if (!stateSelect || !citySelect) return;
+
+    const mexicoStatesCities = {
+        "Aguascalientes": ["Aguascalientes", "Jesús María", "Calvillo"],
+        "Baja California": ["Tijuana", "Mexicali", "Ensenada", "Rosarito", "Tecate"],
+        "Baja California Sur": ["La Paz", "Los Cabos", "Comondú", "Loreto"],
+        "Campeche": ["Campeche", "Ciudad del Carmen", "Champotón"],
+        "Chiapas": ["Tuxtla Gutiérrez", "San Cristóbal de las Casas", "Tapachula", "Comitán"],
+        "Chihuahua": ["Chihuahua", "Ciudad Juárez", "Delicias", "Cuauhtémoc"],
+        "Coahuila": ["Saltillo", "Torreón", "Monclova", "Piedras Negras"],
+        "Colima": ["Colima", "Manzanillo", "Tecomán"],
+        "Ciudad de México": ["Álvaro Obregón", "Benito Juárez", "Coyoacán", "Cuauhtémoc", "Iztapalapa", "Miguel Hidalgo", "Tlalpan", "Xochimilco"],
+        "Durango": ["Durango", "Gómez Palacio", "Lerdo"],
+        "Estado de México": ["Ecatepec", "Naucalpan", "Tlalnepantla", "Toluca", "Metepec", "Cuautitlán Izcalli", "Atizapán de Zaragoza"],
+        "Guanajuato": ["León", "Irapuato", "Celaya", "Guanajuato", "San Miguel de Allende"],
+        "Guerrero": ["Acapulco", "Chilpancingo", "Iguala", "Taxco"],
+        "Hidalgo": ["Pachuca", "Tulancingo", "Tizayuca", "Mineral de la Reforma"],
+        "Jalisco": ["Guadalajara", "Zapopan", "Tlaquepaque", "Tlajomulco", "Puerto Vallarta"],
+        "Michoacán": ["Morelia", "Uruapan", "Zamora", "Lázaro Cárdenas"],
+        "Morelos": ["Cuernavaca", "Jiutepec", "Temixco", "Cuautla"],
+        "Nayarit": ["Tepic", "Bahía de Banderas", "Santiago Ixcuintla"],
+        "Nuevo León": ["Monterrey", "San Pedro Garza García", "Guadalupe", "Apodaca", "Santa Catarina"],
+        "Oaxaca": ["Oaxaca de Juárez", "Salina Cruz", "Tuxtepec", "Juchitán"],
+        "Puebla": ["Puebla", "San Andrés Cholula", "San Pedro Cholula", "Tehuacán"],
+        "Querétaro": ["Querétaro", "El Marqués", "Corregidora", "San Juan del Río", "Tequisquiapan"],
+        "Quintana Roo": ["Cancún", "Playa del Carmen", "Chetumal", "Tulum", "Cozumel"],
+        "San Luis Potosí": ["San Luis Potosí", "Soledad de Graciano Sánchez", "Matehuala"],
+        "Sinaloa": ["Culiacán", "Mazatlán", "Los Mochis", "Guasave"],
+        "Sonora": ["Hermosillo", "Ciudad Obregón", "Nogales", "San Luis Río Colorado"],
+        "Tabasco": ["Villahermosa", "Cárdenas", "Comalcalco"],
+        "Tamaulipas": ["Reynosa", "Matamoros", "Nuevo Laredo", "Tampico", "Ciudad Victoria"],
+        "Tlaxcala": ["Tlaxcala", "Apizaco", "Huamantla"],
+        "Veracruz": ["Veracruz", "Xalapa", "Coatzacoalcos", "Poza Rica", "Córdoba", "Boca del Río"],
+        "Yucatán": ["Mérida", "Valladolid", "Tizimín", "Progreso"],
+        "Zacatecas": ["Zacatecas", "Guadalupe", "Fresnillo", "Jerez"]
+    };
+
+    const fillStates = () => {
+        Object.keys(mexicoStatesCities).sort().forEach((stateName) => {
+            const option = document.createElement('option');
+            option.value = stateName;
+            option.textContent = stateName;
+            stateSelect.appendChild(option);
+        });
+    };
+
+    const fillCities = (stateName) => {
+        citySelect.innerHTML = '';
+        if (!stateName || !mexicoStatesCities[stateName]) {
+            citySelect.disabled = true;
+            citySelect.innerHTML = '<option value="">Primero selecciona un estado</option>';
+            return;
+        }
+
+        citySelect.disabled = false;
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Selecciona una ciudad';
+        citySelect.appendChild(defaultOption);
+
+        mexicoStatesCities[stateName].forEach((cityName) => {
+            const option = document.createElement('option');
+            option.value = cityName;
+            option.textContent = cityName;
+            citySelect.appendChild(option);
+        });
+    };
+
+    fillStates();
+    stateSelect.addEventListener('change', () => fillCities(stateSelect.value));
+})();
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+window.TL_MAP_TILES = {
+    url: '{{ MAP_TILES.url|escapejs }}',
+    attribution: '{{ MAP_TILES.attribution|escapejs }}',
+    subdomains: '{{ MAP_TILES.subdomains|escapejs }}',
+    maxZoom: {{ MAP_TILES.max_zoom }}
+};
+</script>
+<script src="{% static 'js/property-map-picker.js' %}"></script>
+<script src="{% static 'js/amenity-selector.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof TLPropertyMapPicker === 'undefined') return;
+    TLPropertyMapPicker.init({
+        mapId: 'property-pick-map',
+        latInput: '#id_latitude',
+        lngInput: '#id_longitude',
+        defaultLat: 20.5888,
+        defaultLng: -100.3899,
+        defaultZoom: 12,
+        geocodeBtn: 'btn-geocode-address',
+        statusEl: '#map-pick-status',
+        getQuery: function () {
+            var addr = (document.querySelector('[name="address"]') || {}).value || '';
+            var stateEl = document.getElementById('state-select-add');
+            var cityEl = document.getElementById('city-select-add');
+            var state = stateEl && stateEl.value ? stateEl.value : '';
+            var city = '';
+            if (cityEl && cityEl.selectedIndex >= 0 && cityEl.options[cityEl.selectedIndex]) {
+                city = cityEl.options[cityEl.selectedIndex].value || '';
+            }
+            return [addr, city, state, 'México'].filter(Boolean).join(', ');
+        }
+    });
+});
+</script>
+{% endblock %}

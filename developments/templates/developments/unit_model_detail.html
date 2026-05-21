@@ -1,0 +1,856 @@
+{% extends 'base.html' %}
+{% load dev_extras %}
+
+{% block title %}{{ unit_model.name }} · {{ development.name }} | Total Living{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .um-deep-page {
+        --um-olive: #40452E;
+        --um-olive-soft: #5a6045;
+        --um-gold: #c4a574;
+        --um-bg: #eceae6;
+        --um-surface: #ffffff;
+        --um-spec-bg: #f9f7f2;
+        --um-text: #1a1c17;
+        --um-muted: #6b6e64;
+        background: var(--um-bg);
+        min-height: 100vh;
+        font-family: 'Montserrat', system-ui, sans-serif;
+    }
+
+    .um-deep-wrap {
+        max-width: 80rem;
+        margin: 0 auto;
+        padding: clamp(1.25rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem) clamp(3rem, 6vw, 4.5rem);
+    }
+
+    .um-model-intro {
+        margin-bottom: clamp(1.25rem, 3vw, 2rem);
+    }
+
+    .um-breadcrumb {
+        font-size: 0.75rem;
+        color: var(--um-muted);
+        margin-bottom: 1rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .um-breadcrumb a {
+        color: var(--um-olive-soft);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .um-breadcrumb a:hover {
+        color: var(--um-olive);
+        text-decoration: underline;
+    }
+
+    .um-breadcrumb-sep {
+        margin: 0 0.35rem;
+        opacity: 0.55;
+    }
+
+    .um-model-page-title {
+        font-size: clamp(1.65rem, 4.2vw, 2.35rem);
+        font-weight: 600;
+        color: var(--um-text);
+        letter-spacing: 0.02em;
+        line-height: 1.15;
+        margin: 0 0 0.5rem;
+    }
+
+    .um-model-devline {
+        margin: 0;
+        font-size: 0.9375rem;
+        color: var(--um-muted);
+        font-weight: 400;
+        line-height: 1.45;
+    }
+
+    .um-model-devline-label {
+        margin-right: 0.35rem;
+        font-weight: 500;
+        color: var(--um-olive-soft);
+    }
+
+    .um-model-devline a {
+        color: var(--um-olive);
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid rgba(64, 69, 46, 0.22);
+    }
+
+    .um-model-devline a:hover {
+        border-bottom-color: var(--um-olive);
+    }
+
+    .um-model-contact-band {
+        margin-top: clamp(2rem, 5vw, 3rem);
+        padding: clamp(1.75rem, 4vw, 2.5rem) clamp(1.25rem, 3vw, 2rem);
+        background: linear-gradient(135deg, #faf9f7 0%, #f3f1ec 100%);
+        border: 1px solid rgba(64, 69, 46, 0.1);
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 28px rgba(31, 36, 43, 0.06);
+        text-align: center;
+        max-width: 36rem;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .um-model-contact-title {
+        font-size: clamp(1.15rem, 2.5vw, 1.4rem);
+        font-weight: 600;
+        color: var(--um-text);
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.02em;
+    }
+
+    .um-model-contact-text {
+        margin: 0 0 1.25rem;
+        font-size: 0.95rem;
+        color: var(--um-muted);
+        line-height: 1.55;
+    }
+
+    .um-model-contact-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        background: var(--um-olive);
+        border-radius: 0.65rem;
+        text-decoration: none;
+        transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    .um-model-contact-btn:hover {
+        background: var(--um-olive-soft);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    /* Misma card que en /desarrollos/<slug>/ (listado de modelos) */
+    .um-model-detail-scope .model-card-pro {
+        display: grid;
+        grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr);
+        align-items: stretch;
+        min-height: 0;
+        background: #fff;
+        border-radius: 1.35rem;
+        overflow: hidden;
+        box-shadow: 0 10px 36px rgba(31, 36, 43, 0.09);
+        max-width: 100%;
+    }
+
+    @media (max-width: 767.98px) {
+        .um-model-detail-scope .model-card-pro {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .um-model-detail-scope .model-card-pro-media {
+        position: relative;
+        min-height: 252px;
+        max-height: 360px;
+        background: #e5e3de;
+        overflow: hidden;
+    }
+
+    @media (min-width: 992px) {
+        .um-model-detail-scope .model-card-pro-media {
+            max-height: none;
+            min-height: 320px;
+            height: 100%;
+            align-self: stretch;
+        }
+    }
+
+    .um-swiper-shell {
+        position: relative;
+        height: 100%;
+        min-height: 252px;
+        border-radius: 0;
+        overflow: hidden;
+        background: #ddd9d2;
+    }
+
+    @media (min-width: 992px) {
+        .um-swiper-shell {
+            min-height: 320px;
+        }
+    }
+
+    .um-model-swiper {
+        width: 100%;
+        height: 100%;
+        min-height: 252px;
+        max-height: 360px;
+    }
+
+    @media (min-width: 992px) {
+        .um-model-swiper {
+            max-height: none;
+            min-height: 320px;
+        }
+    }
+
+    .um-model-swiper .swiper-slide {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e8e6e1;
+    }
+
+    .um-model-swiper .swiper-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .um-swiper-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        color: var(--um-muted);
+        padding: 2rem;
+        text-align: center;
+        font-size: 0.9375rem;
+    }
+
+    .um-swiper-empty i {
+        font-size: 2.5rem;
+        opacity: 0.35;
+    }
+
+    .um-swiper-nav-wrap {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 3;
+    }
+
+    .um-swiper-nav-wrap .swiper-button-prev,
+    .um-swiper-nav-wrap .swiper-button-next {
+        pointer-events: auto;
+        width: 44px;
+        height: 44px;
+        margin-top: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--um-text);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .um-swiper-nav-wrap .swiper-button-prev:after,
+    .um-swiper-nav-wrap .swiper-button-next:after {
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .um-swiper-nav-wrap .swiper-button-prev:hover,
+    .um-swiper-nav-wrap .swiper-button-next:hover {
+        background: #fff;
+        transform: translateY(-50%) scale(1.04);
+    }
+
+    .um-swiper-nav-wrap .swiper-button-prev {
+        left: 14px;
+    }
+
+    .um-swiper-nav-wrap .swiper-button-next {
+        right: 14px;
+    }
+
+    .um-swiper-nav-wrap.um-swiper-nav-hidden {
+        display: none;
+    }
+
+    .model-card-camera-badge {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.88);
+        color: #3d3d3d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        pointer-events: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        z-index: 2;
+    }
+
+    .um-model-detail-scope .model-card-pro-body {
+        padding: clamp(1.45rem, 3.2vw, 2.2rem) clamp(1.2rem, 2.8vw, 2.25rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1.25rem;
+        min-width: 0;
+    }
+
+    .um-model-detail-scope .model-spec-row {
+        display: flex;
+        align-items: stretch;
+        border-radius: 16px;
+        border: 1px solid rgba(42, 45, 38, 0.08);
+        background: linear-gradient(165deg, #fafaf8 0%, #f3f2ee 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        overflow: hidden;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .um-model-detail-scope .model-spec-stat {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.5rem;
+        padding: 1rem 0.5rem;
+        position: relative;
+    }
+
+    .um-model-detail-scope .model-spec-stat + .model-spec-stat::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 18%;
+        bottom: 18%;
+        width: 1px;
+        background: linear-gradient(
+            180deg,
+            transparent,
+            rgba(42, 45, 38, 0.12) 20%,
+            rgba(42, 45, 38, 0.12) 80%,
+            transparent
+        );
+    }
+
+    .um-model-detail-scope .model-spec-stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(58, 58, 54, 0.08);
+        color: #5c5c56;
+        font-size: 1.05rem;
+        line-height: 1;
+    }
+
+    .um-model-detail-scope .model-spec-stat-icon i.bi {
+        font-family: 'bootstrap-icons' !important;
+        font-style: normal;
+        font-weight: normal !important;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        vertical-align: -0.05em;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .um-model-detail-scope .model-spec-stat-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.2rem;
+        min-width: 0;
+    }
+
+    .um-model-detail-scope .model-spec-stat-label {
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6f7269;
+        line-height: 1.2;
+        max-width: 100%;
+    }
+
+    .um-model-detail-scope .model-spec-stat-value {
+        font-size: clamp(1rem, 2.1vw, 1.2rem);
+        font-weight: 700;
+        color: #1c1e19;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
+    }
+
+    @media (max-width: 767.98px) {
+        .um-model-detail-scope .model-spec-row {
+            flex-wrap: wrap;
+        }
+        .um-model-detail-scope .model-spec-stat {
+            flex: 1 1 100%;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            text-align: left;
+        }
+        .um-model-detail-scope .model-spec-stat + .model-spec-stat::before {
+            top: 0;
+            bottom: auto;
+            left: 1rem;
+            right: 1rem;
+            width: auto;
+            height: 1px;
+            background: rgba(42, 45, 38, 0.1);
+        }
+        .um-model-detail-scope .model-spec-stat-text {
+            align-items: flex-start;
+            text-align: left;
+        }
+    }
+
+    .um-model-detail-scope .model-card-pro-price-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .um-model-detail-scope .model-card-pro-price-eyebrow {
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #7a7d74;
+        margin: 0;
+    }
+
+    .um-model-detail-scope .model-card-pro-price {
+        margin: 0;
+        line-height: 1.25;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.35rem 0.5rem;
+    }
+
+    .um-model-detail-scope .model-card-pro-price-amount {
+        font-size: clamp(1.2rem, 2.4vw, 1.45rem);
+        font-weight: 700;
+        color: #121411;
+        letter-spacing: -0.025em;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
+    }
+
+    .um-model-detail-scope .model-card-pro-price-suffix {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #8a8d84;
+    }
+
+    .um-model-detail-scope .model-card-pro-cta {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.9rem 1.25rem;
+        border-radius: 14px;
+        background: linear-gradient(175deg, #4a5036 0%, #40452E 42%, #353828 100%);
+        color: #faf9f6 !important;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        border: 1px solid rgba(215, 178, 122, 0.22);
+        text-decoration: none;
+        box-shadow:
+            inset 0 1px 0 rgba(215, 178, 122, 0.32),
+            0 4px 14px rgba(32, 34, 24, 0.18);
+        transition: filter 0.2s ease, box-shadow 0.2s ease;
+        margin-top: 0.25rem;
+        box-sizing: border-box;
+    }
+
+    .um-model-detail-scope a.model-card-pro-cta:hover {
+        filter: brightness(1.06);
+        color: #faf9f6 !important;
+        box-shadow:
+            inset 0 1px 0 rgba(215, 178, 122, 0.42),
+            0 6px 18px rgba(32, 34, 24, 0.22);
+    }
+
+    .um-ficha-desc {
+        margin: 0;
+        font-size: 0.9375rem;
+        line-height: 1.65;
+        color: #3d4038;
+    }
+
+    .um-other-title {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--um-muted);
+        margin: 0 0 0.5rem;
+    }
+
+    .um-other-list {
+        margin: 0;
+        padding-left: 1.15rem;
+        list-style-type: disc;
+        color: #3d4038;
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    .um-other-list li {
+        margin-bottom: 0.35rem;
+    }
+
+    .um-other-list li::marker {
+        color: var(--um-olive-soft);
+    }
+
+    .um-model-detail-scope .um-deep-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin-top: 0.25rem;
+        align-items: stretch;
+    }
+
+    .um-model-detail-scope .um-deep-actions .model-card-pro-cta {
+        flex: 1 1 200px;
+        width: auto;
+        min-width: 0;
+    }
+
+    .um-btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 1.25rem;
+        border-radius: 999px;
+        border: 1px solid rgba(64, 69, 46, 0.2);
+        background: transparent;
+        color: var(--um-olive);
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .um-btn-ghost:hover {
+        background: rgba(64, 69, 46, 0.06);
+        color: var(--um-olive);
+    }
+
+    /* Plantas: banda como la sección “Modelos” en ficha de desarrollo */
+    .um-plants-band {
+        margin-top: clamp(2rem, 4vw, 3rem);
+        margin-left: calc(-1 * clamp(1rem, 4vw, 2.5rem));
+        margin-right: calc(-1 * clamp(1rem, 4vw, 2.5rem));
+        padding: clamp(2rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem) clamp(2.5rem, 5vw, 3.5rem);
+        background: #eceae4;
+    }
+
+    .um-plants-section {
+        margin-top: 0;
+        max-width: 80rem;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .um-plants-heading {
+        text-align: center;
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--um-text);
+        margin: 0 0 1.35rem;
+    }
+
+    .um-plants-card {
+        background: var(--um-surface);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(64, 69, 46, 0.08);
+        box-shadow: 0 20px 50px rgba(31, 36, 28, 0.07);
+        padding: clamp(1rem, 2.5vw, 1.5rem);
+        max-width: 100%;
+    }
+
+    .um-plant-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-bottom: 1.1rem;
+        border-bottom: none;
+    }
+
+    .um-plant-tabs .nav-link {
+        border: none;
+        border-radius: 999px;
+        padding: 0.45rem 1.1rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--um-muted);
+        background: transparent;
+        transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .um-plant-tabs .nav-link:hover {
+        color: var(--um-olive);
+        background: rgba(64, 69, 46, 0.06);
+    }
+
+    .um-plant-tabs .nav-link.active {
+        color: #fff;
+        background: var(--um-olive);
+        box-shadow: inset 0 1px 0 rgba(215, 178, 122, 0.25);
+    }
+
+    .um-plant-frame {
+        max-height: 600px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #faf9f7 0%, #f3f2ee 100%);
+        border-radius: 1rem;
+        padding: 1rem;
+        overflow: hidden;
+    }
+
+    .um-plant-img {
+        max-width: 100%;
+        max-height: 600px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        object-position: center;
+    }
+
+    .um-plant-placeholder {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        color: #5c5a54;
+        max-width: 32rem;
+        margin: 0 auto;
+    }
+
+    .um-plant-placeholder i {
+        font-size: 2.25rem;
+        opacity: 0.35;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .um-plant-placeholder p {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.55;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="um-deep-page">
+    <div class="um-deep-wrap">
+        <header class="um-model-intro">
+            <nav class="um-breadcrumb" aria-label="Migas de pan">
+                <a href="{% url 'developments:list' %}">Desarrollos</a>
+                <span class="um-breadcrumb-sep" aria-hidden="true">·</span>
+                <a href="{% url 'developments:detail' development.slug %}">{{ development.name }}</a>
+            </nav>
+            <h1 id="um-model-page-title" class="um-model-page-title">{{ unit_model.name }}</h1>
+            <p class="um-model-devline">
+                <span class="um-model-devline-label">Desarrollo</span>
+                <a href="{% url 'developments:detail' development.slug %}">{{ development.name }}</a>
+            </p>
+        </header>
+
+        <div class="um-model-detail-scope">
+        <div class="model-card-pro" role="article" aria-labelledby="um-model-page-title">
+            <div class="model-card-pro-media">
+                <div class="um-swiper-shell">
+                    <div class="swiper um-model-swiper">
+                        <div class="swiper-wrapper">
+                            {% for slide in carousel_images %}
+                            <div class="swiper-slide">
+                                <img src="{{ slide.url }}" alt="{{ slide.alt }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                            </div>
+                            {% empty %}
+                            <div class="swiper-slide">
+                                <div class="um-swiper-empty">
+                                    <i class="bi bi-image" aria-hidden="true"></i>
+                                    <span>Galería en preparación — sube imagen de tarjeta y/o galería en el panel</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <span class="model-card-camera-badge" aria-hidden="true"><i class="bi bi-camera"></i></span>
+                    <div class="um-swiper-nav-wrap{% if carousel_images|length <= 1 %} um-swiper-nav-hidden{% endif %}" id="umSwiperNav">
+                        <div class="swiper-button-prev swiper-button-prev-um" aria-label="Anterior"></div>
+                        <div class="swiper-button-next swiper-button-next-um" aria-label="Siguiente"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-card-pro-body">
+
+                <div class="model-spec-row" role="list">
+                    <div class="model-spec-stat" role="listitem">
+                        <span class="model-spec-stat-icon" aria-hidden="true"><i class="bi bi-house-door"></i></span>
+                        <div class="model-spec-stat-text">
+                            <span class="model-spec-stat-label">{% if unit_model.bedrooms == 1 %}Habitación{% else %}Habitaciones{% endif %}</span>
+                            <span class="model-spec-stat-value">{{ unit_model.bedrooms }}</span>
+                        </div>
+                    </div>
+                    <div class="model-spec-stat" role="listitem">
+                        <span class="model-spec-stat-icon" aria-hidden="true"><i class="bi bi-droplet"></i></span>
+                        <div class="model-spec-stat-text">
+                            <span class="model-spec-stat-label">{% if unit_model.bathrooms == 1 %}Baño completo{% else %}Baños completos{% endif %}</span>
+                            <span class="model-spec-stat-value">{{ unit_model.bathrooms_display }}</span>
+                        </div>
+                    </div>
+                    <div class="model-spec-stat" role="listitem">
+                        <span class="model-spec-stat-icon" aria-hidden="true"><i class="bi bi-rulers"></i></span>
+                        <div class="model-spec-stat-text">
+                            <span class="model-spec-stat-label">Construcción</span>
+                            <span class="model-spec-stat-value">{% if unit_model.construction_m2 is not None %}{{ unit_model.construction_m2_display }} m²{% else %}—{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if um_description %}
+                <p class="um-ficha-desc">{{ um_description|linebreaksbr }}</p>
+                {% endif %}
+
+                {% if um_other_lines %}
+                <div>
+                    <h2 class="um-other-title">Otras características</h2>
+                    <ul class="um-other-list">
+                        {% for line in um_other_lines %}
+                        <li>{{ line }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="model-card-pro-price-wrap">
+                    <p class="model-card-pro-price-eyebrow">Precio desde</p>
+                    <p class="model-card-pro-price">
+                        <span class="model-card-pro-price-amount">${{ display_price_from|price_intcomma }}</span>
+                        <span class="model-card-pro-price-suffix">MXN</span>
+                    </p>
+                </div>
+
+                <div class="um-deep-actions">
+                    <a href="{% url 'developments:detail' development.slug %}" class="um-btn-ghost">← Volver al desarrollo</a>
+                    <a href="{% url 'contact:contact' %}" class="model-card-pro-cta">Solicitar información</a>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        {% if floor_plans_ui %}
+        <div class="um-plants-band">
+        <section class="um-plants-section" {% if floor_plans_ui.mode == 'tabs' %}aria-label="Plantas del modelo"{% else %}aria-labelledby="um-plants-heading"{% endif %}>
+            {% if floor_plans_ui.mode == 'single' %}
+            <h2 id="um-plants-heading" class="um-plants-heading">Planta A</h2>
+            <div class="um-plants-card">
+                <div class="um-plant-frame">
+                    <img src="{{ floor_plans_ui.url }}" alt="Planta A — {{ unit_model.name }}" class="um-plant-img" loading="eager">
+                </div>
+            </div>
+            {% else %}
+            <div class="um-plants-card">
+                <ul class="nav um-plant-tabs nav-pills" id="umPlantTabs" role="tablist">
+                    {% for tab in floor_plans_ui.tabs %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link{% if forloop.first %} active{% endif %}" id="um-plant-tab-{{ forloop.counter }}"
+                                data-bs-toggle="tab" data-bs-target="#um-plant-pane-{{ forloop.counter }}" type="button" role="tab"
+                                aria-controls="um-plant-pane-{{ forloop.counter }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                            {{ tab.tab_label }}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="tab-content" id="umPlantTabContent">
+                    {% for tab in floor_plans_ui.tabs %}
+                    <div class="tab-pane fade{% if forloop.first %} show active{% endif %}" id="um-plant-pane-{{ forloop.counter }}" role="tabpanel" aria-labelledby="um-plant-tab-{{ forloop.counter }}" tabindex="0">
+                        <div class="um-plant-frame">
+                            <img src="{{ tab.url }}" alt="{{ tab.tab_label }} — {{ unit_model.name }}" class="um-plant-img" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </section>
+        </div>
+        {% endif %}
+
+        <section class="um-model-contact-band" aria-labelledby="um-contact-model-heading">
+            <h2 id="um-contact-model-heading" class="um-model-contact-title">¿Te interesa este modelo?</h2>
+            <p class="um-model-contact-text">Escríbenos y te orientamos sobre disponibilidad, precios y el desarrollo <strong>{{ development.name }}</strong>.</p>
+            <a href="{{ unit_model_contact_url }}" class="um-model-contact-btn">
+                <i class="bi bi-envelope-fill" aria-hidden="true"></i>
+                Contactar por este modelo
+            </a>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" crossorigin="anonymous"></script>
+<script>
+(function () {
+    var el = document.querySelector('.um-model-swiper');
+    if (!el || typeof Swiper === 'undefined') return;
+    var slides = el.querySelectorAll('.swiper-slide');
+    var n = slides.length;
+    var nav = document.getElementById('umSwiperNav');
+    if (nav) {
+        nav.classList.toggle('um-swiper-nav-hidden', n <= 1);
+    }
+    new Swiper(el, {
+        slidesPerView: 1,
+        spaceBetween: 0,
+        loop: n > 1,
+        speed: 480,
+        navigation: {
+            nextEl: '.swiper-button-next-um',
+            prevEl: '.swiper-button-prev-um',
+        },
+    });
+})();
+</script>
+{% endblock %}

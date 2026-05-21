@@ -1,0 +1,470 @@
+{% extends 'panel/base.html' %}
+{% load l10n %}
+{% load static %}
+
+{% block title %}Editar Propiedad{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="{% static 'css/panel-properties-tl.css' %}?v=1">
+<style>
+    #property-pick-map-edit {
+        height: 300px;
+        border-radius: 12px;
+        margin-top: 8px;
+        border: 1px solid #dde3eb;
+        z-index: 1;
+    }
+    .map-picker-actions-edit {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 10px;
+    }
+    .map-picker-actions-edit button {
+        background: #40452E;
+        color: #fff;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    #map-pick-status-edit { font-size: 0.8rem; color: #666; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-properties-page">
+<div class="edit-container">
+    <div class="page-header">
+        <h1 class="page-title">Editar Propiedad</h1>
+        <a href="{% url 'panel:properties' %}" class="btn-secondary">← Volver</a>
+    </div>
+
+    <form method="post" class="edit-form">
+        {% csrf_token %}
+        
+        <div class="form-section">
+            <h3 class="section-title">Información Básica</h3>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Título *</label>
+                    <input type="text" name="title" value="{{ property.title }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Propiedad *</label>
+                    <select name="property_type" required>
+                        {% for value, label in property_types|default:property_types_catalog %}
+                        <option value="{{ value }}" {% if property.property_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Operación *</label>
+                    <select name="operation_type" required>
+                        <option value="venta" {% if property.operation_type == 'venta' %}selected{% endif %}>Venta</option>
+                        <option value="renta" {% if property.operation_type == 'renta' %}selected{% endif %}>Renta</option>
+                        <option value="venta_renta" {% if property.operation_type == 'venta_renta' %}selected{% endif %}>Venta o Renta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado *</label>
+                    <select name="status" required>
+                        <option value="disponible" {% if property.status == 'disponible' %}selected{% endif %}>Disponible</option>
+                        <option value="vendida" {% if property.status == 'vendida' %}selected{% endif %}>Vendida</option>
+                        <option value="rentada" {% if property.status == 'rentada' %}selected{% endif %}>Rentada</option>
+                        <option value="reservada" {% if property.status == 'reservada' %}selected{% endif %}>Reservada</option>
+                        <option value="no_disponible" {% if property.status == 'no_disponible' %}selected{% endif %}>No Disponible</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Proceso/Etapa *</label>
+                    <select name="process" required>
+                        <option value="en_busqueda" {% if property.process == 'en_busqueda' %}selected{% endif %}>En Búsqueda</option>
+                        <option value="en_negociacion" {% if property.process == 'en_negociacion' %}selected{% endif %}>En Negociación</option>
+                        <option value="en_proceso_legal" {% if property.process == 'en_proceso_legal' %}selected{% endif %}>En Proceso Legal</option>
+                        <option value="en_escrituracion" {% if property.process == 'en_escrituracion' %}selected{% endif %}>En Escrituración</option>
+                        <option value="cerrado" {% if property.process == 'cerrado' %}selected{% endif %}>Cerrado</option>
+                        <option value="cancelado" {% if property.process == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                        <option value="no_aplica" {% if property.process == 'no_aplica' %}selected{% endif %}>No Aplica</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label>Descripción *</label>
+                    <textarea name="description" rows="4" required>{{ property.description }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="is_featured" {% if property.is_featured %}checked{% endif %}>
+                        ⭐ Destacada
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="is_new" {% if property.is_new %}checked{% endif %}>
+                        🆕 Nueva
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Precio y Ubicación</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Precio (MXN) *</label>
+                    <input type="text" name="price" value="{{ property.price|unlocalize }}" inputmode="decimal" autocomplete="off" placeholder="Ej. 2170000, 2.170.000 o 2,170,000" required>
+                </div>
+                <div class="form-group">
+                    <label>Moneda</label>
+                    <select name="currency">
+                        <option value="MXN" {% if property.currency == 'MXN' %}selected{% endif %}>MXN - Pesos Mexicanos</option>
+                        <option value="USD" {% if property.currency == 'USD' %}selected{% endif %}>USD - Dólares</option>
+                        <option value="EUR" {% if property.currency == 'EUR' %}selected{% endif %}>EUR - Euros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cuota Mantenimiento</label>
+                    <input type="number" name="maintenance_fee" value="{{ property.maintenance_fee|default:''|unlocalize }}" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group full">
+                    <label>Dirección Completa *</label>
+                    <input type="text" name="address" value="{{ property.address }}" required placeholder="Calle, número, colonia">
+                </div>
+                <div class="form-group">
+                    <label>Región</label>
+                    <select name="region">
+                        <option value="">Selecciona una región</option>
+                        {% for region in regions %}
+                        <option value="{{ region.id }}" {% if property.region_id == region.id %}selected{% endif %}>{{ region.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado *</label>
+                    <select name="state" id="state-select-edit" required data-current-state="{{ property.state|default:'' }}">
+                        <option value="">Selecciona un estado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ciudad *</label>
+                    <select name="city" id="city-select-edit" required data-current-city="{{ property.city|default:'' }}">
+                        <option value="">Primero selecciona un estado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Código Postal</label>
+                    <input type="text" name="zip_code" value="{{ property.zip_code|default:'' }}" placeholder="00000">
+                </div>
+                <div class="form-group">
+                    <label>País</label>
+                    <input type="text" name="country" value="{{ property.country|default:'México' }}">
+                </div>
+                <div class="form-group full">
+                    <label>Link de Google Maps</label>
+                    <input type="url" name="google_maps_url" value="{{ property.google_maps_url|default:'' }}" placeholder="https://maps.google.com/...">
+                    <small>Pegue el enlace de Google Maps de la ubicación exacta</small>
+                </div>
+                <div class="form-group full">
+                    <label>Ubicación en mapa</label>
+                    <small>Haz clic en el mapa o arrastra el pin. Las coordenadas se guardan al pulsar «Guardar cambios». Usa «Buscar con mi dirección» si aún no hay pin.</small>
+                    <div id="property-pick-map-edit"></div>
+                    <div class="map-picker-actions-edit">
+                        <button type="button" id="btn-geocode-address-edit">Buscar con mi dirección</button>
+                        <span id="map-pick-status-edit"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Latitud</label>
+                    <input type="number" name="latitude" id="id_latitude" value="{{ property.latitude|default:''|unlocalize }}" step="any" placeholder="0.000000">
+                </div>
+                <div class="form-group">
+                    <label>Longitud</label>
+                    <input type="number" name="longitude" id="id_longitude" value="{{ property.longitude|default:''|unlocalize }}" step="any" placeholder="0.000000">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Características Principales</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Recámaras</label>
+                    <input type="number" name="bedrooms" value="{{ property.bedrooms|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Baños Completos</label>
+                    <input type="number" name="bathrooms" value="{{ property.bathrooms|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Medios Baños</label>
+                    <input type="number" name="half_bathrooms" value="{{ property.half_bathrooms|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Estacionamientos</label>
+                    <input type="number" name="parking_spaces" value="{{ property.parking_spaces|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Área Construcción (m²) *</label>
+                    <input type="number" name="construction_area" value="{{ property.construction_area|unlocalize }}" step="0.01" min="0" required placeholder="0.00">
+                    <small>Área construida</small>
+                </div>
+                <div class="form-group">
+                    <label>Área Terreno (m²)</label>
+                    <input type="number" name="lot_area" value="{{ property.lot_area|default:0|unlocalize }}" step="0.01" min="0" placeholder="0.00">
+                    <small>Área del terreno</small>
+                </div>
+                <div class="form-group">
+                    <label>Niveles/Pisos</label>
+                    <input type="number" name="floors" value="{{ property.floors|default:1 }}" min="1">
+                    <small>Número de niveles</small>
+                </div>
+                <div class="form-group">
+                    <label>Medida Frente (m)</label>
+                    <input type="number" name="front_measure" value="{{ property.front_measure|default:''|unlocalize }}" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Medida Fondo (m)</label>
+                    <input type="number" name="back_measure" value="{{ property.back_measure|default:''|unlocalize }}" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Año Construcción</label>
+                    <input type="number" name="year_built" value="{{ property.year_built|default:'' }}" min="1900" max="2030" placeholder="2020">
+                </div>
+                <div class="form-group">
+                    <label>Ambientes</label>
+                    <input type="number" name="rooms" value="{{ property.rooms|default:0 }}" min="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section" data-amenity-selector>
+            <h3 class="section-title">Distribución Interior (catálogo)</h3>
+            <input type="text" data-amenity-search class="form-control mb-2" placeholder="Buscar distribución...">
+            <small>Seleccionadas: <strong data-amenity-counter>0</strong></small>
+            <div class="mt-2 d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-amenity-select-visible>Seleccionar visibles</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-amenity-clear>Limpiar</button>
+            </div>
+            <div data-amenity-chips class="mb-2"></div>
+            <div class="checkbox-grid">
+                {% for feature in interior_feature_catalog %}
+                <label data-amenity-card data-amenity-text="{{ feature.name }} {{ feature.slug }}">
+                    <input type="checkbox" name="interior_features" value="{{ feature.id }}" {% if feature in property.interior_features.all %}checked{% endif %}>
+                    <i class="bi {{ feature.icon }}" style="color:#40452E;"></i> <span data-amenity-label>{{ feature.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-section" data-amenity-selector>
+            <h3 class="section-title">Catálogo maestro de amenidades</h3>
+            <input type="text" data-amenity-search class="form-control mb-2" placeholder="Buscar amenidad...">
+            <small>Seleccionadas: <strong data-amenity-counter>0</strong></small>
+            <div class="mt-2 d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-amenity-select-visible>Seleccionar visibles</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-amenity-clear>Limpiar</button>
+            </div>
+            <div data-amenity-chips class="mb-2"></div>
+            <div class="checkbox-grid">
+                {% for amenity in amenity_catalog %}
+                <label data-amenity-card data-amenity-text="{{ amenity.display_name }} {{ amenity.slug }} {{ amenity.category.name }}">
+                    <input type="checkbox" name="amenities" value="{{ amenity.id }}" {% if amenity in property.amenities.all %}checked{% endif %}>
+                    <i class="bi {{ amenity.icon_class }}" style="color:#40452E;"></i> <span data-amenity-label>{{ amenity.display_name }}</span>
+                </label>
+                {% empty %}
+                <p class="text-muted">No hay amenidades en catálogo.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-section" data-amenity-selector>
+            <h3 class="section-title">Servicios Disponibles (catálogo)</h3>
+            <input type="text" data-amenity-search class="form-control mb-2" placeholder="Buscar servicio...">
+            <small>Seleccionados: <strong data-amenity-counter>0</strong></small>
+            <div class="mt-2 d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-amenity-select-visible>Seleccionar visibles</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-amenity-clear>Limpiar</button>
+            </div>
+            <div data-amenity-chips class="mb-2"></div>
+            <div class="checkbox-grid">
+                {% for feature in service_feature_catalog %}
+                <label data-amenity-card data-amenity-text="{{ feature.name }} {{ feature.slug }}">
+                    <input type="checkbox" name="service_features" value="{{ feature.id }}" {% if feature in property.service_features.all %}checked{% endif %}>
+                    <i class="bi {{ feature.icon }}" style="color:#40452E;"></i> <span data-amenity-label>{{ feature.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Exclusiva de Asesor (interno)</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="is_advisor_exclusive" {% if property.is_advisor_exclusive %}checked{% endif %}>
+                        Propiedad exclusiva de asesor
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Asesor responsable</label>
+                    <select name="exclusive_advisor">
+                        <option value="">Sin asignar</option>
+                        {% for advisor in advisors %}
+                        <option value="{{ advisor.id }}" {% if property.exclusive_advisor_id == advisor.id %}selected{% endif %}>
+                            {{ advisor.get_full_name|default:advisor.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Opciones de financiamiento</h3>
+            <div class="checkbox-grid">
+                {% for code, label in financing_choices %}
+                <label>
+                    <input type="checkbox" name="financing_options" value="{{ code }}" {% if code in property.financing_options %}checked{% endif %}>
+                    {{ label }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'panel:properties' %}" class="btn-secondary">Cancelar</a>
+            <button type="submit" class="btn-primary">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+</div>
+<script>
+(function () {
+    const stateSelect = document.getElementById('state-select-edit');
+    const citySelect = document.getElementById('city-select-edit');
+    if (!stateSelect || !citySelect) return;
+
+    const currentState = stateSelect.dataset.currentState || '';
+    const currentCity = citySelect.dataset.currentCity || '';
+
+    const mexicoStatesCities = {
+        "Aguascalientes": ["Aguascalientes", "Jesús María", "Calvillo"],
+        "Baja California": ["Tijuana", "Mexicali", "Ensenada", "Rosarito", "Tecate"],
+        "Baja California Sur": ["La Paz", "Los Cabos", "Comondú", "Loreto"],
+        "Campeche": ["Campeche", "Ciudad del Carmen", "Champotón"],
+        "Chiapas": ["Tuxtla Gutiérrez", "San Cristóbal de las Casas", "Tapachula", "Comitán"],
+        "Chihuahua": ["Chihuahua", "Ciudad Juárez", "Delicias", "Cuauhtémoc"],
+        "Coahuila": ["Saltillo", "Torreón", "Monclova", "Piedras Negras"],
+        "Colima": ["Colima", "Manzanillo", "Tecomán"],
+        "Ciudad de México": ["Álvaro Obregón", "Benito Juárez", "Coyoacán", "Cuauhtémoc", "Iztapalapa", "Miguel Hidalgo", "Tlalpan", "Xochimilco"],
+        "Durango": ["Durango", "Gómez Palacio", "Lerdo"],
+        "Estado de México": ["Ecatepec", "Naucalpan", "Tlalnepantla", "Toluca", "Metepec", "Cuautitlán Izcalli", "Atizapán de Zaragoza"],
+        "Guanajuato": ["León", "Irapuato", "Celaya", "Guanajuato", "San Miguel de Allende"],
+        "Guerrero": ["Acapulco", "Chilpancingo", "Iguala", "Taxco"],
+        "Hidalgo": ["Pachuca", "Tulancingo", "Tizayuca", "Mineral de la Reforma"],
+        "Jalisco": ["Guadalajara", "Zapopan", "Tlaquepaque", "Tlajomulco", "Puerto Vallarta"],
+        "Michoacán": ["Morelia", "Uruapan", "Zamora", "Lázaro Cárdenas"],
+        "Morelos": ["Cuernavaca", "Jiutepec", "Temixco", "Cuautla"],
+        "Nayarit": ["Tepic", "Bahía de Banderas", "Santiago Ixcuintla"],
+        "Nuevo León": ["Monterrey", "San Pedro Garza García", "Guadalupe", "Apodaca", "Santa Catarina"],
+        "Oaxaca": ["Oaxaca de Juárez", "Salina Cruz", "Tuxtepec", "Juchitán"],
+        "Puebla": ["Puebla", "San Andrés Cholula", "San Pedro Cholula", "Tehuacán"],
+        "Querétaro": ["Querétaro", "El Marqués", "Corregidora", "San Juan del Río", "Tequisquiapan"],
+        "Quintana Roo": ["Cancún", "Playa del Carmen", "Chetumal", "Tulum", "Cozumel"],
+        "San Luis Potosí": ["San Luis Potosí", "Soledad de Graciano Sánchez", "Matehuala"],
+        "Sinaloa": ["Culiacán", "Mazatlán", "Los Mochis", "Guasave"],
+        "Sonora": ["Hermosillo", "Ciudad Obregón", "Nogales", "San Luis Río Colorado"],
+        "Tabasco": ["Villahermosa", "Cárdenas", "Comalcalco"],
+        "Tamaulipas": ["Reynosa", "Matamoros", "Nuevo Laredo", "Tampico", "Ciudad Victoria"],
+        "Tlaxcala": ["Tlaxcala", "Apizaco", "Huamantla"],
+        "Veracruz": ["Veracruz", "Xalapa", "Coatzacoalcos", "Poza Rica", "Córdoba", "Boca del Río"],
+        "Yucatán": ["Mérida", "Valladolid", "Tizimín", "Progreso"],
+        "Zacatecas": ["Zacatecas", "Guadalupe", "Fresnillo", "Jerez"]
+    };
+
+    const fillStates = () => {
+        Object.keys(mexicoStatesCities).sort().forEach((stateName) => {
+            const option = document.createElement('option');
+            option.value = stateName;
+            option.textContent = stateName;
+            if (stateName === currentState) {
+                option.selected = true;
+            }
+            stateSelect.appendChild(option);
+        });
+    };
+
+    const fillCities = (stateName, selectedCity = '') => {
+        citySelect.innerHTML = '';
+        if (!stateName || !mexicoStatesCities[stateName]) {
+            citySelect.disabled = true;
+            citySelect.innerHTML = '<option value="">Primero selecciona un estado</option>';
+            return;
+        }
+
+        citySelect.disabled = false;
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Selecciona una ciudad';
+        citySelect.appendChild(defaultOption);
+
+        mexicoStatesCities[stateName].forEach((cityName) => {
+            const option = document.createElement('option');
+            option.value = cityName;
+            option.textContent = cityName;
+            if (cityName === selectedCity) {
+                option.selected = true;
+            }
+            citySelect.appendChild(option);
+        });
+    };
+
+    fillStates();
+    fillCities(currentState, currentCity);
+    stateSelect.addEventListener('change', () => fillCities(stateSelect.value));
+})();
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+window.TL_MAP_TILES = {
+    url: '{{ MAP_TILES.url|escapejs }}',
+    attribution: '{{ MAP_TILES.attribution|escapejs }}',
+    subdomains: '{{ MAP_TILES.subdomains|escapejs }}',
+    maxZoom: {{ MAP_TILES.max_zoom }}
+};
+</script>
+<script src="{% static 'js/property-map-picker.js' %}"></script>
+<script src="{% static 'js/amenity-selector.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof TLPropertyMapPicker === 'undefined') return;
+    TLPropertyMapPicker.init({
+        mapId: 'property-pick-map-edit',
+        latInput: '#id_latitude',
+        lngInput: '#id_longitude',
+        defaultLat: 20.5888,
+        defaultLng: -100.3899,
+        defaultZoom: 12,
+        geocodeBtn: 'btn-geocode-address-edit',
+        statusEl: '#map-pick-status-edit',
+        getQuery: function () {
+            var addr = (document.querySelector('[name="address"]') || {}).value || '';
+            var stateEl = document.getElementById('state-select-edit');
+            var cityEl = document.getElementById('city-select-edit');
+            var state = stateEl && stateEl.value ? stateEl.value : '';
+            var city = '';
+            if (cityEl && cityEl.selectedIndex >= 0 && cityEl.options[cityEl.selectedIndex]) {
+                city = cityEl.options[cityEl.selectedIndex].value || '';
+            }
+            return [addr, city, state, 'México'].filter(Boolean).join(', ');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,2383 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}Total Living - Encuentra tu Propiedad Ideal{% endblock %}
+
+{% load humanize %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+.hero-carousel {
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-carousel .carousel-item {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.hero-carousel .carousel-item img {
+    height: 100vh;
+    object-fit: cover;
+    width: 100%;
+    /* Optimización de renderizado de imágenes */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: high-quality;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    will-change: opacity;
+    min-width: 100%;
+    min-height: 100%;
+    /* Suavizado de imagen */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@supports (height: 100dvh) {
+    .hero-carousel,
+    .hero-carousel .carousel-item,
+    .hero-carousel .carousel-item img {
+        height: 100dvh;
+    }
+}
+
+.carousel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%);
+    padding: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+/* Título del carrusel - Glassmorphism Transparente FIJO */
+.hero-carousel-section {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Home inmersiva: navbar oculta al entrar y aparece al deslizar */
+body.home-immersive .navbar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1055;
+    transform: translateY(-110%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+body.home-immersive.home-nav-visible .navbar {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.carousel-header {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    background: rgba(64, 69, 46, 0.25);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 20px 60px;
+    border-radius: 50px;
+    border: 2px solid rgba(196, 165, 114, 0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none;
+}
+
+.carousel-header:hover {
+    background: rgba(64, 69, 46, 0.35);
+    border-color: rgba(196, 165, 114, 0.5);
+    transform: translateX(-50%) translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.carousel-header h2 {
+    font-size: 1.7rem;
+    font-weight: 400;
+    color: white;
+    letter-spacing: 3px;
+    margin: 0;
+    text-transform: uppercase;
+    text-shadow: 0 2px 15px rgba(0,0,0,0.4);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.carousel-content {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    padding: 60px 0 80px;
+    overflow: hidden;
+}
+
+.carousel-main-column {
+    min-width: 0;
+}
+
+.carousel-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 0.9rem;
+}
+
+.carousel-property-title {
+    font-size: clamp(1.65rem, 3vw, 2.75rem);
+    line-height: 1.2;
+    margin-bottom: 0.9rem;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.carousel-features {
+    gap: 14px !important;
+    margin-bottom: 0.9rem !important;
+}
+
+.carousel-feature-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: clamp(0.92rem, 1.8vw, 1rem);
+}
+
+.carousel-location {
+    font-size: clamp(0.9rem, 1.8vw, 1rem);
+}
+
+.carousel-price-panel {
+    width: 100%;
+    max-width: 380px;
+    margin-left: auto;
+}
+
+.carousel-price {
+    font-size: clamp(1.6rem, 3vw, 2.4rem) !important;
+    line-height: 1.15;
+    margin-bottom: 0.8rem !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Carrusel: acciones (Ver detalles + WhatsApp) — mismo estilo minimal */
+.carousel-cta-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+    width: 100%;
+    max-width: 330px;
+    margin-left: auto;
+}
+@media (min-width: 992px) {
+    .carousel-cta-stack {
+        align-items: flex-end;
+    }
+}
+@media (max-width: 991.98px) {
+    .carousel-cta-stack {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+.home-carousel-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 330px;
+    padding: 0.72rem 1.2rem;
+    border-radius: 11px;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    font-weight: 500;
+    font-size: 0.88rem;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.94) !important;
+    text-decoration: none !important;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.2s ease;
+}
+.home-carousel-action-btn:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.52);
+    transform: translateY(-1px);
+}
+.home-carousel-action-btn:focus-visible {
+    outline: 2px solid rgba(215, 178, 122, 0.95);
+    outline-offset: 3px;
+}
+.home-carousel-action-btn .bi {
+    font-size: 1.05rem;
+    opacity: 0.92;
+}
+
+/* FAB WhatsApp: solo tras pasar el carrusel (evita solaparse con CTAs del hero) */
+.home-wa-fab {
+    position: fixed;
+    z-index: 1060;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(22px, env(safe-area-inset-bottom));
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.72rem 1.15rem 0.72rem 0.85rem;
+    border-radius: 999px;
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+    color: #fff !important;
+    text-decoration: none !important;
+    background: linear-gradient(145deg, #2fe077 0%, #16a34a 50%, #0d7a3a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow:
+        0 12px 36px rgba(13, 122, 58, 0.42),
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(18px) scale(0.97);
+    transition:
+        opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0.4s,
+        box-shadow 0.25s ease;
+}
+.home-wa-fab.home-wa-fab--visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    animation: home-wa-fab-glow 3.2s ease-in-out infinite;
+}
+.home-wa-fab.home-wa-fab--visible:hover {
+    color: #fff !important;
+    transform: scale(1.04) translateY(-2px);
+    box-shadow:
+        0 16px 42px rgba(13, 122, 58, 0.5),
+        0 0 0 1px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.home-wa-fab:focus-visible {
+    outline: 3px solid rgba(215, 178, 122, 0.9);
+    outline-offset: 4px;
+}
+.home-wa-fab .home-wa-fab-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.12);
+    font-size: 1.35rem;
+}
+.home-wa-fab .home-wa-fab-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.15;
+    text-align: left;
+}
+.home-wa-fab .home-wa-fab-kicker {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.92;
+}
+@media (max-width: 380px) {
+    .home-wa-fab .home-wa-fab-kicker {
+        display: none;
+    }
+    .home-wa-fab {
+        padding: 0.65rem 0.9rem;
+        font-size: 0.88rem;
+    }
+}
+@keyframes home-wa-fab-glow {
+    0%, 100% {
+        box-shadow:
+            0 12px 36px rgba(13, 122, 58, 0.42),
+            0 0 0 1px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow:
+            0 14px 40px rgba(13, 122, 58, 0.52),
+            0 0 0 1px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    }
+}
+
+/* Cinemática del contenido del carrusel */
+.cinematic-item {
+    opacity: 0;
+    will-change: opacity;
+}
+
+.carousel-item.active .cinematic-item {
+    animation: cinematicReveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.carousel-item.active .cinematic-delay-1 { animation-delay: 0.08s; }
+.carousel-item.active .cinematic-delay-2 { animation-delay: 0.18s; }
+.carousel-item.active .cinematic-delay-3 { animation-delay: 0.3s; }
+.carousel-item.active .cinematic-delay-4 { animation-delay: 0.42s; }
+.carousel-item.active .cinematic-delay-5 { animation-delay: 0.54s; }
+
+@keyframes cinematicReveal {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cinematic-item,
+    .carousel-item.active .cinematic-item {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 80px;
+    opacity: 1;
+    z-index: 4;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(59, 62, 42, 0.9);
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.carousel-indicators {
+    z-index: 4;
+    margin-bottom: 20px;
+}
+
+.carousel-indicators button {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin: 0 8px;
+    background-color: rgba(255,255,255,0.5);
+}
+
+.carousel-indicators button.active {
+    background-color: var(--matte-gold);
+}
+
+.property-badge-carousel {
+    display: none;
+}
+
+/* —— Inicio: Nuestros servicios (tarjetas oliva, tipografía ultrafina, icono circular) —— */
+.home-services-section {
+    padding: clamp(1.75rem, 3.2vw, 2.5rem) 0 clamp(2rem, 3.5vw, 2.75rem);
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.home-services-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.services-section-head {
+    text-align: center;
+    max-width: 38rem;
+    margin: 0 auto clamp(1.25rem, 2.5vw, 1.65rem);
+    padding: 0 0.75rem;
+}
+
+.services-section-eyebrow {
+    display: inline-block;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(250, 246, 236, 0.92);
+    margin: 0 0 0.55rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid rgba(214, 181, 133, 0.45);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.services-main-heading {
+    font-family: 'Raleway', sans-serif;
+    font-size: clamp(1.28rem, 2.35vw, 1.75rem);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fdfcf9;
+    margin: 0 0 0.55rem;
+    line-height: 1.22;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.2);
+}
+
+.services-section-lead {
+    margin: 0;
+    font-size: clamp(0.86rem, 1.1vw, 0.95rem);
+    line-height: 1.65;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+/* Encabezados de sección sobre fondo blanco (las tarjetas conservan su estilo) */
+.home-services-section .services-section-eyebrow,
+.why-totalliving-section .services-section-eyebrow {
+    color: #4a5240;
+    border-color: rgba(196, 165, 114, 0.45);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.home-services-section .services-main-heading,
+.why-totalliving-section .services-main-heading {
+    color: #353b30;
+    text-shadow: none;
+}
+
+.home-services-section .services-section-lead,
+.why-totalliving-section .services-section-lead {
+    color: #5a6254;
+}
+
+.home-services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.85rem, 1.8vw, 1.25rem);
+    align-items: stretch;
+    max-width: 1040px;
+    margin: 0 auto;
+}
+
+.home-service-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: linear-gradient(165deg, #4a5242 0%, #3d4436 42%, #343b2f 100%);
+    border-radius: 36px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+        0 14px 36px rgba(18, 22, 16, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: transform 0.32s ease, box-shadow 0.32s ease, border-color 0.32s ease;
+}
+
+.home-service-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(214, 181, 133, 0.45);
+    box-shadow:
+        0 22px 48px rgba(18, 22, 16, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 0 0 1px rgba(214, 181, 133, 0.22);
+}
+
+.home-service-card-media {
+    padding: clamp(1.1rem, 2.2vw, 1.45rem) 1rem 0.35rem;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.home-service-card-media-inner {
+    position: relative;
+    width: min(132px, 58%);
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    margin: 0 auto;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        inset 0 2px 12px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(214, 181, 133, 0.28),
+        0 0 0 7px rgba(214, 181, 133, 0.07);
+}
+
+.home-service-card-media-inner i {
+    font-size: clamp(1.85rem, 3.2vw, 2.35rem);
+    color: rgba(255, 252, 246, 0.95);
+    font-weight: 300;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
+}
+
+.home-service-card-body {
+    padding: 0.35rem clamp(1.15rem, 2.2vw, 1.45rem) clamp(1.2rem, 2.4vw, 1.55rem);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.home-service-card-title {
+    font-family: 'Raleway', sans-serif;
+    font-size: clamp(1.05rem, 1.45vw, 1.28rem);
+    font-weight: 200;
+    line-height: 1.3;
+    margin: 0 0 0.55rem;
+    color: rgba(255, 255, 255, 0.96);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.home-service-card-copy {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-size: clamp(0.84rem, 1.05vw, 0.93rem);
+    line-height: 1.65;
+    margin: 0 0 0.75rem;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 200;
+    flex: 1;
+}
+
+.home-service-card-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+    text-align: left;
+}
+
+.home-service-card-list li {
+    position: relative;
+    padding-left: 1.05rem;
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-size: clamp(0.78rem, 0.95vw, 0.86rem);
+    line-height: 1.5;
+    font-weight: 200;
+    color: rgba(255, 255, 255, 0.72);
+    letter-spacing: 0.04em;
+}
+
+.home-service-card-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0 0 3px rgba(214, 181, 133, 0.2);
+}
+
+.home-properties-map-section {
+    padding: 40px 0 18px;
+    background: #ffffff;
+}
+
+.home-properties-map-title {
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+.home-properties-map-title h2 {
+    font-size: clamp(1.45rem, 2.8vw, 2.2rem);
+    font-weight: 400;
+    color: #3d3526;
+    letter-spacing: 2.5px;
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+}
+
+.home-properties-map-title::after {
+    content: '';
+    display: block;
+    width: 92px;
+    height: 2px;
+    background: #3d3526;
+    margin: 12px auto 0;
+}
+
+.home-properties-map-canvas-wrapper {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 16px 42px rgba(16, 20, 28, 0.10);
+}
+
+#home-properties-map-canvas {
+    width: 100%;
+    height: 560px;
+    z-index: 1;
+}
+
+@media (max-width: 768px) {
+    #home-properties-map-canvas {
+        height: 380px;
+    }
+}
+
+.latest-properties-title {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.latest-properties-title h2 {
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: #3d3526;
+    letter-spacing: 3px;
+    margin-bottom: 15px;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+}
+
+.latest-properties-title::after {
+    content: '';
+    display: block;
+    width: 100px;
+    height: 2px;
+    background: #3d3526;
+    margin: 15px auto 0;
+}
+
+.about-totalliving-section {
+    padding: 8px 0 34px;
+    background: #ffffff;
+}
+
+.about-totalliving-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    align-items: stretch;
+    background: linear-gradient(135deg, #40452E 0%, #38382E 70%, #2f3227 100%);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 44px rgba(16, 20, 28, 0.12);
+}
+
+.about-totalliving-copy {
+    padding: 52px 48px;
+    color: #ffffff;
+}
+
+.about-totalliving-eyebrow {
+    display: inline-block;
+    margin-bottom: 14px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(242, 236, 224, 0.84);
+}
+
+.about-totalliving-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.9rem, 3vw, 2.75rem);
+    line-height: 1.15;
+    font-weight: 600;
+    margin: 0 0 18px;
+    color: #ffffff;
+}
+
+.about-totalliving-text {
+    font-size: 1rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 24px;
+    max-width: 620px;
+}
+
+.about-totalliving-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    background: #f2ece0;
+    color: #38382E;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.about-totalliving-cta:hover {
+    color: #38382E;
+    background: #e8dcc7;
+}
+
+.about-totalliving-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.about-totalliving-social {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(242, 236, 224, 0.4);
+    background: rgba(242, 236, 224, 0.08);
+}
+
+.about-totalliving-social-link {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #f2ece0;
+    text-decoration: none;
+    border: 1px solid rgba(242, 236, 224, 0.38);
+    background: rgba(242, 236, 224, 0.05);
+    transition: all 0.2s ease;
+}
+
+.about-totalliving-social-link:hover {
+    color: #38382E;
+    background: #f2ece0;
+    border-color: #f2ece0;
+}
+
+.about-totalliving-visual {
+    position: relative;
+    min-height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+}
+
+.about-totalliving-photo-frame {
+    width: 100%;
+    min-height: 420px;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(242, 236, 224, 0.18);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+}
+
+.about-totalliving-photo {
+    width: 100%;
+    height: 100%;
+    min-height: 420px;
+    object-fit: cover;
+    display: block;
+}
+
+.why-totalliving-section {
+    padding: clamp(1.65rem, 3vw, 2.35rem) 0 clamp(1.85rem, 3.2vw, 2.5rem);
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.why-totalliving-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.home-listings-section {
+    padding: 24px 0 42px;
+    background: #f8f9fa;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.home-listings-title {
+    font-family: 'Raleway', sans-serif;
+    font-size: clamp(1.2rem, 2.2vw, 1.85rem);
+    font-weight: 400;
+    letter-spacing: 1.4px;
+    color: #38382E;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.home-listings-grid {
+    margin-top: 4px;
+}
+
+.home-listings-grid .property-card-modern {
+    height: 390px !important;
+}
+
+.home-listings-grid .property-card-image-container,
+.home-listings-grid .property-card-image {
+    height: 390px !important;
+}
+
+.home-listings-cta {
+    margin-top: 14px;
+}
+
+.why-totalliving-title {
+    text-align: center;
+    max-width: 40rem;
+    margin: 0 auto clamp(1.1rem, 2.2vw, 1.45rem);
+    padding: 0 0.75rem;
+}
+
+.why-totalliving-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1.4vw, 1rem);
+    max-width: 1000px;
+    margin: 0 auto;
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 820px;
+}
+
+.why-totalliving-card {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 28px;
+    padding: clamp(0.95rem, 1.8vw, 1.15rem) clamp(1rem, 1.8vw, 1.2rem) clamp(1rem, 1.9vw, 1.2rem);
+    background: linear-gradient(165deg, #4a5242 0%, #3d4436 42%, #343b2f 100%);
+    box-shadow:
+        0 12px 32px rgba(18, 22, 16, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+    transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+}
+
+.why-totalliving-card.reveal-left {
+    transform: translateX(-16px) translateY(14px) scale(0.985);
+}
+
+.why-totalliving-card.reveal-right {
+    transform: translateX(16px) translateY(14px) scale(0.985);
+}
+
+.why-totalliving-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 14%;
+    right: 14%;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), rgba(214, 181, 133, 0.35), rgba(255, 255, 255, 0.22), transparent);
+    opacity: 0.75;
+}
+
+.why-totalliving-icon {
+    width: min(96px, 46%);
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.35rem auto 0.65rem;
+    flex-shrink: 0;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 252, 246, 0.95);
+    font-size: clamp(1.55rem, 2.6vw, 1.85rem);
+    font-weight: 300;
+    box-shadow:
+        inset 0 2px 10px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(214, 181, 133, 0.24),
+        0 0 0 6px rgba(214, 181, 133, 0.06);
+    transform: scale(0.88) rotate(-8deg);
+    opacity: 0;
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease;
+}
+
+.why-totalliving-card h3 {
+    font-family: 'Raleway', sans-serif;
+    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    font-weight: 200;
+    margin: 0 0 0.45rem;
+    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    width: 100%;
+}
+
+.why-totalliving-card p {
+    font-family: 'Nunito', system-ui, sans-serif;
+    margin: 0 0 0.6rem;
+    color: rgba(255, 255, 255, 0.76);
+    font-size: clamp(0.78rem, 0.95vw, 0.86rem);
+    font-weight: 200;
+    line-height: 1.55;
+    width: 100%;
+}
+
+.why-totalliving-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.32rem;
+    width: 100%;
+    text-align: left;
+}
+
+.why-totalliving-list li {
+    position: relative;
+    padding-left: 0.95rem;
+    font-family: 'Nunito', system-ui, sans-serif;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: clamp(0.72rem, 0.88vw, 0.8rem);
+    font-weight: 200;
+    line-height: 1.45;
+    letter-spacing: 0.03em;
+}
+
+.why-totalliving-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.52em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(214, 181, 133, 0.18);
+}
+
+.why-totalliving-card.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.why-totalliving-card.is-visible .why-totalliving-icon {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+}
+
+@media (max-width: 991.98px) {
+    /* En móvil/tablet: animación ligera (sin bloquear scroll) */
+    .why-totalliving-card {
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 0.35s ease, transform 0.35s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .why-totalliving-card.reveal-left,
+    .why-totalliving-card.reveal-right {
+        transform: translateY(12px);
+    }
+
+    .why-totalliving-card.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .why-totalliving-icon {
+        opacity: 0;
+        transform: scale(0.94);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .why-totalliving-card.is-visible .why-totalliving-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.why-totalliving-card.is-visible:hover {
+    transform: translateY(-4px) scale(1);
+    border-color: rgba(214, 181, 133, 0.42);
+    box-shadow:
+        0 18px 40px rgba(18, 22, 16, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 0 0 1px rgba(214, 181, 133, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .why-totalliving-card {
+        opacity: 1;
+        transform: none;
+        transition: box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .why-totalliving-card.reveal-left,
+    .why-totalliving-card.reveal-right {
+        transform: none;
+    }
+
+    .why-totalliving-icon {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .why-totalliving-card.is-visible:hover {
+        transform: none;
+    }
+}
+
+.exclusive-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #2f342a;
+    margin: 0 0 10px;
+    line-height: 1.35;
+}
+
+.exclusive-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.84rem;
+    color: #5f6672;
+    margin-bottom: 10px;
+}
+
+.exclusive-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.exclusive-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #6a717e;
+    margin-bottom: 12px;
+}
+
+.exclusive-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #3a3c31;
+    text-decoration: none;
+    margin-top: 14px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(193, 162, 112, 0.45);
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.exclusive-link:hover {
+    color: #ffffff;
+    background: #3b3e2a;
+    border-color: #3b3e2a;
+}
+
+.properties-carousel-container {
+    position: relative;
+    padding: 0 60px;
+}
+
+.properties-swiper {
+    padding: 20px 0 40px;
+}
+
+.property-carousel-card {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.property-carousel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+
+.property-carousel-image-container {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    overflow: hidden;
+}
+
+.property-carousel-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    /* Optimización de renderizado de imágenes */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: high-quality;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    will-change: transform;
+    /* Suavizado de imagen */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.property-carousel-card:hover .property-carousel-image {
+    transform: scale(1.1);
+}
+
+.property-price-banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30, 40, 60, 0.95);
+    color: white;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    z-index: 2;
+}
+
+.property-name-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, transparent 100%);
+    padding: 40px 25px 25px;
+    z-index: 2;
+}
+
+.property-name-overlay h3 {
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: #FFFFFF;
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 1px;
+    line-height: 1.3;
+}
+
+.property-carousel-info {
+    padding: 25px;
+}
+
+.property-location-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.property-location-info i {
+    color: #40452E;
+    font-size: 1rem;
+}
+
+.property-details-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.property-details-info span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.property-carousel-button {
+    background: #C4A572;
+    color: #38382E;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.property-carousel-button:hover {
+    background: #D6B585;
+    color: #38382E;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(196, 165, 114, 0.3);
+    text-decoration: none;
+}
+
+/* Navegación del Carrusel */
+.properties-swiper .swiper-button-next,
+.properties-swiper .swiper-button-prev {
+    background: rgba(61, 53, 38, 0.9);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.properties-swiper .swiper-button-next:hover,
+.properties-swiper .swiper-button-prev:hover {
+    background: rgba(61, 53, 38, 1);
+    transform: scale(1.1);
+}
+
+.properties-swiper .swiper-button-next:after,
+.properties-swiper .swiper-button-prev:after {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.properties-swiper .swiper-button-prev {
+    left: 0;
+}
+
+.properties-swiper .swiper-button-next {
+    right: 0;
+}
+
+/* Filtro de búsqueda minimalista */
+.search-section {
+    padding: 32px 0;
+    background: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.search-heading {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.35rem, 2.4vw, 2.2rem);
+    font-weight: 400;
+    color: #38382E;
+    margin-bottom: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.search-compact-form {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.search-compact-form .form-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 6px;
+}
+
+.search-compact-form .form-select,
+.search-compact-form .form-control {
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 0.92rem;
+}
+
+.search-compact-form .btn-search {
+    height: 44px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+/* Tablets */
+@media (max-width: 991.98px) {
+    .hero-carousel,
+    .hero-carousel .carousel-item,
+    .hero-carousel .carousel-item img {
+        height: 100svh;
+        min-height: 100svh;
+    }
+    
+    .carousel-header {
+        top: 130px;
+        padding: 16px 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        max-width: 90%;
+        z-index: 10 !important;
+    }
+    
+    .carousel-header h2 {
+        font-size: 1.3rem;
+        letter-spacing: 2px;
+    }
+    
+    .carousel-content {
+        padding: 40px 20px;
+    }
+    
+    .properties-carousel-container {
+        padding: 0 20px;
+    }
+
+    .home-services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .about-totalliving-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .about-totalliving-copy {
+        padding: 42px 34px;
+    }
+
+    .about-totalliving-visual {
+        padding-top: 0;
+    }
+
+    .why-totalliving-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Móviles */
+@media (max-width: 768px) {
+    .hero-carousel,
+    .hero-carousel .carousel-item,
+    .hero-carousel .carousel-item img {
+        height: 100svh;
+        min-height: 100svh;
+        max-height: 100svh;
+    }
+    
+    .carousel-overlay {
+        padding: 0;
+        justify-content: flex-start;
+        padding-top: 70px;
+    }
+    
+    .carousel-header {
+        top: 15px;
+        padding: 8px 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        max-width: calc(100% - 40px);
+        border-radius: 20px;
+        z-index: 10 !important;
+    }
+    
+    .carousel-header h2 {
+        font-size: 0.85rem;
+        letter-spacing: 1.5px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    
+    .carousel-content {
+        padding: 18px 14px 60px !important;
+        margin-top: auto;
+    }
+    
+    .carousel-content .row {
+        margin: 0;
+        gap: 14px;
+    }
+    
+    .carousel-content .col-lg-8,
+    .carousel-content .col-lg-4 {
+        padding: 0;
+        margin-bottom: 0;
+    }
+    
+    .carousel-types .badge {
+        font-size: 0.68rem !important;
+        padding: 5px 10px !important;
+        margin: 0 !important;
+        max-width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+    
+    .carousel-property-title {
+        font-size: clamp(1.15rem, 5vw, 1.45rem) !important;
+        line-height: 1.25;
+        margin-bottom: 10px !important;
+        font-weight: 600 !important;
+    }
+    
+    .carousel-content p {
+        font-size: 0.85rem !important;
+        line-height: 1.6;
+        margin-bottom: 15px !important;
+        opacity: 0.95;
+    }
+    
+    .carousel-features {
+        gap: 8px !important;
+        flex-wrap: wrap;
+        margin-bottom: 10px !important;
+    }
+    
+    .carousel-feature-item {
+        font-size: 0.75rem !important;
+        background: rgba(255,255,255,0.15);
+        padding: 5px 8px;
+        border-radius: 8px;
+    }
+
+    .carousel-feature-item i {
+        font-size: 0.8rem !important;
+        margin: 0 !important;
+    }
+    
+    .carousel-location {
+        font-size: 0.78rem !important;
+        line-height: 1.35;
+        margin-bottom: 8px !important;
+    }
+
+    .carousel-location i {
+        font-size: 0.85rem !important;
+        margin-right: 2px !important;
+    }
+    
+    .carousel-price-panel {
+        max-width: 100%;
+        text-align: left !important;
+        margin-left: 0;
+    }
+
+    .carousel-price {
+        font-size: clamp(1.2rem, 5vw, 1.6rem) !important;
+        line-height: 1.2;
+        margin-bottom: 10px !important;
+        font-weight: 700 !important;
+    }
+    
+    .home-carousel-action-btn {
+        padding: 0.62rem 1rem !important;
+        font-size: 0.8rem !important;
+        width: 100%;
+        max-width: 100%;
+        letter-spacing: 0.05em !important;
+    }
+    
+    .carousel-content .col-lg-4 {
+        text-align: left !important;
+        margin-top: 0;
+    }
+    
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 50px;
+    }
+    
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .carousel-indicators {
+        margin-bottom: 10px;
+    }
+    
+    .carousel-indicators button {
+        width: 10px;
+        height: 10px;
+        margin: 0 5px;
+    }
+    
+    .properties-carousel-container {
+        padding: 0 15px;
+    }
+    
+    .property-carousel-image-container {
+        height: 300px;
+    }
+    
+    .property-name-overlay {
+        padding: 30px 15px 15px;
+    }
+    
+    .property-name-overlay h3 {
+        font-size: 1.2rem;
+        line-height: 1.3;
+    }
+    
+    .property-price-banner {
+        padding: 10px 15px;
+        font-size: 1rem;
+    }
+    
+    .property-carousel-info {
+        padding: 20px 15px;
+    }
+    
+    .home-services-section {
+        padding: 1.65rem 0 2rem;
+    }
+
+    .home-service-card-media-inner {
+        width: min(112px, 52%);
+    }
+
+    .home-service-card {
+        border-radius: 28px;
+    }
+
+    .latest-properties-title h2 {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+    
+    /* Buscador responsive */
+    .search-section {
+        min-height: auto !important;
+        padding: 40px 0 !important;
+    }
+    
+    .search-section .display-4 {
+        font-size: 1.5rem !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .search-section .card {
+        margin: 0 15px;
+    }
+    
+    .search-section .card-body {
+        padding: 20px !important;
+    }
+    
+    .search-section .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+    }
+    
+    .search-section .form-select,
+    .search-section .form-control {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+    
+    .search-section .row.g-4 > div {
+        margin-bottom: 15px;
+    }
+    
+    .search-section .btn-lg {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+
+    .home-services-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        max-width: 100%;
+    }
+
+    .home-service-card-body {
+        padding: 0.75rem 0.85rem 0.95rem;
+    }
+
+    .home-service-card-media {
+        padding: 8px 8px 0;
+    }
+
+    .why-totalliving-card {
+        border-radius: 24px;
+        padding: 0.85rem 0.95rem 0.95rem;
+    }
+
+    .why-totalliving-icon {
+        width: min(88px, 50%);
+        font-size: 1.45rem;
+    }
+
+    .about-totalliving-section {
+        padding: 4px 0 48px;
+    }
+
+    .about-totalliving-copy {
+        padding: 30px 22px;
+    }
+
+    .about-totalliving-title {
+        font-size: 1.7rem;
+    }
+
+    .about-totalliving-text {
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+
+    .about-totalliving-actions {
+        gap: 8px;
+    }
+
+    .about-totalliving-social {
+        padding: 7px 10px;
+    }
+
+    .about-totalliving-social-link {
+        width: 32px;
+        height: 32px;
+    }
+
+    .about-totalliving-visual {
+        padding: 0 22px 22px;
+    }
+
+    .about-totalliving-photo-frame,
+    .about-totalliving-photo {
+        min-height: 280px;
+    }
+
+    .why-totalliving-section {
+        padding: 1.5rem 0 2rem;
+    }
+
+    .home-listings-section {
+        padding: 20px 0 34px;
+    }
+
+    .home-listings-section .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .home-listings-grid {
+        --bs-gutter-x: 0;
+        --bs-gutter-y: 12px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .home-listings-grid > [class*="col-"] {
+        padding-left: 0;
+        padding-right: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .home-listings-grid .property-card-modern,
+    .home-listings-grid .property-card-image-container,
+    .home-listings-grid .property-card-image {
+        height: 350px !important;
+    }
+
+    .home-listings-grid .property-card-link,
+    .home-listings-grid .property-card-modern {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .why-totalliving-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+    .hero-carousel,
+    .hero-carousel .carousel-item,
+    .hero-carousel .carousel-item img {
+        height: 100svh;
+        min-height: 100svh;
+    }
+    
+    .carousel-overlay {
+        padding: 0;
+        padding-top: 65px;
+    }
+    
+    .carousel-header {
+        top: 12px;
+        padding: 6px 16px;
+        max-width: calc(100% - 30px);
+        border-radius: 18px;
+        z-index: 10 !important;
+    }
+    
+    .carousel-header h2 {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+    
+    .carousel-content {
+        padding: 16px 12px 56px !important;
+    }
+    
+    .carousel-content .col-lg-8,
+    .carousel-content .col-lg-4 {
+        padding: 0;
+    }
+    
+    .carousel-types .badge {
+        font-size: 0.62rem !important;
+        padding: 4px 8px !important;
+    }
+    
+    .carousel-property-title {
+        font-size: clamp(1rem, 4.8vw, 1.25rem) !important;
+        margin-bottom: 10px !important;
+        font-weight: 600 !important;
+    }
+    
+    .carousel-content p {
+        font-size: 0.8rem !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .carousel-features {
+        gap: 6px !important;
+        margin-bottom: 9px !important;
+    }
+
+    .carousel-feature-item {
+        font-size: 0.7rem !important;
+        padding: 4px 7px;
+    }
+
+    .carousel-location {
+        font-size: 0.73rem !important;
+    }
+
+    .carousel-price {
+        font-size: clamp(1.1rem, 5vw, 1.4rem) !important;
+        margin-bottom: 8px !important;
+    }
+
+    .home-carousel-action-btn {
+        padding: 0.55rem 0.85rem !important;
+        font-size: 0.74rem !important;
+    }
+    
+    .carousel-content .col-lg-4 {
+        text-align: left !important;
+        margin-top: 0;
+    }
+    
+    .property-carousel-image-container {
+        height: 250px;
+    }
+    
+    .property-name-overlay {
+        padding: 20px 10px 10px;
+    }
+    
+    .property-name-overlay h3 {
+        font-size: 1rem;
+    }
+    
+    .property-price-banner {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .services-main-heading {
+        letter-spacing: 0.08em;
+    }
+
+    .why-totalliving-card {
+        border-radius: 22px;
+        padding: 0.75rem 0.85rem 0.9rem;
+    }
+
+    .why-totalliving-icon {
+        width: min(80px, 48%);
+        font-size: 1.35rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .about-totalliving-title {
+        font-size: 1.45rem;
+    }
+
+    .about-totalliving-text {
+        font-size: 0.9rem;
+    }
+
+    .home-listings-title {
+        font-size: 1.08rem;
+        letter-spacing: 1px;
+    }
+
+    .home-listings-grid .property-card-modern,
+    .home-listings-grid .property-card-image-container,
+    .home-listings-grid .property-card-image {
+        height: 330px !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{# Marca de plantilla: si no ves esto en "Ver código fuente", no estás sirviendo este worktree. #}
+<!-- tl-home:minimal-cta-fab-after-hero -->
+<!-- Carrusel Grande de Propiedades Destacadas -->
+{% if carousel_items %}
+<section class="hero-carousel-section">
+    <!-- Título fijo fuera del carrusel -->
+    <div class="carousel-header">
+        <h2>{% trans "PROPIEDADES DESTACADAS" %}</h2>
+    </div>
+    
+    <div class="container-fluid px-0">
+        <div id="featuredCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel">
+            <!-- Indicadores -->
+            <div class="carousel-indicators">
+                {% for item in carousel_items %}
+                <button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
+                        {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                        aria-label="Slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            
+            <!-- Slides -->
+            <div class="carousel-inner">
+                {% for item in carousel_items %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    {% if item.kind == 'property' %}
+                        {% with property=item.property %}
+                            {% with main_image=property.get_main_image %}
+                            {% if main_image %}
+                                <img src="{{ main_image.image.url }}" alt="{{ property.title }}" loading="eager" fetchpriority="high">
+                            {% else %}
+                                <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: calc(100vh - 120px);">
+                                    <i class="bi bi-building" style="font-size: 8rem; color: #ccc;"></i>
+                                </div>
+                            {% endif %}
+                            {% endwith %}
+                    
+                    <!-- Badge de Destacado -->
+                            <div class="property-badge-carousel"><i class="bi bi-star-fill"></i> DESTACADO</div>
+                    
+                    <!-- Overlay con información -->
+                    <div class="carousel-overlay">
+                        <!-- Contenido de la propiedad -->
+                        <div class="container carousel-content">
+                            <div class="row align-items-end">
+                                <div class="col-lg-8 carousel-main-column">
+                                    <div class="carousel-types cinematic-item cinematic-delay-1">
+                                        <span class="badge bg-primary" style="font-size: 1rem; padding: 10px 20px;">
+                                            {{ property.get_property_type_display }}
+                                        </span>
+                                        <span class="badge bg-info" style="font-size: 1rem; padding: 10px 20px;">
+                                            {{ property.get_operation_type_display }}
+                                        </span>
+                                    </div>
+
+                                    <h2 class="display-5 fw-bold text-white mb-3 cinematic-item cinematic-delay-2 carousel-property-title" style="font-family: 'Montserrat', sans-serif;">{{ property.title }}</h2>
+
+                                    <div class="d-flex flex-wrap gap-4 mb-4 text-white cinematic-item cinematic-delay-3 carousel-features" style="font-family: 'Montserrat', sans-serif;">
+                                        {% if property.bedrooms > 0 %}
+                                        <div class="d-flex align-items-center carousel-feature-item">
+                                            <i class="bi bi-door-open fs-5 me-2"></i>
+                                            <span class="fs-6">{{ property.bedrooms }} {% trans "Recámaras" %}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if property.bathrooms > 0 %}
+                                        <div class="d-flex align-items-center carousel-feature-item">
+                                            <i class="bi bi-droplet fs-5 me-2"></i>
+                                            <span class="fs-6">{{ property.bathrooms }} {% trans "Baños" %}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if property.construction_area %}
+                                        <div class="d-flex align-items-center carousel-feature-item">
+                                            <i class="bi bi-rulers fs-5 me-2"></i>
+                                            <span class="fs-6">{{ property.construction_area }} m²</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-3 mb-3 cinematic-item cinematic-delay-4 carousel-location" style="font-family: 'Montserrat', sans-serif;">
+                                        <i class="bi bi-geo-alt-fill text-white fs-5"></i>
+                                        <span class="text-white fs-6">{{ property.city }}, {{ property.state }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-4 text-lg-end">
+                                    <div class="mb-4 cinematic-item cinematic-delay-4 carousel-price-panel">
+                                        <div class="display-4 fw-bold carousel-price" style="color: var(--matte-gold); font-family: 'Montserrat', sans-serif;">
+                                            {{ property.get_price_display }}
+                                        </div>
+                                    </div>
+                                    <div class="carousel-cta-stack cinematic-item cinematic-delay-5">
+                                        <a href="{% url 'properties:detail' property.pk %}" class="home-carousel-action-btn">
+                                            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                                            {% trans "Ver detalles" %}
+                                        </a>
+                                        <a href="https://wa.me/524428669965?text={% filter urlencode %}{% blocktrans with t=property.title %}Hola Total Living, vi la propiedad en la web y me gustaría más información: {{ t }}{% endblocktrans %}{% endfilter %}"
+                                           class="home-carousel-action-btn"
+                                           target="_blank" rel="noopener noreferrer"
+                                           aria-label="{% trans 'WhatsApp: información sobre esta propiedad' %}">
+                                            <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                                            {% trans "WhatsApp ahora" %}
+                                        </a>
+                                    </div>
+                                </div></div></div></div>
+                        {% endwith %}
+                    {% else %}
+                        {% with slide=item.slide %}
+                        <img src="{{ slide.image.url }}" alt="{{ slide.title }}" loading="eager" fetchpriority="high">
+                        <div class="carousel-overlay">
+                            <div class="container carousel-content">
+                                <div class="row align-items-end">
+                                    <div class="col-lg-8">
+                                        <span class="badge bg-primary cinematic-item cinematic-delay-1" style="font-size:1rem;padding:10px 20px;">TOTAL LIVING</span>
+                                        <h2 class="display-5 fw-bold text-white mb-3 cinematic-item cinematic-delay-2">{{ slide.title }}</h2>
+                                        {% if slide.subtitle %}<p class="text-white fs-5 cinematic-item cinematic-delay-3">{{ slide.subtitle }}</p>{% endif %}
+                                    </div>
+                                    <div class="col-lg-4 text-lg-end">
+                                        {% if slide.link_url %}
+                                        <a href="{{ slide.link_url }}" class="home-carousel-action-btn">{{ slide.link_text|default:'Ver más' }}</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Controles -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">{% trans "Anterior" %}</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">{% trans "Siguiente" %}</span>
+            </button>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<a href="https://wa.me/524428669965?text={% filter urlencode %}{% trans "Hola Total Living, quiero información sobre propiedades en Querétaro." %}{% endfilter %}"
+   class="home-wa-fab"
+   target="_blank" rel="noopener noreferrer"
+   aria-label="{% trans 'Abrir WhatsApp con Total Living' %}">
+    <span class="home-wa-fab-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span>
+    <span class="home-wa-fab-text">
+        <span class="home-wa-fab-kicker">{% trans "Respuesta rápida" %}</span>
+        <span>{% trans "WhatsApp" %}</span>
+    </span>
+</a>
+
+<!-- Mapa de Propiedades (solo Home) -->
+<section class="home-properties-map-section">
+    <div class="container">
+        <div class="home-properties-map-title">
+            <h2>{% trans "Descubre Propiedades en el Mapa" %}</h2>
+        </div>
+        {{ map_markers|json_script:"properties-map-markers" }}
+        <div class="home-properties-map-canvas-wrapper">
+            <div id="home-properties-map-canvas" role="application" aria-label="{% trans 'Mapa de propiedades' %}"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Nuestros servicios (bloque corporativo oliva) -->
+<section class="home-services-section" id="section-services">
+    <div class="container">
+        <header class="services-section-head">
+            <span class="services-section-eyebrow">{% trans "Servicios" %}</span>
+            <h2 class="services-main-heading">{{ home_content.services_title }}</h2>
+            <p class="services-section-lead">{{ home_content.services_subtitle }}</p>
+        </header>
+        <div class="home-services-grid">
+            <article class="home-service-card">
+                <div class="home-service-card-media">
+                    <div class="home-service-card-media-inner">
+                        <i class="bi {{ home_content.service_1_icon }}" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="home-service-card-body">
+                    <h3 class="home-service-card-title">{{ home_content.service_1_title }}</h3>
+                    <p class="home-service-card-copy">{{ home_content.service_1_text }}</p>
+                    <ul class="home-service-card-list">
+                        <li>{{ home_content.service_1_b1 }}</li>
+                        <li>{{ home_content.service_1_b2 }}</li>
+                        <li>{{ home_content.service_1_b3 }}</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="home-service-card">
+                <div class="home-service-card-media">
+                    <div class="home-service-card-media-inner">
+                        <i class="bi {{ home_content.service_2_icon }}" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="home-service-card-body">
+                    <h3 class="home-service-card-title">{{ home_content.service_2_title }}</h3>
+                    <p class="home-service-card-copy">{{ home_content.service_2_text }}</p>
+                    <ul class="home-service-card-list">
+                        <li>{{ home_content.service_2_b1 }}</li>
+                        <li>{{ home_content.service_2_b2 }}</li>
+                        <li>{{ home_content.service_2_b3 }}</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="home-service-card">
+                <div class="home-service-card-media">
+                    <div class="home-service-card-media-inner">
+                        <i class="bi {{ home_content.service_3_icon }}" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="home-service-card-body">
+                    <h3 class="home-service-card-title">{{ home_content.service_3_title }}</h3>
+                    <p class="home-service-card-copy">{{ home_content.service_3_text }}</p>
+                    <ul class="home-service-card-list">
+                        <li>{{ home_content.service_3_b1 }}</li>
+                        <li>{{ home_content.service_3_b2 }}</li>
+                        <li>{{ home_content.service_3_b3 }}</li>
+                    </ul>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- Quiénes somos -->
+<section class="about-totalliving-section" id="quienes-somos">
+    <div class="container">
+        <div class="about-totalliving-panel">
+            <div class="about-totalliving-copy">
+                <span class="about-totalliving-eyebrow">{{ home_content.about_eyebrow }}</span>
+                <h2 class="about-totalliving-title">{{ home_content.about_title }}</h2>
+                <p class="about-totalliving-text">
+                    {{ home_content.about_paragraph_1 }}
+                </p>
+                <p class="about-totalliving-text">
+                    {{ home_content.about_paragraph_2 }}
+                </p>
+                <div class="about-totalliving-actions">
+                    <a href="{{ home_content.about_cta_url }}" class="about-totalliving-cta">
+                        {{ home_content.about_cta_text }} <i class="bi bi-arrow-right-short"></i>
+                    </a>
+                    <div class="about-totalliving-social" aria-label="{% trans 'Redes sociales de Total Living' %}">
+                        <a href="https://www.facebook.com/total.living.mx?locale=es_LA" class="about-totalliving-social-link" title="Facebook" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://www.instagram.com/total.living.mx/" class="about-totalliving-social-link" title="Instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="https://api.whatsapp.com/send?phone=4428669965&utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAGn5X9HFky-Zv0gnldNDivmRN9-X2FfomO9tUzoQ_rdZQkfqDQgClxValyE2Ik_aem_UH-eWIpxjSIDvok7Y1QWmQ" class="about-totalliving-social-link" title="WhatsApp" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@total.living.mx" class="about-totalliving-social-link" title="TikTok" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                            <i class="bi bi-tiktok"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-totalliving-visual">
+                <div class="about-totalliving-photo-frame">
+                    <img src="{% if home_content.about_image %}{{ home_content.about_image.url }}{% else %}{% static 'images/about-total-living-team.png' %}{% endif %}" alt="{% trans 'Equipo Total Living' %}" class="about-totalliving-photo">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ¿Por qué elegir Total Living? -->
+<section class="why-totalliving-section" id="section-why">
+    <div class="container">
+        <div class="why-totalliving-title">
+            <span class="services-section-eyebrow">{% trans "Nuestro enfoque" %}</span>
+            <h2 class="services-main-heading">{{ home_content.why_title }}</h2>
+            <p class="services-section-lead">{{ home_content.why_subtitle }}</p>
+        </div>
+
+        <div class="why-totalliving-grid">
+            <article class="why-totalliving-card">
+                <div class="why-totalliving-icon"><i class="bi {{ home_content.why_1_icon }}"></i></div>
+                <h3>{{ home_content.why_1_title }}</h3>
+                <p>{{ home_content.why_1_text }}</p>
+                <ul class="why-totalliving-list">
+                    <li>{{ home_content.why_1_bullet_1 }}</li>
+                    <li>{{ home_content.why_1_bullet_2 }}</li>
+                    <li>{{ home_content.why_1_bullet_3 }}</li>
+                    <li>{{ home_content.why_1_bullet_4 }}</li>
+                </ul>
+            </article>
+            <article class="why-totalliving-card">
+                <div class="why-totalliving-icon"><i class="bi {{ home_content.why_2_icon }}"></i></div>
+                <h3>{{ home_content.why_2_title }}</h3>
+                <p>{{ home_content.why_2_text }}</p>
+                <ul class="why-totalliving-list">
+                    <li>{{ home_content.why_2_bullet_1 }}</li>
+                    <li>{{ home_content.why_2_bullet_2 }}</li>
+                    <li>{{ home_content.why_2_bullet_3 }}</li>
+                    <li>{{ home_content.why_2_bullet_4 }}</li>
+                </ul>
+            </article>
+            <article class="why-totalliving-card">
+                <div class="why-totalliving-icon"><i class="bi {{ home_content.why_3_icon }}"></i></div>
+                <h3>{{ home_content.why_3_title }}</h3>
+                <p>{{ home_content.why_3_text }}</p>
+                <ul class="why-totalliving-list">
+                    <li>{{ home_content.why_3_bullet_1 }}</li>
+                    <li>{{ home_content.why_3_bullet_2 }}</li>
+                    <li>{{ home_content.why_3_bullet_3 }}</li>
+                    <li>{{ home_content.why_3_bullet_4 }}</li>
+                </ul>
+            </article>
+            <article class="why-totalliving-card">
+                <div class="why-totalliving-icon"><i class="bi {{ home_content.why_4_icon }}"></i></div>
+                <h3>{{ home_content.why_4_title }}</h3>
+                <p>{{ home_content.why_4_text }}</p>
+                <ul class="why-totalliving-list">
+                    <li>{{ home_content.why_4_bullet_1 }}</li>
+                    <li>{{ home_content.why_4_bullet_2 }}</li>
+                    <li>{{ home_content.why_4_bullet_3 }}</li>
+                    <li>{{ home_content.why_4_bullet_4 }}</li>
+                </ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- Conoce propiedades en Total Living -->
+<section class="home-listings-section">
+    <div class="container">
+        <div class="text-center">
+            <h2 class="home-listings-title">{% trans "CONOCE PROPIEDADES EN TOTAL LIVING" %}</h2>
+        </div>
+
+        <div class="row g-4 home-listings-grid">
+            {% for property in latest_properties|slice:":3" %}
+            <div class="col-md-6 col-lg-4">
+                {% include 'properties/property_card.html' with property=property %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center home-listings-cta">
+            <a href="{% url 'properties:list' %}" class="btn btn-primary btn-lg px-5">
+                <i class="bi bi-grid-3x3-gap"></i> {% trans "Ver Todas las Propiedades" %}
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+// Auto-play del carrusel con pausa al hover
+document.addEventListener('DOMContentLoaded', function() {
+    // Navbar inmersiva en home: aparece al hacer scroll
+    document.body.classList.add('home-immersive');
+    let topMouseActive = false;
+    let navInteractionActive = false;
+    const navbarEl = document.querySelector('.navbar');
+
+    // Mapa Leaflet en Home
+    if (typeof L !== 'undefined') {
+        const mapCanvasEl = document.getElementById('home-properties-map-canvas');
+        if (mapCanvasEl) {
+            const markersEl = document.getElementById('properties-map-markers');
+            const raw = markersEl ? markersEl.textContent : '[]';
+            let markers = [];
+            try {
+                markers = JSON.parse(raw);
+            } catch (e) {
+                markers = [];
+            }
+
+            // Vista inicial fija para mostrar la mayor parte de Mexico
+            var map = L.map('home-properties-map-canvas').setView([23.7, -102.5], 5);
+            L.tileLayer('{{ MAP_TILES.url|escapejs }}', {
+                attribution: '{{ MAP_TILES.attribution|escapejs }}',
+                subdomains: '{{ MAP_TILES.subdomains|escapejs }}',
+                maxNativeZoom: 16,
+                maxZoom: 18
+            }).addTo(map);
+
+            function esc(s) {
+                if (s == null) return '';
+                return String(s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+
+            markers.forEach(function (m) {
+                if (m.lat == null || m.lng == null) return;
+                var ll = [m.lat, m.lng];
+                var popup = '<div style="min-width:200px;"><strong>' + esc(m.title) + '</strong><br>' +
+                    esc(m.price) + '<br><a href="' + esc(m.url) + '">{% trans "Ver ficha" %}</a></div>';
+                L.marker(ll).addTo(map).bindPopup(popup);
+            });
+
+            setTimeout(function () { map.invalidateSize(); }, 300);
+        }
+    }
+
+    const updateHomeNav = () => {
+        const mobileMenuOpen = !!document.querySelector('.offcanvas.show');
+        if (window.scrollY > 30 || topMouseActive || navInteractionActive || mobileMenuOpen) {
+            document.body.classList.add('home-nav-visible');
+        } else {
+            document.body.classList.remove('home-nav-visible');
+        }
+    };
+    updateHomeNav();
+    window.addEventListener('scroll', updateHomeNav, { passive: true });
+
+    // Mostrar navbar al acercar el cursor a la parte superior
+    document.addEventListener('mousemove', function(e) {
+        const wasActive = topMouseActive;
+        topMouseActive = e.clientY <= 70;
+        if (wasActive !== topMouseActive) {
+            updateHomeNav();
+        }
+    });
+
+    document.addEventListener('mouseleave', function() {
+        if (topMouseActive) {
+            topMouseActive = false;
+            updateHomeNav();
+        }
+    });
+
+    if (navbarEl) {
+        navbarEl.addEventListener('mouseenter', function() {
+            navInteractionActive = true;
+            updateHomeNav();
+        });
+
+        navbarEl.addEventListener('mouseleave', function() {
+            navInteractionActive = false;
+            updateHomeNav();
+        });
+
+        navbarEl.addEventListener('shown.bs.dropdown', function() {
+            navInteractionActive = true;
+            updateHomeNav();
+        });
+
+        navbarEl.addEventListener('hidden.bs.dropdown', function() {
+            navInteractionActive = navbarEl.matches(':hover');
+            updateHomeNav();
+        });
+
+        const mobileNav = document.getElementById('mainNavOffcanvas');
+        if (mobileNav) {
+            mobileNav.addEventListener('shown.bs.offcanvas', updateHomeNav);
+            mobileNav.addEventListener('hidden.bs.offcanvas', updateHomeNav);
+        }
+    }
+
+    var carousel = document.getElementById('featuredCarousel');
+    if (carousel) {
+        var bsCarousel = new bootstrap.Carousel(carousel, {
+            interval: 5000,
+            wrap: true,
+            pause: 'hover'
+        });
+    }
+
+    const homeWaFab = document.querySelector('.home-wa-fab');
+    const heroCarouselSection = document.querySelector('.hero-carousel-section');
+    const syncHomeWaFab = () => {
+        if (!homeWaFab) return;
+        if (!heroCarouselSection) {
+            homeWaFab.classList.add('home-wa-fab--visible');
+            return;
+        }
+        const bottom = heroCarouselSection.getBoundingClientRect().bottom;
+        homeWaFab.classList.toggle('home-wa-fab--visible', bottom <= 0);
+    };
+    syncHomeWaFab();
+    window.addEventListener('scroll', syncHomeWaFab, { passive: true });
+    window.addEventListener('resize', syncHomeWaFab, { passive: true });
+
+    const whyCards = document.querySelectorAll('.why-totalliving-card');
+    if (whyCards.length) {
+        const isMobileOrTablet = window.matchMedia('(max-width: 991.98px)').matches;
+
+        whyCards.forEach((card, index) => {
+            card.classList.add(index % 2 === 0 ? 'reveal-left' : 'reveal-right');
+            if (!isMobileOrTablet) {
+                card.style.transitionDelay = `${index * 80}ms`;
+            } else {
+                card.style.transitionDelay = `${index * 40}ms`;
+            }
+        });
+
+        const revealWhyCards = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            });
+        }, {
+            threshold: 0.01,
+            rootMargin: isMobileOrTablet ? '0px 0px -5% 0px' : '0px 0px -10% 0px'
+        });
+
+        whyCards.forEach((card) => revealWhyCards.observe(card));
+    }
+    
+});
+</script>
+{% endblock %}

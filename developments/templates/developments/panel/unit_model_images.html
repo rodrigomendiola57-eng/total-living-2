@@ -1,0 +1,61 @@
+{% extends 'developments/panel/shell.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block dev_panel_body %}
+<div class="edit-container">
+    <div class="page-header">
+        <h1 class="page-title">Galería · {{ unit_model.name }}</h1>
+        <div>
+            <a href="{% url 'developments:panel_unit_model_edit' unit_model.pk %}" class="btn-secondary">Editar modelo</a>
+            <a href="{% url 'developments:panel_unit_models' %}" class="btn-secondary">Listado modelos</a>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <p class="text-muted mb-3">{{ unit_model.development.name }} ·
+            <a href="{% url 'developments:unit_model_detail' unit_model.development.slug unit_model.slug %}" target="_blank" rel="noopener">Ver ficha pública</a>
+        </p>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="upload">
+            <input type="file" name="images" class="form-control" multiple accept="image/*" required>
+            <button type="submit" class="btn-primary mt-2">Subir imágenes</button>
+        </form>
+    </div>
+
+    {% if images %}
+    <div class="form-section">
+        <h2 class="section-title">Imágenes actuales</h2>
+        <div class="row g-3">
+            {% for img in images %}
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <img src="{{ img.image.url }}" class="card-img-top" alt="" style="height:200px;object-fit:cover;">
+                    <div class="card-body">
+                        <form method="post" class="d-flex flex-wrap gap-2 align-items-end">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reorder">
+                            <input type="hidden" name="image_id" value="{{ img.pk }}">
+                            <label class="small mb-0">Orden
+                                <input type="number" name="order_{{ img.pk }}" class="form-control form-control-sm" value="{{ img.order }}" style="width:5rem;">
+                            </label>
+                            <button type="submit" class="btn-secondary btn-sm">Guardar orden</button>
+                        </form>
+                        <form method="post" class="mt-2" onsubmit="return confirm('¿Eliminar esta imagen?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="image_id" value="{{ img.pk }}">
+                            <button type="submit" class="btn-secondary btn-sm" style="border-color:#dc3545;color:#dc3545;">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <p class="text-muted">Aún no hay fotos en la galería del modelo.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'developments/panel/shell.html' %}
+
+{% block title %}Textos y hero · Desarrollos{% endblock %}
+
+{% block dev_panel_body %}
+<div class="edit-container">
+    <div class="page-header">
+        <h1 class="page-title">A. Configuración de textos (CMS)</h1>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-section">
+        {% csrf_token %}
+
+        <h2 class="section-title"><i class="bi bi-image"></i> Hero del listado</h2>
+        <p class="text-muted">Esta imagen se muestra <strong>detrás del encabezado</strong> (migas + título «Desarrollos») en <code>/desarrollos/</code>, con una capa oscura para que el texto se lea bien. Recomendado: horizontal, buena resolución (JPG/WebP).</p>
+        {% if config.hero_background %}
+        <p><img src="{{ config.hero_background.url }}" alt="" style="max-width:320px;border-radius:12px;"></p>
+        {% endif %}
+        <div class="form-group">
+            <label for="hero_background">Subir / reemplazar imagen</label>
+            <input type="file" id="hero_background" name="hero_background" class="form-control" accept="image/*">
+        </div>
+        <button type="submit" name="clear_hero" value="1" class="btn-secondary" formnovalidate onclick="return confirm('¿Quitar imagen de fondo?');">
+            Quitar imagen actual
+        </button>
+
+        <h2 class="section-title mt-5"><i class="bi bi-type"></i> Textos legacy (listado público)</h2>
+        <p class="text-muted small mb-3">El quiz “Smart match” ya no aparece en <code>/desarrollos/</code>. Badge, título y subtítulo <strong>no se muestran</strong> en la página pública; se conservan por si los reutilizas en el futuro.</p>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label for="smart_match_badge">Etiqueta (badge, no visible)</label>
+                <input type="text" id="smart_match_badge" name="smart_match_badge" class="form-control" value="{{ config.smart_match_badge }}" maxlength="80">
+            </div>
+            <div class="form-group full">
+                <label for="smart_match_title">Título (no visible)</label>
+                <input type="text" id="smart_match_title" name="smart_match_title" class="form-control" value="{{ config.smart_match_title }}" maxlength="300">
+            </div>
+            <div class="form-group full">
+                <label for="smart_match_subtitle">Subtítulo (no se muestra en web; legacy)</label>
+                <input type="text" id="smart_match_subtitle" name="smart_match_subtitle" class="form-control" value="{{ config.smart_match_subtitle }}" maxlength="400">
+            </div>
+        </div>
+
+        <h2 class="section-title mt-5"><i class="bi bi-layout-text-window"></i> Listado público</h2>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label for="catalog_section_title">Título sección catálogo</label>
+                <input type="text" id="catalog_section_title" name="catalog_section_title" class="form-control" value="{{ config.catalog_section_title }}" maxlength="200">
+            </div>
+            <div class="form-group full">
+                <label for="cta_section_title">Título bloque CTA inferior</label>
+                <input type="text" id="cta_section_title" name="cta_section_title" class="form-control" value="{{ config.cta_section_title }}" maxlength="300">
+            </div>
+        </div>
+
+        <h2 class="section-title mt-5"><i class="bi bi-building"></i> Ficha de desarrollo (detalle)</h2>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label for="detail_amenities_title">Título amenidades</label>
+                <input type="text" id="detail_amenities_title" name="detail_amenities_title" class="form-control" value="{{ config.detail_amenities_title }}" maxlength="200">
+            </div>
+            <div class="form-group full">
+                <label for="detail_amenities_subtitle">Subtítulo amenidades</label>
+                <textarea id="detail_amenities_subtitle" name="detail_amenities_subtitle" class="form-control" rows="2">{{ config.detail_amenities_subtitle }}</textarea>
+            </div>
+            <div class="form-group full">
+                <label for="detail_gallery_title">Título galería</label>
+                <input type="text" id="detail_gallery_title" name="detail_gallery_title" class="form-control" value="{{ config.detail_gallery_title }}" maxlength="200">
+            </div>
+            <div class="form-group full">
+                <label for="detail_gallery_subtitle">Subtítulo galería</label>
+                <textarea id="detail_gallery_subtitle" name="detail_gallery_subtitle" class="form-control" rows="2">{{ config.detail_gallery_subtitle }}</textarea>
+            </div>
+            <div class="form-group full">
+                <label for="detail_models_title">Título sección modelos</label>
+                <input type="text" id="detail_models_title" name="detail_models_title" class="form-control" value="{{ config.detail_models_title }}" maxlength="120">
+            </div>
+        </div>
+
+        <div class="form-actions mt-4">
+            <button type="submit" class="btn-primary"><i class="bi bi-check2"></i> Guardar configuración</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

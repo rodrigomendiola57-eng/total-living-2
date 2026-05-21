@@ -1,0 +1,7 @@
+<aside class="dev-module-sidebar" aria-label="Secciones módulo desarrollos">
+    <div class="nav-label">Módulo desarrollos</div>
+    <a href="{% url 'developments:panel_cms' %}" class="{% if section == 'cms' %}active{% endif %}">A. Textos y hero (CMS)</a>
+    <a href="{% url 'developments:panel_list' %}" class="{% if section == 'developments' %}active{% endif %}">B. Desarrollos</a>
+    <a href="{% url 'developments:panel_unit_models' %}" class="{% if section == 'models' %}active{% endif %}">C. Modelos</a>
+    <a href="{% url 'developments:panel_amenities' %}" class="{% if section == 'amenities' %}active{% endif %}">D. Amenidades</a>
+</aside>

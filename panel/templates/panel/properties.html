@@ -1,0 +1,124 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Propiedades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-properties-tl.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="panel-properties-page">
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">Gestión de Propiedades</h1>
+        <a href="{% url 'properties:add' %}" class="btn-primary">+ Nueva Propiedad</a>
+    </div>
+
+    <div class="filters-section">
+        <form method="get" class="filters-form">
+            <input type="text" name="search" placeholder="Buscar por título, ciudad o dirección..." value="{{ search }}">
+            
+            <select name="status">
+                <option value="">Todos los estados</option>
+                <option value="disponible" {% if status_filter == 'disponible' %}selected{% endif %}>Disponible</option>
+                <option value="vendida" {% if status_filter == 'vendida' %}selected{% endif %}>Vendida</option>
+                <option value="rentada" {% if status_filter == 'rentada' %}selected{% endif %}>Rentada</option>
+                <option value="reservada" {% if status_filter == 'reservada' %}selected{% endif %}>Reservada</option>
+            </select>
+            
+            <select name="tipo">
+                <option value="">Todos los tipos</option>
+                {% for value, label in property_types|default:property_types_catalog %}
+                <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="process">
+                <option value="">Todos los procesos</option>
+                <option value="en_busqueda" {% if process_filter == 'en_busqueda' %}selected{% endif %}>En Búsqueda</option>
+                <option value="en_negociacion" {% if process_filter == 'en_negociacion' %}selected{% endif %}>En Negociación</option>
+                <option value="en_proceso_legal" {% if process_filter == 'en_proceso_legal' %}selected{% endif %}>En Proceso Legal</option>
+                <option value="en_escrituracion" {% if process_filter == 'en_escrituracion' %}selected{% endif %}>En Escrituración</option>
+                <option value="cerrado" {% if process_filter == 'cerrado' %}selected{% endif %}>Cerrado</option>
+                <option value="cancelado" {% if process_filter == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                <option value="no_aplica" {% if process_filter == 'no_aplica' %}selected{% endif %}>No Aplica</option>
+            </select>
+            
+            <button type="submit" class="btn-filter">Filtrar</button>
+            <a href="{% url 'panel:properties' %}" class="btn-clear">Limpiar</a>
+        </form>
+    </div>
+
+    <div class="properties-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Tipo</th>
+                    <th>Operación</th>
+                    <th>Ciudad</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                    <th>Proceso</th>
+                    <th>Destacada</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for property in properties %}
+                <tr>
+                    <td data-label="ID">{{ property.id }}</td>
+                    <td data-label="Título"><strong>{{ property.title }}</strong></td>
+                    <td data-label="Tipo">{{ property.get_property_type_display }}</td>
+                    <td data-label="Operación">{{ property.get_operation_type_display }}</td>
+                    <td data-label="Ciudad">{{ property.city }}</td>
+                    <td data-label="Precio">{{ property.get_price_display }}</td>
+                    <td data-label="Estado"><span class="badge badge-{{ property.status }}">{{ property.get_status_display }}</span></td>
+                    <td data-label="Proceso"><span style="color: var(--olive); font-weight: 500;">{{ property.get_process_display|default:"En Búsqueda" }}</span></td>
+                    <td data-label="Destacada">{% if property.is_featured %}⭐{% else %}-{% endif %}</td>
+                    <td data-label="Acciones" class="actions-cell">
+                        <div class="actions-group">
+                            <a href="{% url 'panel:property_edit' property.pk %}" class="btn-action btn-edit" title="Editar Propiedad">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </a>
+                            <a href="{% url 'properties:manage_images' property.pk %}" class="btn-action btn-images" title="Gestionar Imágenes">
+                                <i class="bi bi-images"></i> Imágenes
+                            </a>
+                            <a href="{% url 'properties:detail' property.pk %}" class="btn-action btn-view" target="_blank" title="Ver Propiedad">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                            <a href="{% url 'panel:property_delete' property.pk %}" class="btn-action btn-delete" title="Eliminar Propiedad" onclick="return confirm('¿Estás seguro de eliminar esta propiedad?');">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align: center;">No se encontraron propiedades</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if properties.has_other_pages %}
+    <div class="pagination">
+        {% if properties.has_previous %}
+        <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&tipo={{ type_filter }}{% endif %}{% if process_filter %}&process={{ process_filter }}{% endif %}">&laquo; Primera</a>
+        <a href="?page={{ properties.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&tipo={{ type_filter }}{% endif %}{% if process_filter %}&process={{ process_filter }}{% endif %}">Anterior</a>
+        {% endif %}
+
+        <span class="current-page">Página {{ properties.number }} de {{ properties.paginator.num_pages }}</span>
+
+        {% if properties.has_next %}
+        <a href="?page={{ properties.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&tipo={{ type_filter }}{% endif %}{% if process_filter %}&process={{ process_filter }}{% endif %}">Siguiente</a>
+        <a href="?page={{ properties.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&tipo={{ type_filter }}{% endif %}{% if process_filter %}&process={{ process_filter }}{% endif %}">Última &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

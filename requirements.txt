@@ -1,0 +1,26 @@
+# Core
+Django==4.2.7
+Pillow>=10.0
+
+# Caché distribuida (rate limiting coherente con varios workers)
+django-redis>=5.4,<6
+redis>=5.0,<6
+
+# Configuración (el proyecto usa python-decouple en settings; python-dotenv útil p. ej. Docker/Compose)
+python-decouple>=3.8
+python-dotenv>=1.0,<2
+
+# Base de datos y despliegue
+dj-database-url>=2.1,<4
+psycopg2-binary>=2.9,<3
+gunicorn>=21.2,<24
+
+# Estáticos y producción
+whitenoise>=6.6,<7
+
+# AWS (S3 en producción)
+django-storages>=1.14,<2
+boto3>=1.34,<2
+
+# PDF / otros
+reportlab>=4.0,<5

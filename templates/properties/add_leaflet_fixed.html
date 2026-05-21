@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Agregar Propiedad</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+        h1 { color: #40452E; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        textarea { min-height: 100px; resize: vertical; }
+        #map { height: 500px; width: 100%; border: 2px solid #40452E; border-radius: 8px; margin: 20px 0; z-index: 1; }
+        .map-info { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        .btn { background: #40452E; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #2a2d1e; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Agregar Nueva Propiedad</h1>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Título *</label>
+                <input type="text" name="title" required>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Precio *</label>
+                    <input type="number" name="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select name="property_type" required>
+                        {% for value, label in property_types_catalog %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción *</label>
+                <textarea name="description" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Dirección *</label>
+                <input type="text" name="address" required>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Ciudad *</label>
+                    <input type="text" name="city" required>
+                </div>
+                <div class="form-group">
+                    <label>Estado *</label>
+                    <input type="text" name="state" required>
+                </div>
+            </div>
+
+            <div class="map-info">
+                <strong>📍 Selecciona la ubicación:</strong>
+                <p>Arrastra el marcador o haz clic en el mapa.</p>
+                <p id="coords" style="color: #40452E; font-weight: bold;">Coordenadas: 19.4326, -99.1332</p>
+            </div>
+
+            <div id="map"></div>
+
+            <input type="hidden" name="latitude" id="latitude" value="19.4326">
+            <input type="hidden" name="longitude" id="longitude" value="-99.1332">
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Recámaras</label>
+                    <input type="number" name="bedrooms" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Baños</label>
+                    <input type="number" name="bathrooms" min="0" value="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Imágenes</label>
+                <input type="file" name="images" multiple accept="image/*">
+            </div>
+
+            <button type="submit" class="btn">💾 Guardar Propiedad</button>
+        </form>
+    </div>
+
+    <script>
+        // Esperar a que el DOM cargue completamente
+        document.addEventListener('DOMContentLoaded', function() {
+            // Crear mapa
+            var map = L.map('map').setView([19.4326, -99.1332], 13);
+            
+            // Agregar tiles de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            // Forzar recalculo del tamaño del mapa
+            setTimeout(function() {
+                map.invalidateSize();
+            }, 100);
+            
+            // Crear marcador arrastrable
+            var marker = L.marker([19.4326, -99.1332], {
+                draggable: true
+            }).addTo(map);
+            
+            // Función para actualizar coordenadas
+            function updateCoords(lat, lng) {
+                document.getElementById('latitude').value = lat.toFixed(6);
+                document.getElementById('longitude').value = lng.toFixed(6);
+                document.getElementById('coords').innerHTML = 
+                    'Coordenadas: <span style="color: #C4A572;">' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '</span>';
+            }
+            
+            // Evento cuando se arrastra el marcador
+            marker.on('dragend', function(e) {
+                var pos = marker.getLatLng();
+                updateCoords(pos.lat, pos.lng);
+            });
+            
+            // Evento cuando se hace clic en el mapa
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                updateCoords(e.latlng.lat, e.latlng.lng);
+            });
+        });
+    </script>
+</body>
+</html>

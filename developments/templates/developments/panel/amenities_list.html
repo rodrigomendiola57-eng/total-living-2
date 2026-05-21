@@ -1,0 +1,44 @@
+{% extends 'developments/panel/shell.html' %}
+
+{% block title %}Amenidades · Desarrollos{% endblock %}
+
+{% block dev_panel_body %}
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">D. Catálogo de amenidades</h1>
+        <a href="{% url 'developments:panel_amenity_add' %}" class="btn-primary"><i class="bi bi-plus-lg"></i> Nueva amenidad</a>
+    </div>
+    <p class="text-muted mb-3">Estas amenidades aparecen en el selector al editar un desarrollo y en la ficha pública (icono Bootstrap según <code>code</code>).</p>
+    <div class="properties-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Categoría</th>
+                    <th>Icono</th>
+                    <th>Nombre</th>
+                    <th>Slug</th>
+                    <th>Activa</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in amenities %}
+                <tr>
+                    <td>{{ a.category.name }}</td>
+                    <td><i class="bi {{ a.icon_class|default:a.icon }}" style="color:#40452E;font-size:1.2rem;"></i></td>
+                    <td><strong>{{ a.display_name }}</strong></td>
+                    <td><code>{{ a.slug }}</code></td>
+                    <td>{% if a.is_active %}<span class="badge badge-disponible">Sí</span>{% else %}<span class="badge badge-vendida">No</span>{% endif %}</td>
+                    <td class="actions-cell">
+                        <a href="{% url 'developments:panel_amenity_edit' a.pk %}" class="btn-action btn-edit">Editar</a>
+                        <a href="{% url 'developments:panel_amenity_delete' a.pk %}" class="btn-action btn-delete">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center;">Sin amenidades. Crea la primera.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

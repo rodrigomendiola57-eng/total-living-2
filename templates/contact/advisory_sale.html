@@ -1,0 +1,544 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Asesoría venta" %} - Total Living{% endblock %}
+
+{% block extra_css %}
+<style>
+    .advisory-sale-shell {
+        background: radial-gradient(circle at top right, rgba(188, 164, 113, 0.2), transparent 46%),
+                    linear-gradient(160deg, #f7f4ec 0%, #ffffff 62%);
+    }
+    .advisory-form-card {
+        border: 0;
+        border-radius: 1.2rem;
+        box-shadow: 0 18px 42px rgba(25, 27, 24, 0.1);
+    }
+    .advisory-progress {
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(56, 56, 46, 0.12);
+        overflow: hidden;
+    }
+    .advisory-progress-bar {
+        height: 100%;
+        width: 33.33%;
+        background: linear-gradient(90deg, #9e8658, #d7b27a);
+        border-radius: 999px;
+        transition: width 0.3s ease;
+    }
+    .advisory-step-label {
+        font-size: 0.88rem;
+        color: #6f6f65;
+        letter-spacing: 0.02em;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    .advisory-step {
+        display: none;
+    }
+    .advisory-step.is-active {
+        display: block;
+        animation: fadeStep 0.28s ease;
+    }
+    .advisory-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #38382e;
+        margin-bottom: 0.42rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    .advisory-input {
+        border-radius: 0.75rem;
+        border: 1px solid rgba(56, 56, 46, 0.2);
+        transition: all 0.3s ease;
+    }
+    .advisory-input:focus {
+        border-color: #9e8658;
+        box-shadow: 0 0 0 0.2rem rgba(158, 134, 88, 0.22);
+    }
+    .choice-grid {
+        display: grid;
+        gap: 10px;
+    }
+    .choice-grid.type-grid,
+    .choice-grid.value-grid,
+    .choice-grid.urgency-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .choice-card {
+        border: 1px solid rgba(56, 56, 46, 0.2);
+        border-radius: 0.9rem;
+        background: #fff;
+        color: #34342b;
+        padding: 12px 10px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .choice-card i {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+    }
+    .choice-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(158, 134, 88, 0.7);
+        box-shadow: 0 10px 20px rgba(56, 56, 46, 0.08);
+    }
+    .choice-card.is-selected {
+        border-color: #9e8658;
+        background: rgba(215, 178, 122, 0.15);
+        box-shadow: 0 0 0 1px rgba(158, 134, 88, 0.25);
+    }
+    .choice-text {
+        font-size: 0.88rem;
+        font-weight: 700;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    .step-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+    }
+    .advisory-error {
+        display: none;
+        font-size: 0.85rem;
+        color: #b84242;
+        margin-top: 8px;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    .advisory-error.is-visible {
+        display: block;
+    }
+    .sale-intro-wrapper {
+        margin-bottom: 1.6rem;
+    }
+    .sale-process-title {
+        text-align: center;
+        margin-bottom: 1.4rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+        color: #2f342d;
+        letter-spacing: 0.2px;
+    }
+    .sale-mini-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 1.6rem;
+    }
+    .sale-mini-card {
+        background: #ffffff;
+        border: 1px solid rgba(56, 56, 46, 0.1);
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 10px 24px rgba(20, 22, 19, 0.08);
+    }
+    .sale-mini-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #2f342d;
+        color: #f2ece0;
+        margin-bottom: 0.6rem;
+    }
+    .sale-mini-card h3 {
+        font-size: 1.15rem;
+        margin-bottom: 0.35rem;
+        color: #232620;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+    }
+    .sale-mini-card p {
+        margin: 0;
+        color: #5f655b;
+        font-size: 0.93rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        line-height: 1.55;
+    }
+    .sale-steps-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .sale-step-card {
+        border-radius: 1rem;
+        padding: 1rem 0.95rem;
+        min-height: 146px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 10px 24px rgba(20, 22, 19, 0.08);
+        text-align: left;
+        gap: 0.2rem;
+    }
+    .sale-step-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 30px rgba(20, 22, 19, 0.13);
+    }
+    .sale-step-card--accent {
+        background: linear-gradient(140deg, #2f342d 0%, #414b3d 100%);
+        color: #ffffff;
+    }
+    .sale-step-card--accent .sale-step-number,
+    .sale-step-card--accent h4,
+    .sale-step-card--accent p {
+        color: #ffffff !important;
+    }
+    .sale-step-card--light {
+        background: #f2eee6;
+        color: #2f342d;
+        border: 1px solid rgba(158, 134, 88, 0.22);
+    }
+    .sale-step-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.35rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    .sale-step-card h4 {
+        margin: 0 0 0.3rem;
+        font-size: 1.02rem;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+    }
+    .sale-step-card p {
+        margin: 0;
+        font-size: 0.86rem;
+        line-height: 1.5;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+    @keyframes fadeStep {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 991.98px) {
+        .choice-grid.type-grid,
+        .choice-grid.value-grid,
+        .choice-grid.urgency-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .sale-mini-grid,
+        .sale-steps-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 575.98px) {
+        .choice-grid.type-grid,
+        .choice-grid.value-grid,
+        .choice-grid.urgency-grid,
+        .sale-mini-grid,
+        .sale-steps-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 advisory-sale-shell">
+    <div class="container">
+        <div class="sale-intro-wrapper">
+            <h2 class="sale-process-title">{% trans "Te ayudamos a vender y anunciar tu propiedad con estrategia" %}</h2>
+            <div class="sale-mini-grid">
+                <article class="sale-mini-card">
+                    <div class="sale-mini-icon"><i class="bi bi-clipboard-data"></i></div>
+                    <h3>{% trans "Valora" %}</h3>
+                    <p>{% trans "Analizamos tu inmueble y definimos precio competitivo con enfoque comercial." %}</p>
+                </article>
+                <article class="sale-mini-card">
+                    <div class="sale-mini-icon"><i class="bi bi-megaphone"></i></div>
+                    <h3>{% trans "Publica" %}</h3>
+                    <p>{% trans "Lanzamos tu propiedad con marketing premium para atraer prospectos calificados." %}</p>
+                </article>
+                <article class="sale-mini-card">
+                    <div class="sale-mini-icon"><i class="bi bi-award"></i></div>
+                    <h3>{% trans "Vende" %}</h3>
+                    <p>{% trans "Negociamos y cerramos con respaldo legal para proteger tu patrimonio." %}</p>
+                </article>
+            </div>
+        </div>
+
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-5">
+                <div>
+                    <h3 class="sale-process-title">{% trans "Proceso de venta" %}</h3>
+                    <div class="sale-steps-grid">
+                        <article class="sale-step-card sale-step-card--accent">
+                            <span class="sale-step-number">1</span>
+                            <h4>{% trans "Diagnóstico" %}</h4>
+                            <p>{% trans "Revisamos características del inmueble, zona y potencial comercial." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--light">
+                            <span class="sale-step-number">2</span>
+                            <h4>{% trans "Valoración estratégica" %}</h4>
+                            <p>{% trans "Definimos rango de precio ideal para vender sin perder valor." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--accent">
+                            <span class="sale-step-number">3</span>
+                            <h4>{% trans "Alta comercial" %}</h4>
+                            <p>{% trans "Preparamos ficha profesional con enfoque para captar compradores." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--light">
+                            <span class="sale-step-number">4</span>
+                            <h4>{% trans "Marketing digital" %}</h4>
+                            <p>{% trans "Difusión en canales estratégicos y campañas segmentadas." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--accent">
+                            <span class="sale-step-number">5</span>
+                            <h4>{% trans "Filtro de prospectos" %}</h4>
+                            <p>{% trans "Calificamos interesados para evitar visitas poco productivas." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--light">
+                            <span class="sale-step-number">6</span>
+                            <h4>{% trans "Visitas guiadas" %}</h4>
+                            <p>{% trans "Coordinamos recorridos con argumentos de venta claros." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--accent">
+                            <span class="sale-step-number">7</span>
+                            <h4>{% trans "Negociación" %}</h4>
+                            <p>{% trans "Te representamos para conseguir mejores condiciones y tiempos." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--light">
+                            <span class="sale-step-number">8</span>
+                            <h4>{% trans "Gestión legal" %}</h4>
+                            <p>{% trans "Validamos documentación y proceso contractual con seguridad." %}</p>
+                        </article>
+                        <article class="sale-step-card sale-step-card--accent">
+                            <span class="sale-step-number">9</span>
+                            <h4>{% trans "Cierre y postventa" %}</h4>
+                            <p>{% trans "Acompañamos hasta la firma y liberación final de la operación." %}</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card advisory-form-card h-100">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-2">{% trans "Anuncia tu propiedad con Total Living" %}</h2>
+                        <p class="text-muted mb-3">{% trans "Completa este perfil y te contactaremos con un plan para captar compradores de alto valor." %}</p>
+
+                        <div class="advisory-progress mb-2" aria-hidden="true">
+                            <div class="advisory-progress-bar" id="advisoryProgressBar"></div>
+                        </div>
+                        <div class="advisory-step-label mb-4" id="advisoryStepLabel">{% trans "Paso 1 de 3: Datos del inmueble" %}</div>
+
+                        <form method="post" id="advisorySaleForm" novalidate>
+                            {% csrf_token %}
+                            <input type="text" name="website" tabindex="-1" autocomplete="off"
+                                   style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
+                                   aria-hidden="true">
+
+                            <input type="hidden" id="property_type" name="property_type" value="{% if form_data %}{{ form_data.property_type }}{% endif %}">
+                            <input type="hidden" id="estimated_price" name="estimated_price" value="{% if form_data %}{{ form_data.estimated_price }}{% endif %}">
+                            <input type="hidden" id="sale_urgency" name="sale_urgency" value="{% if form_data %}{{ form_data.sale_urgency }}{% endif %}">
+                            <input type="hidden" id="exclusive_interest" name="exclusive_interest" value="{% if form_data %}{{ form_data.exclusive_interest }}{% endif %}">
+
+                            <div class="advisory-step is-active" data-step="1">
+                                <div class="mb-3">
+                                    <label for="city" class="advisory-label">{% trans "Ciudad o zona del inmueble" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control advisory-input" id="city" name="city" value="{% if form_data %}{{ form_data.city }}{% endif %}">
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="advisory-label">{% trans "Tipo de propiedad a vender" %}</div>
+                                    <div class="choice-grid type-grid">
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Casa"><i class="bi bi-house-door"></i><span class="choice-text">{% trans "Casa" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Departamento"><i class="bi bi-buildings"></i><span class="choice-text">{% trans "Departamento" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Terreno"><i class="bi bi-tree"></i><span class="choice-text">{% trans "Terreno" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="property_type" data-value="Local comercial"><i class="bi bi-shop"></i><span class="choice-text">{% trans "Local comercial" %}</span></button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="advisory-label">{% trans "Valor estimado del inmueble" %}</div>
+                                    <div class="choice-grid value-grid">
+                                        <button type="button" class="choice-card" data-target-input="estimated_price" data-value="Hasta $2,000,000 MXN"><i class="bi bi-currency-dollar"></i><span class="choice-text">{% trans "Hasta $2 M" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="estimated_price" data-value="$2,000,000 a $5,000,000 MXN"><i class="bi bi-cash-stack"></i><span class="choice-text">{% trans "$2 M - $5 M" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="estimated_price" data-value="$5,000,000 a $10,000,000 MXN"><i class="bi bi-graph-up-arrow"></i><span class="choice-text">{% trans "$5 M - $10 M" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="estimated_price" data-value="Más de $10,000,000 MXN"><i class="bi bi-gem"></i><span class="choice-text">{% trans "Más de $10 M" %}</span></button>
+                                    </div>
+                                </div>
+
+                                <div class="advisory-error" id="step1Error">{% trans "Para continuar, indícanos la zona de tu inmueble." %}</div>
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-dark px-4" data-next-step>{% trans "Siguiente" %}</button>
+                                </div>
+                            </div>
+
+                            <div class="advisory-step" data-step="2">
+                                <div class="mb-3">
+                                    <div class="advisory-label">{% trans "¿Qué tan pronto deseas vender?" %}</div>
+                                    <div class="choice-grid urgency-grid">
+                                        <button type="button" class="choice-card" data-target-input="sale_urgency" data-value="Inmediato (0-30 dias)"><i class="bi bi-lightning-charge"></i><span class="choice-text">{% trans "Inmediato" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="sale_urgency" data-value="Corto plazo (1-3 meses)"><i class="bi bi-clock-history"></i><span class="choice-text">{% trans "1 a 3 meses" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="sale_urgency" data-value="Mediano plazo (3-6 meses)"><i class="bi bi-calendar3"></i><span class="choice-text">{% trans "3 a 6 meses" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="sale_urgency" data-value="Sin prisa"><i class="bi bi-hourglass-split"></i><span class="choice-text">{% trans "Sin prisa" %}</span></button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="advisory-label">{% trans "Interés en esquema de exclusiva" %}</div>
+                                    <div class="choice-grid type-grid">
+                                        <button type="button" class="choice-card" data-target-input="exclusive_interest" data-value="Si, me interesa exclusiva"><i class="bi bi-patch-check"></i><span class="choice-text">{% trans "Sí, me interesa" %}</span></button>
+                                        <button type="button" class="choice-card" data-target-input="exclusive_interest" data-value="Prefiero evaluarlo"><i class="bi bi-question-circle"></i><span class="choice-text">{% trans "Quiero evaluarlo" %}</span></button>
+                                    </div>
+                                </div>
+
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-outline-secondary px-4" data-prev-step>{% trans "Atrás" %}</button>
+                                    <button type="button" class="btn btn-dark px-4" data-next-step>{% trans "Siguiente" %}</button>
+                                </div>
+                            </div>
+
+                            <div class="advisory-step" data-step="3">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="name" class="advisory-label">{% trans "Nombre completo" %} <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control advisory-input" id="name" name="name" value="{% if form_data %}{{ form_data.name }}{% endif %}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="advisory-label">{% trans "Correo electrónico" %} <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control advisory-input" id="email" name="email" value="{% if form_data %}{{ form_data.email }}{% endif %}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="phone" class="advisory-label">{% trans "Teléfono" %}</label>
+                                        <input type="tel" class="form-control advisory-input" id="phone" name="phone" value="{% if form_data %}{{ form_data.phone }}{% endif %}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="message" class="advisory-label">{% trans "Detalles de tu propiedad o expectativa de venta" %}</label>
+                                        <textarea class="form-control advisory-input" id="message" name="message" rows="4">{% if form_data %}{{ form_data.message }}{% endif %}</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="advisory-error" id="step3Error">{% trans "Completa nombre y correo electrónico para enviar." %}</div>
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-outline-secondary px-4" data-prev-step>{% trans "Atrás" %}</button>
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="bi bi-send me-1"></i> {% trans "Enviar solicitud de venta" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const form = document.getElementById('advisorySaleForm');
+        if (!form) return;
+
+        const steps = Array.from(form.querySelectorAll('.advisory-step'));
+        const progressBar = document.getElementById('advisoryProgressBar');
+        const stepLabel = document.getElementById('advisoryStepLabel');
+        const stepText = {
+            1: 'Paso 1 de 3: Datos del inmueble',
+            2: 'Paso 2 de 3: Estrategia de venta',
+            3: 'Paso 3 de 3: Datos de contacto',
+        };
+        let currentStep = 1;
+
+        const updateStepUI = () => {
+            steps.forEach((step) => {
+                const isActive = Number(step.dataset.step) === currentStep;
+                step.classList.toggle('is-active', isActive);
+            });
+            progressBar.style.width = `${(currentStep / 3) * 100}%`;
+            stepLabel.textContent = stepText[currentStep] || '';
+        };
+
+        const setError = (id, visible) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('is-visible', visible);
+        };
+
+        const validateCurrentStep = () => {
+            if (currentStep === 1) {
+                const city = (document.getElementById('city')?.value || '').trim();
+                const valid = city.length > 0;
+                setError('step1Error', !valid);
+                return valid;
+            }
+            if (currentStep === 3) {
+                const name = (document.getElementById('name')?.value || '').trim();
+                const email = (document.getElementById('email')?.value || '').trim();
+                const valid = name.length > 0 && email.length > 0;
+                setError('step3Error', !valid);
+                return valid;
+            }
+            return true;
+        };
+
+        form.querySelectorAll('[data-next-step]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (!validateCurrentStep()) return;
+                if (currentStep < 3) {
+                    currentStep += 1;
+                    updateStepUI();
+                }
+            });
+        });
+
+        form.querySelectorAll('[data-prev-step]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    currentStep -= 1;
+                    updateStepUI();
+                }
+            });
+        });
+
+        const bindChoiceCards = () => {
+            const cards = Array.from(form.querySelectorAll('.choice-card'));
+            cards.forEach((card) => {
+                const inputId = card.dataset.targetInput;
+                const input = document.getElementById(inputId);
+                if (!input) return;
+
+                if ((input.value || '').trim() === (card.dataset.value || '').trim()) {
+                    card.classList.add('is-selected');
+                }
+
+                card.addEventListener('click', () => {
+                    const siblingCards = form.querySelectorAll(`.choice-card[data-target-input="${inputId}"]`);
+                    siblingCards.forEach((s) => s.classList.remove('is-selected'));
+                    card.classList.add('is-selected');
+                    input.value = card.dataset.value || '';
+                });
+            });
+        };
+
+        form.addEventListener('submit', (event) => {
+            currentStep = 3;
+            updateStepUI();
+            if (!(document.getElementById('city')?.value || '').trim()) {
+                currentStep = 1;
+                updateStepUI();
+                setError('step1Error', true);
+                event.preventDefault();
+                return;
+            }
+            if (!(document.getElementById('name')?.value || '').trim() || !(document.getElementById('email')?.value || '').trim()) {
+                setError('step3Error', true);
+                event.preventDefault();
+            }
+        });
+
+        bindChoiceCards();
+        updateStepUI();
+    })();
+</script>
+{% endblock %}

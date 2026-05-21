@@ -1,0 +1,1142 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{{ title }} - Total Living{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+.module-hero {
+    background: linear-gradient(135deg, #40452E 0%, #38382E 65%, #2f3227 100%);
+    padding: 24px 0;
+}
+
+.module-title {
+    font-family: 'Raleway', sans-serif;
+    letter-spacing: 2px;
+}
+
+.module-filter-wrapper {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.module-top-controls {
+    background: #f6f7f9;
+    border-bottom: 1px solid #e5e7ec;
+    padding: 16px 0 12px;
+    overflow: hidden;
+}
+
+/* Evita cualquier scrollbar visual dentro de la franja superior */
+.module-top-controls * {
+    scrollbar-width: none;
+}
+
+.module-top-controls *::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none;
+}
+
+.module-search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.module-city-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 56px;
+    border-radius: 20px;
+    border: 1px solid #d9dde5;
+    background: #fff;
+    padding: 0 16px;
+}
+
+.module-city-search i {
+    font-size: 1.25rem;
+    color: #1f2430;
+}
+
+.module-city-search input {
+    border: 0;
+    outline: 0;
+    width: 100%;
+    font-size: 1.05rem;
+    color: #1f2531;
+    background: transparent;
+}
+
+.module-city-search input::placeholder {
+    color: #7c8494;
+}
+
+.module-filter-card {
+    border: 1px solid rgba(19, 25, 35, 0.08);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+}
+
+.module-filter-toggle {
+    border-radius: 18px;
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    border: 1px solid #d9dde5;
+    color: #2f3542;
+    background: #ffffff;
+}
+
+.module-filter-toggle:hover {
+    background: #f7f9fc;
+    color: #1f2530;
+}
+
+.module-filter-toggle i {
+    font-size: 1.25rem;
+}
+
+.module-secondary-row {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.module-operation-badge {
+    color: #037a90;
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.1;
+}
+
+.module-operation-badge i {
+    font-size: 0.9rem;
+}
+
+.module-result-count {
+    margin-top: 2px;
+    color: #1b2230;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.module-result-count .count-text {
+    font-size: 0.9rem;
+    color: #4f5868;
+}
+
+.module-sort-form {
+    min-width: 220px;
+    margin: 0;
+}
+
+.module-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+    background: #ffffff;
+    border: 1px solid #d8dde6;
+    border-radius: 14px;
+}
+
+.module-view-btn {
+    border: 0;
+    background: transparent;
+    color: #2d3546;
+    border-radius: 10px;
+    min-height: 36px;
+    padding: 6px 10px;
+    font-weight: 700;
+    font-size: 0.86rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.module-view-btn.is-active {
+    background: #40452E;
+    color: #fff;
+}
+
+.module-view-btn i {
+    font-size: 0.95rem;
+}
+
+.module-sort-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.module-sort-chip {
+    border: 1px solid #d8dde6;
+    border-radius: 12px;
+    background: #fff;
+    color: #1b2432;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-height: 40px;
+    padding: 7px 12px;
+}
+
+.module-sort-chip.is-active {
+    border-color: #40452E;
+    background: #40452E;
+    color: #fff;
+}
+
+.module-mini-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.module-mini-filter-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.module-filter-collapse {
+    margin-top: 10px;
+}
+
+.module-filter-card .card-body {
+    padding: 14px;
+}
+
+.module-filter-card .form-control,
+.module-filter-card .form-select {
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid rgba(58, 63, 44, 0.2);
+    font-size: 0.95rem;
+}
+
+.module-filter-card .form-control:focus,
+.module-filter-card .form-select:focus {
+    border-color: #B89965;
+    box-shadow: 0 0 0 0.2rem rgba(196, 165, 114, 0.2);
+}
+
+.module-search-btn {
+    height: 44px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.module-results {
+    padding: 12px 0 34px;
+}
+
+.catalog-view-section.is-hidden {
+    display: none;
+}
+
+.catalog-map-shell {
+    border-radius: 16px;
+    border: 1px solid rgba(64, 69, 46, 0.2);
+    overflow: hidden;
+    box-shadow: 0 16px 34px rgba(20, 22, 18, 0.12);
+    background: #fff;
+}
+
+.catalog-map-canvas {
+    width: 100%;
+    height: min(70vh, 720px);
+    min-height: 420px;
+}
+
+.catalog-map-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    gap: 14px;
+    align-items: stretch;
+}
+
+.catalog-map-panel {
+    border-radius: 16px;
+    border: 1px solid rgba(64, 69, 46, 0.2);
+    background: #ffffff;
+    box-shadow: 0 16px 34px rgba(20, 22, 18, 0.08);
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+}
+
+.catalog-map-panel-head {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e6ebf2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.catalog-map-panel-title {
+    margin: 0;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #2a3141;
+}
+
+.catalog-map-panel-count {
+    font-size: 0.82rem;
+    color: #5b6578;
+    font-weight: 700;
+}
+
+.catalog-map-list {
+    overflow: auto;
+    max-height: min(70vh, 720px);
+    padding: 8px;
+}
+
+.catalog-map-item {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 10px;
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid #e6ebf2;
+    background: #fff;
+    margin-bottom: 8px;
+}
+
+.catalog-map-item.is-hovered {
+    border-color: rgba(64, 69, 46, 0.45);
+    box-shadow: 0 10px 22px rgba(31, 36, 43, 0.12);
+}
+
+.catalog-map-item.is-selected {
+    border-color: #40452E;
+    box-shadow: 0 0 0 2px rgba(64, 69, 46, 0.22);
+    background: #f9faf7;
+}
+
+.catalog-map-item.is-hovered {
+    border-color: rgba(64, 69, 46, 0.45);
+    box-shadow: 0 10px 22px rgba(31, 36, 43, 0.12);
+}
+
+.catalog-map-item-thumb {
+    width: 84px;
+    height: 68px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #eef1f6;
+}
+
+.catalog-map-item-title {
+    font-size: 0.86rem;
+    line-height: 1.25;
+    font-weight: 700;
+    color: #1f2634;
+    margin: 0 0 3px;
+}
+
+.catalog-map-item-price {
+    margin: 0 0 6px;
+    font-size: 0.82rem;
+    color: #4d5970;
+}
+
+.catalog-map-item-link {
+    border: 1px solid #40452E;
+    color: #40452E;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.catalog-map-item-link:hover {
+    background: #40452E;
+    color: #fff;
+}
+
+.catalog-map-list-empty {
+    display: none;
+    padding: 16px;
+    color: #667185;
+    font-size: 0.86rem;
+    text-align: center;
+}
+
+.leaflet-marker-icon {
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.leaflet-marker-icon.map-marker-highlight {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 8px rgba(64, 69, 46, 0.55));
+}
+
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+    background: rgba(64, 69, 46, 0.18) !important;
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+    background: #40452E !important;
+    color: #f2ece0 !important;
+    font-weight: 700;
+}
+
+.catalog-map-empty {
+    padding: 40px 18px;
+    text-align: center;
+    color: #5f6677;
+    font-size: 0.95rem;
+}
+
+.map-popup-card {
+    width: 220px;
+}
+
+.map-popup-thumb {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: #eceff5;
+}
+
+.map-popup-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e2532;
+    margin: 0 0 2px;
+}
+
+.map-popup-price {
+    font-size: 0.88rem;
+    color: #4a566d;
+    margin: 0 0 8px;
+}
+
+.module-results .row.mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+.filter-section-title {
+    font-size: 0.86rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #5d6676;
+    margin: 14px 0 8px;
+    font-weight: 700;
+}
+
+.filter-chip-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.filter-check {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(55, 62, 78, 0.15);
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #fbfcfe;
+    font-size: 0.88rem;
+}
+
+.filter-check input {
+    width: 15px;
+    height: 15px;
+    accent-color: #40452E;
+}
+
+.filter-subtle {
+    font-size: 0.82rem;
+    color: #6f7786;
+}
+
+@media (max-width: 768px) {
+    .module-hero {
+        padding: 20px 0;
+    }
+
+    .module-title {
+        font-size: 1.35rem;
+        letter-spacing: 1px;
+    }
+    .module-filter-wrapper {
+        margin-top: 6px;
+        margin-bottom: 6px;
+    }
+    .module-top-controls {
+        padding: 12px 0 10px;
+    }
+    .module-search-row {
+        gap: 8px;
+    }
+    .module-city-search {
+        height: 52px;
+        border-radius: 18px;
+        padding: 0 14px;
+    }
+    .module-city-search input {
+        font-size: 1rem;
+    }
+    .module-filter-toggle {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+    }
+    .module-secondary-row {
+        margin-top: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .module-result-count {
+        font-size: 1.55rem;
+    }
+    .module-sort-form {
+        min-width: 0;
+        width: 100%;
+    }
+    .module-view-toggle {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .module-sort-buttons {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .module-sort-chip {
+        min-height: 38px;
+        font-size: 0.86rem;
+        padding: 6px 10px;
+    }
+    .module-mini-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .module-mini-filter-actions {
+        flex-direction: column;
+    }
+    .module-results {
+        padding: 10px 0 22px;
+    }
+    .catalog-map-canvas {
+        height: min(62vh, 540px);
+        min-height: 360px;
+    }
+    .catalog-map-layout {
+        grid-template-columns: 1fr;
+    }
+    .catalog-map-panel {
+        min-height: 0;
+    }
+    .catalog-map-list {
+        max-height: 320px;
+    }
+    .module-results .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .module-results .row.g-4 {
+        --bs-gutter-x: 0;
+        --bs-gutter-y: 12px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .module-results .row.g-4 > [class*="col-"] {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .filter-chip-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Encabezado -->
+<section class="module-hero">
+    <div class="container">
+        <div class="text-center">
+            <h1 class="display-5 fw-light text-white module-title">{{ title }}</h1>
+        </div>
+    </div>
+</section>
+
+<!-- Barra superior tipo app -->
+<section class="module-top-controls">
+    <div class="container">
+        <div class="module-search-row">
+            <form method="get" class="m-0">
+                {% for key, value in request.GET.items %}
+                    {% if key != 'ciudad' and key != 'page' and key != 'vista' %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endif %}
+                {% endfor %}
+                <input type="hidden" name="vista" value="{{ current_filters.vista|default:'lista' }}" class="js-vista-input">
+                <label class="module-city-search">
+                    <i class="bi bi-search"></i>
+                    <input
+                        type="text"
+                        name="ciudad"
+                        value="{{ current_filters.ciudad }}"
+                        placeholder="Ingresa una colonia o ciudad"
+                        aria-label="Buscar por colonia o ciudad"
+                    >
+                </label>
+            </form>
+            <button class="btn module-filter-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#categoryFilterCollapse" aria-expanded="false" aria-controls="categoryFilterCollapse" title="Filtros">
+                <i class="bi bi-sliders2"></i>
+            </button>
+        </div>
+
+        <div class="module-secondary-row">
+            <div>
+                <div class="module-operation-badge">
+                    {% if current_filters.operacion == 'renta' or operation == 'renta' %}
+                        En renta <i class="bi bi-chevron-down"></i>
+                    {% elif current_filters.operacion == 'remate' %}
+                        En remate <i class="bi bi-chevron-down"></i>
+                    {% else %}
+                        En venta <i class="bi bi-chevron-down"></i>
+                    {% endif %}
+                </div>
+                <div class="module-result-count">
+                    {{ page_obj.paginator.count }} <span class="count-text">resultados</span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column align-items-lg-end gap-2 w-100">
+                <div class="module-view-toggle" role="group" aria-label="Alternar vista de catálogo">
+                    <button type="button" class="module-view-btn {% if current_filters.vista != 'mapa' %}is-active{% endif %}" data-catalog-view-target="lista">
+                        <i class="bi bi-list-ul"></i> Vista Lista
+                    </button>
+                    <button type="button" class="module-view-btn {% if current_filters.vista == 'mapa' %}is-active{% endif %}" data-catalog-view-target="mapa">
+                        <i class="bi bi-map"></i> Vista Mapa
+                    </button>
+                </div>
+
+                <form method="get" class="module-sort-form module-sort-buttons">
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'orden' and key != 'page' and key != 'vista' %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                    <input type="hidden" name="vista" value="{{ current_filters.vista|default:'lista' }}" class="js-vista-input">
+                    <button type="submit" name="orden" value="reciente" class="btn module-sort-chip {% if current_filters.orden == 'reciente' or not current_filters.orden %}is-active{% endif %}">
+                        Publicación: más reciente
+                    </button>
+                    <button type="submit" name="orden" value="precio_menor" class="btn module-sort-chip {% if current_filters.orden == 'precio_menor' %}is-active{% endif %}">
+                        Precio menor
+                    </button>
+                    <button type="submit" name="orden" value="precio_mayor" class="btn module-sort-chip {% if current_filters.orden == 'precio_mayor' %}is-active{% endif %}">
+                        Precio mayor
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Formulario de filtros -->
+<section class="module-filter-wrapper">
+    <div class="container">
+        <div class="collapse module-filter-collapse" id="categoryFilterCollapse">
+            <div class="card module-filter-card">
+                <div class="card-body">
+                    <form method="get">
+                        <input type="hidden" name="vista" value="{{ current_filters.vista|default:'lista' }}" class="js-vista-input">
+                        <div class="module-mini-filter-grid">
+                            <div>
+                                <label class="form-label small mb-1">Operación</label>
+                                <select name="operacion" class="form-select">
+                                    <option value="venta" {% if current_filters.operacion == 'venta' or not current_filters.operacion %}selected{% endif %}>En venta</option>
+                                    <option value="renta" {% if current_filters.operacion == 'renta' %}selected{% endif %}>En renta</option>
+                                    <option value="remate" {% if current_filters.operacion == 'remate' %}selected{% endif %}>Remate</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Estado</label>
+                                <select name="estado" class="form-select">
+                                    <option value="">Todos</option>
+                                    {% for state_option in available_states %}
+                                    <option value="{{ state_option }}" {% if current_filters.estado == state_option %}selected{% endif %}>{{ state_option }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Ciudad/colonia</label>
+                                <input type="text" name="ciudad" class="form-control" value="{{ current_filters.ciudad }}" placeholder="Ej. Juriquilla">
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Tipo</label>
+                                <select name="tipo" class="form-select">
+                                    <option value="">Ver todos</option>
+                                    {% for value, label in property_types|default:property_types_catalog %}
+                                    <option value="{{ value }}" {% if current_filters.tipo == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Precio mínimo</label>
+                                <input type="number" name="precio_min" class="form-control" placeholder="Mínimo" value="{{ current_filters.precio_min }}">
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Precio máximo</label>
+                                <input type="number" name="precio_max" class="form-control" placeholder="Máximo" value="{{ current_filters.precio_max }}">
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Recámaras</label>
+                                <select name="recamaras" class="form-select">
+                                    <option value="">Cualquiera</option>
+                                    <option value="1" {% if current_filters.recamaras == '1' %}selected{% endif %}>1+</option>
+                                    <option value="2" {% if current_filters.recamaras == '2' %}selected{% endif %}>2+</option>
+                                    <option value="3" {% if current_filters.recamaras == '3' %}selected{% endif %}>3+</option>
+                                    <option value="4" {% if current_filters.recamaras == '4' %}selected{% endif %}>4+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Baños</label>
+                                <select name="banos" class="form-select">
+                                    <option value="">Cualquiera</option>
+                                    <option value="1" {% if current_filters.banos == '1' %}selected{% endif %}>1+</option>
+                                    <option value="2" {% if current_filters.banos == '2' %}selected{% endif %}>2+</option>
+                                    <option value="3" {% if current_filters.banos == '3' %}selected{% endif %}>3+</option>
+                                    <option value="4" {% if current_filters.banos == '4' %}selected{% endif %}>4+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Amenidad</label>
+                                <select name="amenity_slug" class="form-select">
+                                    <option value="">Todas</option>
+                                    {% for item in available_amenity_filters %}
+                                    <option value="{{ item.slug }}" {% if current_filters.amenity_slug == item.slug %}selected{% endif %}>{{ item.category.name }} · {{ item.display_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Servicio</label>
+                                <select name="service_slug" class="form-select">
+                                    <option value="">Todos</option>
+                                    {% for item in available_service_filters %}
+                                    <option value="{{ item.slug }}" {% if current_filters.service_slug == item.slug %}selected{% endif %}>{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small mb-1">Distribución</label>
+                                <select name="interior_slug" class="form-select">
+                                    <option value="">Todas</option>
+                                    {% for item in available_interior_filters %}
+                                    <option value="{{ item.slug }}" {% if current_filters.interior_slug == item.slug %}selected{% endif %}>{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="module-mini-filter-actions">
+                            <button type="submit" class="btn btn-primary module-search-btn">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                            <a href="{{ request.path }}" class="btn btn-outline-secondary module-search-btn">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Grid de Propiedades -->
+<section class="module-results">
+    <div class="container">
+        <div id="catalogListView" class="catalog-view-section {% if current_filters.vista == 'mapa' %}is-hidden{% endif %}">
+            <div class="row g-4">
+                {% if properties %}
+                    {% for property in properties %}
+                    <div class="col-md-6 col-lg-6">
+                        {% if operation == 'renta' %}
+                            {% include 'properties/property_card_rent.html' with property=property %}
+                        {% else %}
+                            {% include 'properties/property_card.html' with property=property %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="bi bi-{{ icon }}"></i>
+                            <h3>{% trans "No hay resultados" %}</h3>
+                            <p>{% trans "Intenta ajustar los filtros de búsqueda" %}</p>
+                            <a href="{% url 'properties:list' %}" class="btn btn-primary">
+                                {% trans "Ver todas las propiedades" %}
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="catalogMapView" class="catalog-view-section {% if current_filters.vista != 'mapa' %}is-hidden{% endif %}">
+            {{ map_markers|default:"[]"|json_script:"catalog-map-markers" }}
+            <div class="catalog-map-layout">
+                <div class="catalog-map-shell">
+                    <div id="catalogMapCanvas" class="catalog-map-canvas" role="application" aria-label="Mapa de propiedades filtradas"></div>
+                </div>
+                <aside class="catalog-map-panel" aria-label="Propiedades visibles en el mapa">
+                    <div class="catalog-map-panel-head">
+                        <p class="catalog-map-panel-title">Propiedades visibles</p>
+                        <span class="catalog-map-panel-count" id="catalogMapVisibleCount">0</span>
+                    </div>
+                    <div class="catalog-map-list" id="catalogMapPropertyList"></div>
+                    <div class="catalog-map-list-empty" id="catalogMapListEmpty">Mueve el mapa o ajusta zoom para encontrar propiedades visibles.</div>
+                </aside>
+            </div>
+            <div id="catalogMapEmpty" class="catalog-map-empty" {% if map_markers %}style="display:none;"{% endif %}>
+                No hay propiedades con coordenadas para mostrar en el mapa con los filtros actuales.
+            </div>
+        </div>
+
+        <!-- Paginación Minimalista -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-5">
+            <ul class="pagination-elegant {% if current_filters.vista == 'mapa' %}is-hidden{% endif %}" id="catalogPagination">
+                {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="page-link-elegant">
+                    <i class="bi bi-chevron-left"></i>
+                </a></li>
+                {% endif %}
+                
+                <li><span class="page-current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                
+                {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="page-link-elegant">
+                    <i class="bi bi-chevron-right"></i>
+                </a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</section>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const listSection = document.getElementById('catalogListView');
+    const mapSection = document.getElementById('catalogMapView');
+    const pagination = document.getElementById('catalogPagination');
+    const toggleButtons = document.querySelectorAll('[data-catalog-view-target]');
+    const vistaInputs = document.querySelectorAll('.js-vista-input');
+    const mapCanvas = document.getElementById('catalogMapCanvas');
+    const mapEmpty = document.getElementById('catalogMapEmpty');
+    const mapVisibleCount = document.getElementById('catalogMapVisibleCount');
+    const mapPropertyList = document.getElementById('catalogMapPropertyList');
+    const mapListEmpty = document.getElementById('catalogMapListEmpty');
+    const rawMarkers = document.getElementById('catalog-map-markers');
+
+    let mapInstance = null;
+    let markersLoaded = false;
+    let markers = [];
+    let markerEntries = [];
+    let selectedMarkerId = null;
+    let visibleListRaf = null;
+
+    try {
+        markers = JSON.parse(rawMarkers ? rawMarkers.textContent : '[]');
+    } catch (e) {
+        markers = [];
+    }
+    if (!Array.isArray(markers)) {
+        try {
+            markers = JSON.parse(markers);
+        } catch (e) {
+            markers = [];
+        }
+    }
+    if (!Array.isArray(markers)) {
+        markers = [];
+    }
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function popupHtml(m) {
+        const imageBlock = m.image
+            ? '<img class="map-popup-thumb" src="' + esc(m.image) + '" alt="' + esc(m.title) + '">'
+            : '<div class="map-popup-thumb"></div>';
+        return '' +
+            '<div class="map-popup-card">' +
+                imageBlock +
+                '<p class="map-popup-title">' + esc(m.title) + '</p>' +
+                '<p class="map-popup-price">' + esc(m.price) + '</p>' +
+                '<a href="' + esc(m.url) + '" class="btn btn-sm btn-primary w-100">Ver detalle</a>' +
+            '</div>';
+    }
+
+    function listCardHtml(m) {
+        const imageBlock = m.image
+            ? '<img class="catalog-map-item-thumb" src="' + esc(m.image) + '" alt="' + esc(m.title) + '">'
+            : '<div class="catalog-map-item-thumb"></div>';
+        return '' +
+            '<article class="catalog-map-item" data-map-item="' + esc(m.id) + '">' +
+                imageBlock +
+                '<div>' +
+                    '<p class="catalog-map-item-title">' + esc(m.title) + '</p>' +
+                    '<p class="catalog-map-item-price">' + esc(m.price) + '</p>' +
+                    '<button type="button" class="catalog-map-item-link" data-map-open="' + esc(m.id) + '">' +
+                        '<i class="bi bi-geo-alt"></i> Ver en mapa' +
+                    '</button>' +
+                    ' <a href="' + esc(m.url) + '" class="catalog-map-item-link" style="margin-left:6px;">' +
+                        '<i class="bi bi-box-arrow-up-right"></i> Ver detalle' +
+                    '</a>' +
+                '</div>' +
+            '</article>';
+    }
+
+    function renderVisibleList() {
+        if (!mapPropertyList || !mapVisibleCount || !mapListEmpty) return;
+        if (!markersLoaded || !mapInstance) {
+            mapPropertyList.innerHTML = '';
+            mapVisibleCount.textContent = '0';
+            mapListEmpty.style.display = 'block';
+            return;
+        }
+
+        const bounds = mapInstance.getBounds();
+        const visible = markerEntries.filter((entry) => bounds.contains(entry.ll));
+        mapVisibleCount.textContent = String(visible.length);
+
+        if (!visible.length) {
+            mapPropertyList.innerHTML = '';
+            mapListEmpty.style.display = 'block';
+            return;
+        }
+
+        mapListEmpty.style.display = 'none';
+        mapPropertyList.innerHTML = visible.map((entry) => listCardHtml(entry.data)).join('');
+        if (selectedMarkerId) {
+            const selectedCard = mapPropertyList.querySelector('[data-map-item="' + String(selectedMarkerId).replace(/"/g, '\\"') + '"]');
+            if (selectedCard) {
+                selectedCard.classList.add('is-selected');
+            }
+        }
+    }
+
+    function scheduleVisibleListRender() {
+        if (visibleListRaf) return;
+        visibleListRaf = window.requestAnimationFrame(() => {
+            visibleListRaf = null;
+            renderVisibleList();
+        });
+    }
+
+    function initMapIfNeeded() {
+        if (markersLoaded || typeof L === 'undefined' || !mapCanvas) return;
+        mapInstance = L.map('catalogMapCanvas', {
+            preferCanvas: true,
+        }).setView([23.7, -102.5], 5);
+        L.tileLayer('{{ MAP_TILES.url|escapejs }}', {
+            attribution: '{{ MAP_TILES.attribution|escapejs }}',
+            subdomains: '{{ MAP_TILES.subdomains|escapejs }}',
+            maxNativeZoom: 16,
+            maxZoom: 18
+        }).addTo(mapInstance);
+
+        const supportsCluster = typeof L.markerClusterGroup === 'function';
+        const markerLayer = supportsCluster
+            ? L.markerClusterGroup({
+                chunkedLoading: true,
+                chunkDelay: 40,
+                chunkInterval: 120,
+                removeOutsideVisibleBounds: true,
+                showCoverageOnHover: false,
+                spiderfyOnMaxZoom: true,
+                disableClusteringAtZoom: 16,
+                maxClusterRadius: 45,
+            })
+            : L.layerGroup();
+
+        const bounds = [];
+        markers.forEach(function (m) {
+            if (m.lat == null || m.lng == null) return;
+            const ll = [m.lat, m.lng];
+            bounds.push(ll);
+            const marker = L.marker(ll).bindPopup(popupHtml(m));
+            markerEntries.push({
+                id: String(m.id),
+                ll: ll,
+                marker: marker,
+                data: m,
+            });
+            marker.on('click', function () {
+                selectMarkerById(m.id);
+            });
+            markerLayer.addLayer(marker);
+        });
+        markerLayer.addTo(mapInstance);
+
+        if (bounds.length) {
+            mapInstance.fitBounds(bounds, { padding: [24, 24] });
+            if (mapEmpty) mapEmpty.style.display = 'none';
+        } else if (mapEmpty) {
+            mapEmpty.style.display = 'block';
+        }
+        mapInstance.on('moveend zoomend', scheduleVisibleListRender);
+        markersLoaded = true;
+        scheduleVisibleListRender();
+    }
+
+    function clearMarkerHighlight(entry) {
+        if (!entry || !entry.marker) return;
+        if (entry.marker._icon) {
+            entry.marker._icon.classList.remove('map-marker-highlight');
+        }
+        if (selectedMarkerId !== entry.id) {
+            entry.marker.setZIndexOffset(0);
+        }
+    }
+
+    function applyMarkerHighlight(entry) {
+        if (!entry || !entry.marker) return;
+        if (entry.marker._icon) {
+            entry.marker._icon.classList.add('map-marker-highlight');
+        }
+        entry.marker.setZIndexOffset(1000);
+    }
+
+    function clearSelectedCard() {
+        if (!mapPropertyList) return;
+        mapPropertyList.querySelectorAll('[data-map-item].is-selected').forEach((el) => {
+            el.classList.remove('is-selected');
+        });
+    }
+
+    function selectCardById(markerId) {
+        if (!mapPropertyList) return;
+        clearSelectedCard();
+        const safeId = String(markerId).replace(/"/g, '\\"');
+        const card = mapPropertyList.querySelector('[data-map-item="' + safeId + '"]');
+        if (!card) return;
+        card.classList.add('is-selected');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function selectMarkerById(markerId) {
+        const entry = markerEntries.find((item) => item.id === String(markerId));
+        if (!entry) return;
+        selectedMarkerId = entry.id;
+        markerEntries.forEach((item) => {
+            if (item.id === entry.id) {
+                applyMarkerHighlight(item);
+                item.marker.setZIndexOffset(1200);
+            } else {
+                if (item.marker._icon) item.marker._icon.classList.remove('map-marker-highlight');
+                item.marker.setZIndexOffset(0);
+            }
+        });
+        selectCardById(entry.id);
+    }
+
+    function setCatalogView(target) {
+        const isMap = target === 'mapa';
+        if (listSection) listSection.classList.toggle('is-hidden', isMap);
+        if (mapSection) mapSection.classList.toggle('is-hidden', !isMap);
+        if (pagination) pagination.classList.toggle('is-hidden', isMap);
+
+        toggleButtons.forEach((btn) => {
+            btn.classList.toggle('is-active', btn.dataset.catalogViewTarget === target);
+        });
+        vistaInputs.forEach((input) => {
+            input.value = target;
+        });
+
+        if (isMap) {
+            initMapIfNeeded();
+            if (mapInstance) {
+                setTimeout(() => {
+                    mapInstance.invalidateSize();
+                    scheduleVisibleListRender();
+                }, 120);
+            }
+        }
+    }
+
+    if (mapPropertyList) {
+        mapPropertyList.addEventListener('click', function (event) {
+            const trigger = event.target.closest('[data-map-open]');
+            if (!trigger || !mapInstance) return;
+            const markerId = trigger.getAttribute('data-map-open');
+            const entry = markerEntries.find((item) => item.id === String(markerId));
+            if (!entry) return;
+            const nextZoom = Math.max(mapInstance.getZoom(), 14);
+            mapInstance.setView(entry.ll, nextZoom, { animate: true });
+            entry.marker.openPopup();
+            selectMarkerById(entry.id);
+        });
+
+        mapPropertyList.addEventListener('mouseover', function (event) {
+            const card = event.target.closest('[data-map-item]');
+            if (!card) return;
+            const markerId = card.getAttribute('data-map-item');
+            const entry = markerEntries.find((item) => item.id === String(markerId));
+            if (!entry) return;
+            applyMarkerHighlight(entry);
+            card.classList.add('is-hovered');
+        });
+
+        mapPropertyList.addEventListener('mouseout', function (event) {
+            const card = event.target.closest('[data-map-item]');
+            if (!card) return;
+            if (card.contains(event.relatedTarget)) return;
+            const markerId = card.getAttribute('data-map-item');
+            const entry = markerEntries.find((item) => item.id === String(markerId));
+            clearMarkerHighlight(entry);
+            card.classList.remove('is-hovered');
+        });
+    }
+
+    toggleButtons.forEach((btn) => {
+        btn.addEventListener('click', function () {
+            setCatalogView(this.dataset.catalogViewTarget || 'lista');
+        });
+    });
+
+    setCatalogView('{{ current_filters.vista|default:"lista" }}');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1156 @@
+{% extends 'base.html' %}
+{% load static l10n %}
+
+{% block title %}{{ property.title }} - Total Living{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    .property-detail-main-carousel {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+    }
+    .property-detail-main-carousel .carousel-item img {
+        width: 100%;
+        height: 540px;
+        object-fit: cover;
+    }
+    .property-detail-main-carousel .carousel-control-prev,
+    .property-detail-main-carousel .carousel-control-next {
+        width: 12%;
+    }
+    .property-detail-main-carousel .carousel-control-prev-icon,
+    .property-detail-main-carousel .carousel-control-next-icon {
+        background-color: rgba(0, 0, 0, 0.55);
+        border-radius: 50%;
+        width: 42px;
+        height: 42px;
+        background-size: 60% 60%;
+    }
+    .property-detail-main-carousel .carousel-indicators [data-bs-target] {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    .property-thumb-strip img {
+        height: 88px;
+        width: 100%;
+        object-fit: cover;
+    }
+    .property-summary-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 0.86rem;
+        color: #6d737d;
+        margin-bottom: 10px;
+    }
+    .property-title-main {
+        line-height: 1.22;
+        letter-spacing: 0.8px !important;
+        margin-bottom: 0.9rem !important;
+    }
+    .property-price-block {
+        font-size: clamp(1.4rem, 2.2vw, 2rem);
+        font-weight: 700;
+        margin-bottom: 12px !important;
+    }
+    .property-main-info-card {
+        border: 1px solid #e8ebf1;
+        box-shadow: 0 10px 26px rgba(18, 25, 37, 0.08);
+        border-radius: 18px;
+    }
+    .property-badges-block {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 0.95rem !important;
+    }
+    .property-badges-block .badge {
+        margin: 0 !important;
+        font-size: 0.88rem;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    .property-features-block {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 1.05rem !important;
+    }
+    .property-features-block .feature-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #f7f9fc;
+        border: 1px solid #e7ebf1;
+        border-radius: 12px;
+        padding: 9px 10px;
+        margin: 0 !important;
+        min-height: 52px;
+        min-width: 0;
+        font-size: 1rem;
+        line-height: 1.2;
+        text-align: center;
+    }
+    .property-features-block .feature-item i {
+        font-size: 1.2rem !important;
+        color: #4a4e38;
+        flex-shrink: 0;
+    }
+    .property-features-block .feature-item span {
+        display: block;
+        min-width: 0;
+        overflow-wrap: break-word;
+        word-break: normal;
+        hyphens: auto;
+        line-height: 1.25;
+    }
+    .property-location-block {
+        margin-bottom: 0.8rem !important;
+    }
+    .property-location-block p {
+        margin-bottom: 0.35rem;
+        line-height: 1.45;
+        color: #3b4250;
+    }
+    .property-contact-sticky-card {
+        background: #f3f4f6;
+        border: 1px solid #e7e9ee;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+        margin-top: 10px;
+    }
+    .property-contact-sticky-logo {
+        width: 86px;
+        height: 86px;
+        object-fit: contain;
+        border-radius: 999px;
+        display: block;
+        margin: 0 auto 10px;
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 10px;
+    }
+    .property-contact-sticky-title {
+        text-align: center;
+        font-weight: 700;
+        color: #0b7f96;
+        font-size: 1.7rem;
+        margin-bottom: 2px;
+        line-height: 1.1;
+    }
+    .property-contact-sticky-subtitle {
+        text-align: center;
+        font-size: 1.15rem;
+        color: #22252b;
+        margin-bottom: 18px;
+    }
+    .property-contact-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-weight: 700;
+        font-size: 1rem;
+        line-height: 1.1;
+        border: 1.5px solid transparent;
+        margin-bottom: 10px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .property-contact-action i {
+        font-size: 1rem;
+    }
+    .property-contact-action:last-child {
+        margin-bottom: 0;
+    }
+    .property-contact-action-main {
+        background: #e8003f;
+        border-color: #e8003f;
+        color: #fff;
+    }
+    .property-contact-action-main:hover {
+        background: #cc0037;
+        border-color: #cc0037;
+        color: #fff;
+    }
+    .property-contact-action-secondary,
+    .property-contact-action-tertiary {
+        background: #ffffff;
+        border-color: #9da4af;
+        color: #2e3440;
+    }
+    .property-contact-action-secondary:hover,
+    .property-contact-action-tertiary:hover {
+        background: #f6f8fb;
+        border-color: #808895;
+        color: #1f2530;
+    }
+    .property-gallery img {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        border-radius: 8px;
+    }
+    .property-gallery img:hover {
+        transform: scale(1.05);
+    }
+    .property-image-detail {
+        margin-bottom: 0;
+    }
+    .info-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    /* IMPORTANTE: Si no pones altura, el mapa será invisible (blanco) */
+    .property-map-canvas {
+        height: 450px;
+        width: 100%;
+        border-radius: 15px;
+        border: 2px solid #D6B585;
+    }
+    /* Refuerzo: teselas Leaflet no deben heredar max-width global de img */
+    .property-leaflet-map.leaflet-container img,
+    .property-map-canvas.leaflet-container img {
+        max-width: none !important;
+    }
+    
+    /* Botones de Gestión Corporativos */
+    .btn-management {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.2rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        letter-spacing: 0.5px;
+        border: 2px solid;
+        text-transform: none;
+    }
+    
+    .btn-management:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn-management:active {
+        transform: translateY(0);
+    }
+    
+    .btn-images {
+        background: linear-gradient(135deg, #40452E 0%, #38382E 100%);
+        color: #F2ECE0;
+        border-color: #40452E;
+    }
+    
+    .btn-images:hover {
+        background: linear-gradient(135deg, #38382E 0%, #2d2d25 100%);
+        color: #F2ECE0;
+        border-color: #38382E;
+    }
+    
+    .btn-edit {
+        background: linear-gradient(135deg, #D6B585 0%, #C4A572 100%);
+        color: #38382E;
+        border-color: #D6B585;
+    }
+    
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #C4A572 0%, #B8965F 100%);
+        color: #38382E;
+        border-color: #C4A572;
+    }
+    
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: #ffffff;
+        border-color: #dc3545;
+    }
+    
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        color: #ffffff;
+        border-color: #c82333;
+    }
+    
+    @media (max-width: 991.98px) {
+        .property-detail-main-carousel .carousel-item img {
+            height: 360px;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .property-detail-main-carousel .carousel-item img {
+            height: clamp(260px, 46svh, 380px);
+        }
+        .property-detail-main-carousel .carousel-control-prev-icon,
+        .property-detail-main-carousel .carousel-control-next-icon {
+            width: 34px;
+            height: 34px;
+        }
+        .breadcrumb-mobile-hide {
+            display: none !important;
+        }
+        .property-detail-page.container {
+            padding-left: 12px;
+            padding-right: 12px;
+            max-width: 760px;
+            /* Espacio para la barra fija de contacto + margen al hacer scroll hasta la ficha PDF */
+            padding-bottom: calc(100px + env(safe-area-inset-bottom));
+        }
+        .property-detail-page .row {
+            margin-left: 0;
+            margin-right: 0;
+            justify-content: center;
+        }
+        .property-detail-page .row > [class*="col-"] {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        .property-detail-page .info-card {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .property-main-info-card {
+            padding: 16px 14px;
+        }
+        .property-badges-block {
+            margin-bottom: 0.5rem !important;
+        }
+        .property-title-main {
+            margin-bottom: 0.6rem !important;
+            font-size: 1.42rem;
+            letter-spacing: 0;
+            font-weight: 700 !important;
+        }
+        .property-mobile-lead {
+            margin-top: 0 !important;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: #5a6270;
+            margin-bottom: 0.75rem !important;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .property-features-block {
+            margin-bottom: 0.7rem !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .property-features-block .feature-item {
+            margin: 0 !important;
+            font-size: 0.94rem;
+            padding: 8px 9px;
+            gap: 8px;
+            border-radius: 10px;
+            min-height: 50px;
+        }
+        .property-features-block .feature-item i {
+            font-size: 1rem !important;
+        }
+        .property-features-block .feature-item span {
+            font-size: 0.88rem;
+            line-height: 1.2;
+        }
+        .property-price-block {
+            font-size: 1.45rem;
+            margin-bottom: 0.75rem !important;
+            margin-top: 0 !important;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .property-summary-meta {
+            font-size: 0.78rem;
+            margin-bottom: 8px;
+        }
+        .property-detail-contact-footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1200;
+            background: #ffffff;
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+            box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.12);
+            padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+        }
+        .property-detail-contact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .property-detail-contact-grid .property-contact-action {
+            font-size: 0.79rem;
+            padding: 11px 8px;
+            border-radius: 10px;
+            gap: 6px;
+            margin-bottom: 0;
+        }
+        .property-detail-contact-grid .property-contact-action i {
+            font-size: 0.88rem;
+        }
+        .property-detail-contact-spacer {
+            display: block;
+            height: 92px;
+        }
+    }
+    @media (max-width: 420px) {
+        .property-features-block {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Mejorado -->
+<nav aria-label="breadcrumb" class="bg-light py-3 border-bottom breadcrumb-mobile-hide">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'properties:list' %}">Propiedades</a></li>
+            <li class="breadcrumb-item active">{{ property.title|truncatewords:5 }}</li>
+        </ol>
+    </div>
+</nav>
+
+<div class="container my-5 property-detail-page">
+    <!-- TL-template-vkr: si NO ves esto en Ver código fuente, no estás sirviendo templates de esta carpeta -->
+    <div class="row">
+        <!-- Imágenes con Lightbox -->
+        <div class="col-lg-8 mb-2 order-1">
+            {% if images %}
+            <!-- Carrusel principal -->
+            <div id="propertyDetailCarousel" class="carousel slide property-detail-main-carousel mb-3" data-bs-ride="carousel" data-bs-interval="4500">
+                {% if images|length > 1 %}
+                <div class="carousel-indicators">
+                    {% for image in images %}
+                    <button type="button"
+                            data-bs-target="#propertyDetailCarousel"
+                            data-bs-slide-to="{{ forloop.counter0 }}"
+                            {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                            aria-label="Slide {{ forloop.counter }}"></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="carousel-inner">
+                    {% for image in images %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <a href="{{ image.image.url }}" data-lightbox="property-gallery" data-title="{{ image.alt_text|default:property.title }}">
+                            <img src="{{ image.image.url }}"
+                                 class="d-block w-100 property-image-detail"
+                                 loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                                 decoding="async"
+                                 {% if forloop.first %}fetchpriority="high"{% endif %}
+                                 alt="{{ image.alt_text|default:property.title }}">
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if images|length > 1 %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#propertyDetailCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#propertyDetailCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+                {% endif %}
+            </div>
+            
+            <!-- Galería de Miniaturas -->
+            {% if images|length > 1 %}
+            <div class="row g-2 property-gallery property-thumb-strip d-none d-md-flex">
+                {% for image in images %}
+                <div class="col-3">
+                    <a href="{{ image.image.url }}" data-lightbox="property-gallery" data-title="{{ image.alt_text|default:property.title }}">
+                        <img src="{{ image.image.url }}" 
+                             class="img-fluid rounded" 
+                             loading="lazy"
+                             decoding="async"
+                             alt="{{ image.alt_text|default:property.title }}"
+                             style="width: 100%;">
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="bg-light d-flex align-items-center justify-content-center rounded shadow-sm" 
+                 style="height: 500px;">
+                <div class="text-center">
+                    <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">No hay imágenes disponibles</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if property.latitude and property.longitude %}
+            <!-- Mapa en columna solo pantallas grandes (xl+); debajo de 1200px va al final (bloque d-xl-none) -->
+            <div class="info-card mt-3 d-none d-xl-block">
+                <h2 class="h4 mb-3 fw-bold">
+                    <i class="bi bi-map"></i> Ubicación
+                </h2>
+                {% with loc=property.get_location_line_display %}
+                {% if loc %}
+                <p class="mb-2">{{ loc }}</p>
+                {% else %}
+                <p class="mb-2 text-muted">Sin dirección en ficha. Revisa la descripción o contáctanos.</p>
+                {% endif %}
+                {% endwith %}
+                {% if property.zip_code %}
+                <p class="text-muted small mb-3">CP: {{ property.zip_code }}</p>
+                {% endif %}
+                <div id="property-map-desktop"
+                     class="property-leaflet-map property-map-canvas"
+                     data-lat="{{ property.latitude|unlocalize }}"
+                     data-lng="{{ property.longitude|unlocalize }}"
+                     style="height: 450px; width: 100%;"></div>
+                <div class="mt-3">
+                    {% if property.google_maps_url %}
+                    <a href="{{ property.google_maps_url }}" target="_blank" class="btn btn-success w-100">
+                        <i class="bi bi-geo-alt-fill"></i> Abrir en Google Maps
+                    </a>
+                    {% else %}
+                    <small class="text-muted d-block">
+                        <a href="https://www.openstreetmap.org/?mlat={{ property.latitude }}&mlon={{ property.longitude }}#map=16/{{ property.latitude }}/{{ property.longitude }}" target="_blank" class="text-decoration-none">
+                            <i class="bi bi-box-arrow-up-right"></i> Ver en OpenStreetMap
+                        </a>
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+            {% elif property.google_maps_url %}
+            <div class="info-card mt-3 d-none d-xl-block">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-map"></i> Ubicación
+                </h2>
+                <a href="{{ property.google_maps_url }}" target="_blank" class="btn btn-success btn-lg w-100">
+                    <i class="bi bi-geo-alt-fill"></i> Abrir Ubicación en Google Maps
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Información Principal -->
+        <div class="col-lg-4 order-2">
+            <div class="info-card property-main-info-card" style="top: 20px;">
+                <div class="property-summary-meta">
+                    <span>ID: {{ property.pk }}</span>
+                    {% if property.created_at %}
+                    <span>Publicado hace {{ property.created_at|timesince }}</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3 property-badges-block">
+                    {% if property.is_featured %}
+                    <span class="badge bg-warning text-dark mb-2">
+                        <i class="bi bi-star-fill"></i> Destacada
+                    </span>
+                    {% endif %}
+                    {% if property.is_new %}
+                    <span class="badge bg-success mb-2">
+                        <i class="bi bi-new"></i> Nueva
+                    </span>
+                    {% endif %}
+                    <span class="badge bg-primary">{{ property.get_property_type_display }}</span>
+                    <span class="badge bg-info">{{ property.get_operation_type_display }}</span>
+                </div>
+                
+                <div class="property-price mb-4 property-price-block">
+                    {{ property.get_price_display }}
+                </div>
+                <h1 class="h3 mb-3 fw-bold property-title-main">{{ property.title }}</h1>
+
+                <div class="property-features mb-4 property-features-block">
+                    {% if property.bedrooms > 0 %}
+                    <div class="feature-item mb-3">
+                        <i class="bi bi-door-open fs-4"></i>
+                        <span class="ms-2"><strong>{{ property.bedrooms }}</strong> Recámaras</span>
+                    </div>
+                    {% endif %}
+                    {% if property.bathrooms > 0 %}
+                    <div class="feature-item mb-3">
+                        <i class="bi bi-droplet fs-4"></i>
+                        <span class="ms-2"><strong>{{ property.bathrooms }}</strong> Baños</span>
+                    </div>
+                    {% endif %}
+                    {% if property.parking_spaces > 0 %}
+                    <div class="feature-item mb-3">
+                        <i class="bi bi-car-front fs-4"></i>
+                        <span class="ms-2"><strong>{{ property.parking_spaces }}</strong> Estacionamientos</span>
+                    </div>
+                    {% endif %}
+                    {% if property.construction_area %}
+                    <div class="feature-item mb-3">
+                        <i class="bi bi-rulers fs-4"></i>
+                        <span class="ms-2"><strong>{{ property.construction_area }}</strong> m² de construcción</span>
+                    </div>
+                    {% endif %}
+                    {% if property.floors > 1 %}
+                    <div class="feature-item mb-3">
+                        <i class="bi bi-building fs-4"></i>
+                        <span class="ms-2"><strong>{{ property.floors }}</strong> Niveles</span>
+                    </div>
+                    {% endif %}
+                    {% if property.maintenance_fee %}
+                    <div class="feature-item mb-3">
+                        <i class="bi bi-cash-coin fs-4"></i>
+                        <span class="ms-2"><strong>Mantenimiento:</strong> {{ property.maintenance_fee }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'properties:download_pdf' property.pk %}" 
+                   class="btn btn-success btn-lg w-100 mb-3 property-tools-block">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar Ficha Técnica
+                </a>
+
+                <div class="d-flex flex-column gap-3 property-tools-block">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Imprimir
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary flex-fill" onclick="shareProperty()">
+                            <i class="bi bi-share"></i> Compartir
+                        </button>
+                    </div>
+                    {% if user.is_staff %}
+                    <div class="border-top pt-3">
+                        <h6 class="text-muted mb-2 small fw-semibold text-uppercase" style="letter-spacing: 1px;">
+                            <i class="bi bi-gear"></i> Gestión de Propiedad
+                        </h6>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'properties:manage_images' property.pk %}" class="btn btn-management btn-images flex-fill">
+                                <i class="bi bi-images"></i> Gestionar Imágenes
+                            </a>
+                            <a href="{% url 'properties:edit' property.pk %}" class="btn btn-management btn-edit flex-fill">
+                                <i class="bi bi-pencil-square"></i> Editar Propiedad
+                            </a>
+                            <a href="{% url 'panel:property_delete' property.pk %}" class="btn btn-management btn-delete flex-fill" onclick="return confirm('¿Estás seguro de que deseas eliminar esta propiedad?\n\nEsta acción no se puede deshacer.');">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="property-contact-sticky-card d-none d-lg-block">
+                <img src="{% static 'images/SharedScreenshot.png' %}?v=2" alt="Total Living" class="property-contact-sticky-logo">
+                <h3 class="property-contact-sticky-title">Total Living</h3>
+                <p class="property-contact-sticky-subtitle">Total Living</p>
+
+                <a href="{% url 'contact:contact' %}?property={{ property.pk }}" class="btn property-contact-action property-contact-action-main">
+                    <i class="bi bi-send"></i> Enviar mensaje
+                </a>
+                <a href="https://wa.me/524428669965?text=Hola%2C%20me%20interesa%20la%20propiedad%20{{ property.title|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn property-contact-action property-contact-action-secondary">
+                    <i class="bi bi-whatsapp"></i> Enviar WhatsApp
+                </a>
+                <a href="tel:+524428669965" class="btn property-contact-action property-contact-action-tertiary">
+                    <i class="bi bi-telephone"></i> Llamar
+                </a>
+            </div>
+
+            {% if related_properties %}
+            <div class="info-card mt-3 d-none d-lg-block">
+                <h3 class="h5 mb-4 fw-bold">Propiedades Similares</h3>
+                {% for related in related_properties %}
+                <div class="d-flex mb-3 pb-3 border-bottom">
+                    {% with main_image=related.get_main_image %}
+                    {% if main_image %}
+                    <a href="{% url 'properties:detail' related.pk %}">
+                        <img src="{{ main_image.image.url }}" 
+                             class="rounded me-3" 
+                             style="width: 90px; height: 90px; object-fit: cover;"
+                             alt="{{ related.title }}">
+                    </a>
+                    {% else %}
+                    <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center"
+                         style="width: 90px; height: 90px;">
+                        <i class="bi bi-image text-muted"></i>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                            <a href="{% url 'properties:detail' related.pk %}" 
+                               class="text-decoration-none text-dark fw-semibold">
+                                {{ related.title|truncatewords:5 }}
+                            </a>
+                        </h6>
+                        <p class="text-primary fw-bold mb-1 small">{{ related.get_price_display }}</p>
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-geo-alt"></i> {{ related.city }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Descripción y Detalles -->
+    <div class="row" style="margin-top: 1rem;">
+        <div class="col-lg-8">
+            <!-- Descripción -->
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-file-text"></i> Descripción
+                </h2>
+                <p class="text-muted" style="white-space: pre-line; line-height: 1.8;">{{ property.description }}</p>
+            </div>
+
+            <!-- Opciones de Financiamiento -->
+            {% if property.financing_options %}
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-wallet2"></i> Opciones de Financiamiento
+                </h2>
+                <div class="row">
+                    {% for financing_label in property.get_financing_options_display %}
+                    <div class="col-md-6 mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>{{ financing_label }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Características Adicionales -->
+            {% if features %}
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-check-circle"></i> Características
+                </h2>
+                <div class="row">
+                    {% for feature_rel in features %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            <span>{{ feature_rel.feature.name }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Información Adicional -->
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-info-circle"></i> Información Adicional
+                </h2>
+                <div class="row">
+                    {% if property.construction_area %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Área de Construcción:</strong><br>
+                        <span class="text-muted">{{ property.construction_area }} m²</span>
+                    </div>
+                    {% endif %}
+                    {% if property.lot_area %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Área de Terreno:</strong><br>
+                        <span class="text-muted">{{ property.lot_area }} m²</span>
+                    </div>
+                    {% endif %}
+                    {% if property.year_built %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Año de Construcción:</strong><br>
+                        <span class="text-muted">{{ property.year_built }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Estado:</strong><br>
+                        <span class="badge bg-{% if property.status == 'disponible' %}success{% else %}secondary{% endif %} fs-6">
+                            {{ property.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Distribución -->
+            {% if property.interior_features.exists %}
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-layout-three-columns"></i> Distribución
+                </h2>
+                <div class="row">
+                    {% for feature in property.interior_features.all %}
+                    <div class="col-md-6 mb-2"><i class="bi {{ feature.icon|default:'bi-check-circle-fill' }} text-success me-2"></i>{{ feature.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Amenidades -->
+            {% if property.amenities.exists %}
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-star"></i> Amenidades
+                </h2>
+                <div class="row">
+                    {% for amenity in property.amenities.all %}
+                    <div class="col-md-6 mb-2"><i class="bi {{ amenity.icon_class|default:'bi-check-circle-fill' }} text-success me-2"></i>{{ amenity.display_name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Servicios -->
+            {% if property.service_features.exists %}
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-lightning"></i> Servicios
+                </h2>
+                <div class="row">
+                    {% for feature in property.service_features.all %}
+                    <div class="col-md-6 mb-2"><i class="bi {{ feature.icon|default:'bi-check-circle-fill' }} text-success me-2"></i>{{ feature.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <!-- Mapa al final: visible en viewports &lt; xl (móvil/tablet); en xl+ el mapa va en columna izquierda -->
+    {% if property.latitude and property.longitude %}
+    <div class="row mt-3 d-xl-none property-detail-map-mobile-row">
+        <div class="col-12">
+            <div class="info-card">
+                <h2 class="h4 mb-3 fw-bold">
+                    <i class="bi bi-map"></i> Ubicación
+                </h2>
+                {% with loc=property.get_location_line_display %}
+                {% if loc %}
+                <p class="mb-2">{{ loc }}</p>
+                {% else %}
+                <p class="mb-2 text-muted">Sin dirección en ficha. Revisa la descripción o contáctanos.</p>
+                {% endif %}
+                {% endwith %}
+                {% if property.zip_code %}
+                <p class="text-muted small mb-3">CP: {{ property.zip_code }}</p>
+                {% endif %}
+                <div id="property-map-mobile"
+                     class="property-leaflet-map property-map-canvas"
+                     data-lat="{{ property.latitude|unlocalize }}"
+                     data-lng="{{ property.longitude|unlocalize }}"
+                     style="height: 450px; width: 100%;"></div>
+                <div class="mt-3">
+                    {% if property.google_maps_url %}
+                    <a href="{{ property.google_maps_url }}" target="_blank" class="btn btn-success w-100">
+                        <i class="bi bi-geo-alt-fill"></i> Abrir en Google Maps
+                    </a>
+                    {% else %}
+                    <small class="text-muted d-block">
+                        <a href="https://www.openstreetmap.org/?mlat={{ property.latitude }}&mlon={{ property.longitude }}#map=16/{{ property.latitude }}/{{ property.longitude }}" target="_blank" class="text-decoration-none">
+                            <i class="bi bi-box-arrow-up-right"></i> Ver en OpenStreetMap
+                        </a>
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif property.google_maps_url %}
+    <div class="row mt-3 d-xl-none property-detail-map-mobile-row">
+        <div class="col-12">
+            <div class="info-card">
+                <h2 class="h4 mb-4 fw-bold">
+                    <i class="bi bi-map"></i> Ubicación
+                </h2>
+                <a href="{{ property.google_maps_url }}" target="_blank" class="btn btn-success btn-lg w-100">
+                    <i class="bi bi-geo-alt-fill"></i> Abrir Ubicación en Google Maps
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if related_properties %}
+    <div class="row mt-3 d-lg-none property-detail-similar-mobile-row">
+        <div class="col-12">
+            <div class="info-card mt-0">
+                <h3 class="h5 mb-4 fw-bold">Propiedades Similares</h3>
+                {% for related in related_properties %}
+                <div class="d-flex mb-3 pb-3 border-bottom">
+                    {% with main_image=related.get_main_image %}
+                    {% if main_image %}
+                    <a href="{% url 'properties:detail' related.pk %}">
+                        <img src="{{ main_image.image.url }}" 
+                             class="rounded me-3" 
+                             style="width: 90px; height: 90px; object-fit: cover;"
+                             alt="{{ related.title }}">
+                    </a>
+                    {% else %}
+                    <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center"
+                         style="width: 90px; height: 90px;">
+                        <i class="bi bi-image text-muted"></i>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                            <a href="{% url 'properties:detail' related.pk %}" 
+                               class="text-decoration-none text-dark fw-semibold">
+                                {{ related.title|truncatewords:5 }}
+                            </a>
+                        </h6>
+                        <p class="text-primary fw-bold mb-1 small">{{ related.get_price_display }}</p>
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-geo-alt"></i> {{ related.city }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="property-detail-contact-footer d-md-none">
+    <div class="property-detail-contact-grid">
+        <a href="{% url 'contact:contact' %}?property={{ property.pk }}" class="btn property-contact-action property-contact-action-main property-contact-mobile-btn">
+            <i class="bi bi-send"></i> Enviar mensaje
+        </a>
+        <a href="https://wa.me/524428669965?text=Hola%2C%20me%20interesa%20la%20propiedad%20{{ property.title|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn property-contact-action property-contact-action-secondary property-contact-mobile-btn">
+            <i class="bi bi-whatsapp"></i> Enviar WhatsApp
+        </a>
+        <a href="tel:+524428669965" class="btn property-contact-action property-contact-action-tertiary property-contact-mobile-btn">
+            <i class="bi bi-telephone"></i> Llamar
+        </a>
+    </div>
+</div>
+<div class="property-detail-contact-spacer d-md-none" aria-hidden="true"></div>
+
+<script>
+function shareProperty() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ property.title }}',
+            text: 'Mira esta propiedad: {{ property.title }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copiar URL al portapapeles
+        navigator.clipboard.writeText(window.location.href);
+        alert('URL copiada al portapapeles');
+    }
+}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+<script>
+// Configurar Lightbox2
+lightbox.option({
+    'resizeDuration': 200,
+    'wrapAround': true,
+    'fadeDuration': 300,
+    'imageFadeDuration': 300,
+    'alwaysShowNavOnTouchDevices': true,
+    'albumLabel': 'Imagen %1 de %2',
+    'disableScrolling': true
+});
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+{% if property.latitude and property.longitude %}
+<script>
+(function () {
+    var mapInstance = null;
+    var viewportTimer = null;
+    var mapReadyRequested = false;
+    var mobileObserver = null;
+
+    function getVisibleMapContainer() {
+        var mapNodes = Array.from(document.querySelectorAll('.property-map-canvas'));
+        function isVisible(el) {
+            if (!el) return false;
+            if (el.offsetParent === null) return false;
+            if (el.getClientRects().length === 0) return false;
+            var parent = el.parentElement;
+            while (parent) {
+                var cs = window.getComputedStyle(parent);
+                if (cs.display === 'none' || cs.visibility === 'hidden') {
+                    return false;
+                }
+                parent = parent.parentElement;
+            }
+            return true;
+        }
+        var contenedor = mapNodes.find(isVisible);
+        if (!contenedor && window.innerWidth < 1200) {
+            contenedor = document.getElementById('property-map-mobile');
+        }
+        if (!contenedor && window.innerWidth >= 1200) {
+            contenedor = document.getElementById('property-map-desktop');
+        }
+        return contenedor || null;
+    }
+
+    function destroyPropertyMap() {
+        if (mapInstance) {
+            mapInstance.off();
+            mapInstance.remove();
+            mapInstance = null;
+        }
+    }
+
+    function initPropertyMap(forceRecreate) {
+        var contenedor = getVisibleMapContainer();
+        if (!contenedor) return;
+
+        if (mapInstance) {
+            var sameContainer = mapInstance.getContainer && mapInstance.getContainer() === contenedor;
+            if (sameContainer && !forceRecreate) {
+                mapInstance.invalidateSize(true);
+                return;
+            }
+            destroyPropertyMap();
+        }
+
+        if (typeof L === 'undefined') {
+            contenedor.innerHTML = '<div class="alert alert-danger p-3 m-0">No se pudo cargar el mapa. Revisa tu conexión y recarga la página.</div>';
+            return;
+        }
+
+        var lat = parseFloat(contenedor.getAttribute('data-lat'));
+        var lng = parseFloat(contenedor.getAttribute('data-lng'));
+        if (isNaN(lat) || isNaN(lng)) {
+            contenedor.innerHTML = '<div class="alert alert-warning p-3 m-0">Coordenadas no válidas. Edita la propiedad y vuelve a guardar latitud y longitud.</div>';
+            return;
+        }
+
+        try {
+            mapInstance = L.map(contenedor, { scrollWheelZoom: true }).setView([lat, lng], 16);
+            L.tileLayer('{{ MAP_TILES.url|escapejs }}', {
+                attribution: '{{ MAP_TILES.attribution|escapejs }}',
+                subdomains: '{{ MAP_TILES.subdomains|escapejs }}',
+                maxZoom: {{ MAP_TILES.max_zoom }},
+            }).addTo(mapInstance);
+
+            L.marker([lat, lng]).addTo(mapInstance)
+                .bindPopup('<b>{{ property.title|escapejs }}</b><br>{{ property.address|escapejs }}')
+                .openPopup();
+
+            function fixSize() {
+                if (mapInstance) {
+                    mapInstance.invalidateSize(true);
+                }
+            }
+            requestAnimationFrame(function () {
+                requestAnimationFrame(fixSize);
+            });
+            setTimeout(fixSize, 120);
+            setTimeout(fixSize, 500);
+        } catch (e) {
+            contenedor.innerHTML = '<div class="alert alert-danger p-3 m-0">Error al mostrar el mapa: ' + String(e.message || e) + '</div>';
+        }
+    }
+
+    function handleViewportChange() {
+        if (!mapReadyRequested) return;
+        if (viewportTimer) {
+            clearTimeout(viewportTimer);
+        }
+        viewportTimer = setTimeout(function () {
+            initPropertyMap(true);
+        }, 140);
+    }
+
+    function whenLeafletReady(forceRecreate) {
+        mapReadyRequested = true;
+        if (typeof L !== 'undefined') {
+            initPropertyMap(!!forceRecreate);
+            return;
+        }
+        var n = 0;
+        var t = setInterval(function () {
+            n += 1;
+            if (typeof L !== 'undefined') {
+                clearInterval(t);
+                initPropertyMap(!!forceRecreate);
+            } else if (n > 60) {
+                clearInterval(t);
+                initPropertyMap(!!forceRecreate);
+            }
+        }, 80);
+    }
+
+    function initMapWhenNeeded() {
+        if (window.innerWidth >= 1200) {
+            whenLeafletReady();
+            return;
+        }
+        var mobileRow = document.querySelector('.property-detail-map-mobile-row');
+        if (!mobileRow || !('IntersectionObserver' in window)) {
+            whenLeafletReady();
+            return;
+        }
+        mobileObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    if (mobileObserver) {
+                        mobileObserver.disconnect();
+                        mobileObserver = null;
+                    }
+                    // Solo inicializamos Leaflet cuando el usuario se acerca al bloque del mapa.
+                    whenLeafletReady();
+                }
+            });
+        }, { rootMargin: '220px 0px 220px 0px' });
+        mobileObserver.observe(mobileRow);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMapWhenNeeded);
+    } else {
+        initMapWhenNeeded();
+    }
+
+    window.addEventListener('resize', handleViewportChange, { passive: true });
+    window.addEventListener('orientationchange', handleViewportChange);
+    if (window.matchMedia) {
+        var mq = window.matchMedia('(min-width: 1200px)');
+        if (mq.addEventListener) {
+            mq.addEventListener('change', function () {
+                whenLeafletReady(true);
+                handleViewportChange();
+            });
+        } else if (mq.addListener) {
+            mq.addListener(function () {
+                whenLeafletReady(true);
+                handleViewportChange();
+            });
+        }
+    }
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+            handleViewportChange();
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

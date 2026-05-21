@@ -1,0 +1,196 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Regiones - Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+.regions-panel {
+    max-width: 100%;
+}
+
+.regions-panel .panel-head {
+    background: #fff;
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.regions-panel .panel-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #2f3227;
+}
+
+.regions-panel .btn-primary {
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 600;
+}
+
+.regions-panel .card {
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(22, 32, 42, 0.06);
+}
+
+.regions-panel .card-body {
+    padding: 12px;
+}
+
+.regions-panel .table {
+    margin: 0;
+}
+
+.regions-panel .table th {
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #647081;
+}
+
+.regions-panel .table td {
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+.regions-panel .btn {
+    border-radius: 8px;
+}
+
+.regions-panel .actions-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .regions-panel .panel-head {
+        display: flex !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px;
+    }
+
+    .regions-panel .panel-head .btn-primary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .regions-panel .table thead {
+        display: none;
+    }
+
+    .regions-panel .table,
+    .regions-panel .table tbody,
+    .regions-panel .table tr,
+    .regions-panel .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .regions-panel .table tr {
+        border: 1px solid #e8edf3;
+        border-radius: 12px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #fff;
+    }
+
+    .regions-panel .table td {
+        border: none;
+        padding: 6px 0;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .regions-panel .table td::before {
+        content: attr(data-label);
+        font-size: 11px;
+        font-weight: 600;
+        color: #6a7483;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .regions-panel .table td.actions-cell {
+        display: block;
+        padding-top: 10px;
+    }
+
+    .regions-panel .table td.actions-cell::before {
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .regions-panel .actions-group .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 regions-panel">
+    <div class="d-flex justify-content-between align-items-center panel-head">
+        <h2 class="panel-title">Regiones de Querétaro</h2>
+        <a href="{% url 'regions:panel_region_add' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Región
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Orden</th>
+                            <th>Nombre</th>
+                            <th>Crecimiento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for region in regions %}
+                        <tr>
+                            <td data-label="Orden">{{ region.order }}</td>
+                            <td data-label="Nombre"><strong>{{ region.name }}</strong></td>
+                            <td data-label="Crecimiento"><span class="badge bg-info">{{ region.get_growth_level_display }}</span></td>
+                            <td data-label="Estado">
+                                {% if region.is_active %}
+                                <span class="badge bg-success">Activa</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Acciones" class="actions-cell">
+                                <div class="actions-group">
+                                    <a href="{% url 'regions:panel_region_edit' region.pk %}" class="btn btn-sm btn-edit">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                    <a href="{% url 'regions:panel_region_delete' region.pk %}" class="btn btn-sm btn-delete">
+                                        <i class="bi bi-trash"></i> Borrar
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                                <p class="mt-3 text-muted">No hay regiones registradas</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

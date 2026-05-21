@@ -1,0 +1,153 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Editar Región - Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/regions_form.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<div class="region-form-container py-4">
+    <div class="form-card">
+        <div class="form-header">
+            <h2><i class="bi bi-pencil-square me-2"></i>EDITAR REGIÓN: {{ region.name|upper }}</h2>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" id="regionForm">
+            {% csrf_token %}
+            
+            <div class="form-body">
+                <!-- Información Básica -->
+                <div class="form-section">
+                    <h3 class="section-title"><i class="bi bi-info-circle me-2"></i>Información Básica</h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Nombre de la Región *</label>
+                                <input type="text" name="name" class="form-control" value="{{ region.name }}" placeholder="Ej: Zibatá" required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Slug (URL amigable) *</label>
+                                <input type="text" name="slug" class="form-control" value="{{ region.slug }}" placeholder="Ej: zibata" required>
+                                <small class="form-text">Solo letras minúsculas, números y guiones</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Descripción Completa *</label>
+                        <textarea name="description" class="form-control" rows="5" placeholder="Describe la región, sus características principales, ubicación, etc." required>{{ region.description }}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Puntos Destacados *</label>
+                        <textarea name="highlights" class="form-control" rows="3" placeholder="Zona residencial exclusiva, Cerca de universidades, Alto plusvalía" required>{{ region.highlights }}</textarea>
+                        <small class="form-text">Separar cada punto con coma (,)</small>
+                    </div>
+                </div>
+                
+                <!-- Imagen -->
+                <div class="form-section">
+                    <h3 class="section-title"><i class="bi bi-image me-2"></i>Imagen Principal</h3>
+                    
+                    {% if region.image %}
+                    <div class="current-image-preview">
+                        <img src="{{ region.image.url }}" alt="{{ region.name }}">
+                    </div>
+                    <p class="text-center mb-3" style="color: #666; font-size: 0.9rem;">
+                        <i class="bi bi-check-circle-fill" style="color: #40452E;"></i> Imagen actual cargada
+                    </p>
+                    {% endif %}
+                    
+                    <div class="image-upload-area" onclick="document.getElementById('imageInput').click()">
+                        <i class="bi bi-cloud-upload"></i>
+                        <p><strong>Click para cambiar imagen</strong></p>
+                        <p class="mt-2">Formatos: JPG, PNG | Tamaño recomendado: 1200x800px</p>
+                        <input type="file" name="image" id="imageInput" accept="image/*">
+                    </div>
+                </div>
+                
+                <!-- Configuración -->
+                <div class="form-section">
+                    <h3 class="section-title"><i class="bi bi-gear me-2"></i>Configuración</h3>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label class="form-label">Nivel de Crecimiento *</label>
+                                <div class="growth-selector">
+                                    <div class="growth-option">
+                                        <input type="radio" name="growth_level" value="alto" id="growth_alto" {% if region.growth_level == 'alto' %}checked{% endif %}>
+                                        <label for="growth_alto">
+                                            <i class="bi bi-graph-up-arrow"></i><br>
+                                            Alto Crecimiento
+                                        </label>
+                                    </div>
+                                    <div class="growth-option">
+                                        <input type="radio" name="growth_level" value="medio" id="growth_medio" {% if region.growth_level == 'medio' %}checked{% endif %}>
+                                        <label for="growth_medio">
+                                            <i class="bi bi-graph-up"></i><br>
+                                            Crecimiento Medio
+                                        </label>
+                                    </div>
+                                    <div class="growth-option">
+                                        <input type="radio" name="growth_level" value="emergente" id="growth_emergente" {% if region.growth_level == 'emergente' %}checked{% endif %}>
+                                        <label for="growth_emergente">
+                                            <i class="bi bi-star"></i><br>
+                                            Zona Emergente
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Orden de Visualización</label>
+                                <input type="number" name="order" class="form-control" value="{{ region.order }}" min="0">
+                                <small class="form-text">Menor número = aparece primero</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="toggle-switch">
+                            <input type="checkbox" name="is_active" id="is_active" {% if region.is_active %}checked{% endif %}>
+                            <label for="is_active" style="margin: 0; cursor: pointer; font-weight: 500;">
+                                Región Activa (visible en la página pública)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones -->
+                <div class="form-actions">
+                    <a href="{% url 'regions:panel_regions' %}" class="btn-cancel">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn-save">
+                        <i class="bi bi-check-circle me-2"></i>Actualizar Región
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Preview de imagen seleccionada
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name;
+    if (fileName) {
+        const uploadArea = document.querySelector('.image-upload-area p strong');
+        uploadArea.textContent = '✓ ' + fileName;
+        uploadArea.parentElement.style.color = '#40452E';
+    }
+});
+</script>
+{% endblock %}

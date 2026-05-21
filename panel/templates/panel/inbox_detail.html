@@ -1,0 +1,127 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de solicitud{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-inbox-tl.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+<div class="panel-inbox-page panel-inbox-page--detail">
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">Detalle de solicitud</h1>
+        <a href="{% url 'panel:inbox' %}" class="btn-clear">Volver al buzón</a>
+    </div>
+
+    <div class="inbox-detail-layout">
+        <div class="detail-card">
+            <div class="detail-head">
+                <h3>{{ contact.subject }}</h3>
+                <div class="chips">
+                    {% if contact.status == 'new' %}<span class="chip st-new">Nueva</span>{% endif %}
+                    {% if contact.status == 'in_progress' %}<span class="chip st-progress">En seguimiento</span>{% endif %}
+                    {% if contact.status == 'responded' %}<span class="chip st-responded">Respondida</span>{% endif %}
+                    {% if contact.status == 'closed' %}<span class="chip st-closed">Cerrada</span>{% endif %}
+
+                    {% if contact.priority == 'high' %}<span class="chip prio-high">Prioridad alta</span>{% endif %}
+                    {% if contact.priority == 'medium' %}<span class="chip prio-medium">Prioridad media</span>{% endif %}
+                    {% if contact.priority == 'low' %}<span class="chip prio-low">Prioridad baja</span>{% endif %}
+                    <span class="chip st-closed">ID #{{ contact.pk }}</span>
+                </div>
+            </div>
+
+            <div class="meta-grid">
+                <div class="meta-box"><strong>Nombre</strong><br>{{ contact.name }}</div>
+                <div class="meta-box"><strong>Correo</strong><br><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></div>
+                <div class="meta-box"><strong>Teléfono</strong><br>{% if contact.phone %}<a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% else %}<span class="text-muted">No proporcionado</span>{% endif %}</div>
+                <div class="meta-box"><strong>Fecha de ingreso</strong><br>{{ contact.created_at|date:"d/m/Y H:i" }}</div>
+                <div class="meta-box"><strong>Actualizado</strong><br>{{ contact.updated_at|date:"d/m/Y H:i" }}</div>
+                <div class="meta-box"><strong>Origen</strong><br>{{ contact.source }}</div>
+                <div class="meta-box meta-box--full">
+                    <strong>Propiedad relacionada</strong><br>
+                    {% if contact.property %}
+                        <a href="{% url 'properties:detail' contact.property.pk %}" target="_blank" rel="noopener noreferrer">{{ contact.property.title }}</a>
+                    {% else %}
+                        <span class="text-muted">Consulta general</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h5>Mensaje del cliente</h5>
+            <div class="msg-box">{{ contact.message }}</div>
+
+            <h5 style="margin-top: 1rem;">Notas internas</h5>
+            <div class="notes-list">
+                {% for n in notes %}
+                    <div class="note-item">
+                        <div class="note-head">{{ n.created_at|date:"d/m/Y H:i" }} — {% if n.author %}{{ n.author.username }}{% else %}Sistema{% endif %}</div>
+                        <div style="white-space: pre-line;">{{ n.note }}</div>
+                    </div>
+                {% empty %}
+                    <div class="note-item text-muted">Aún no hay notas internas.</div>
+                {% endfor %}
+            </div>
+
+            <form method="post" style="margin-top: 12px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_note">
+                <div class="form-stack">
+                    <label>Agregar nota de seguimiento</label>
+                    <textarea name="note" rows="3" placeholder="Ej. Se contactó por WhatsApp, solicita visita el viernes…"></textarea>
+                    <button type="submit" class="btn-filter" style="max-width: 240px;">Guardar nota</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="detail-card">
+            <h4 style="margin-bottom: 12px;">Gestión comercial</h4>
+            <form method="post" class="form-stack">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_details">
+
+                <label>Estado</label>
+                <select name="status">
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if contact.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Prioridad</label>
+                <select name="priority">
+                    {% for value, label in priority_choices %}
+                        <option value="{{ value }}" {% if contact.priority == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Asignado a</label>
+                <select name="assigned_to">
+                    <option value="">Sin asignar</option>
+                    {% for u in staff_users %}
+                        <option value="{{ u.pk }}" {% if contact.assigned_to and contact.assigned_to.pk == u.pk %}selected{% endif %}>{{ u.username }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Seguimiento programado</label>
+                <input type="datetime-local" name="follow_up_at" value="{% if contact.follow_up_at %}{{ contact.follow_up_at|date:'Y-m-d\\TH:i' }}{% endif %}">
+
+                <label>Resumen interno</label>
+                <textarea name="internal_summary" rows="5" placeholder="Resumen para equipo interno…">{{ contact.internal_summary }}</textarea>
+
+                <button type="submit" class="btn-filter">Guardar cambios</button>
+            </form>
+
+            <hr>
+            <h5 style="margin-bottom: 10px;">Acciones rápidas</h5>
+            <div class="quick-actions">
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark_pending"><button type="submit" class="btn btn-outline-warning">En seguimiento</button></form>
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark_responded"><button type="submit" class="btn btn-success">Marcar respondida</button></form>
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark_closed"><button type="submit" class="btn btn-outline-secondary">Cerrar</button></form>
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark_unread"><button type="submit" class="btn btn-outline-dark">Marcar no leída</button></form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

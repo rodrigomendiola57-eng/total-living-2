@@ -1,0 +1,408 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TOTAL LIVING\n"
+"POT-Creation-Date: 2026-03-19 00:00+0000\n"
+"PO-Revision-Date: 2026-03-19 00:00+0000\n"
+"Last-Translator: TOTAL LIVING\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Inicio"
+msgstr "Home"
+
+msgid "Comprar"
+msgstr "Buy"
+
+msgid "Todas las Propiedades"
+msgstr "All Properties"
+
+msgid "Departamentos"
+msgstr "Apartments"
+
+msgid "Casas"
+msgstr "Houses"
+
+msgid "Terrenos"
+msgstr "Land"
+
+msgid "Locales Comerciales"
+msgstr "Commercial Spaces"
+
+msgid "Rentar"
+msgstr "Rent"
+
+msgid "Todas las Rentas"
+msgstr "All Rentals"
+
+msgid "Desarrollos"
+msgstr "Developments"
+
+msgid "Zonas"
+msgstr "Areas"
+
+msgid "Nuestra Agencia"
+msgstr "Our Agency"
+
+msgid "Contacto"
+msgstr "Contact"
+
+msgid "Idioma"
+msgstr "Language"
+
+msgid "Español"
+msgstr "Spanish"
+
+msgid "Panel"
+msgstr "Dashboard"
+
+msgid "Tu inmobiliaria de confianza. Encuentra la propiedad ideal para ti."
+msgstr "Your trusted real estate partner. Find the home or investment that's right for you."
+
+msgid "Enlaces Rápidos"
+msgstr "Quick links"
+
+msgid "Propiedades"
+msgstr "Properties"
+
+msgid "Búsqueda Avanzada"
+msgstr "Advanced search"
+
+msgid "Propiedades en venta"
+msgstr "Properties for sale"
+
+msgid "Propiedades en renta"
+msgstr "Properties for rent"
+
+msgid "Asesoría inmobiliaria"
+msgstr "Real estate advisory"
+
+msgid "Asesoría compra"
+msgstr "Buyer advisory"
+
+msgid "Asesoría venta"
+msgstr "Seller advisory"
+
+msgid "Inversión"
+msgstr "Investment"
+
+msgid "Nosotros"
+msgstr "About us"
+
+msgid "Ciudad de México, México"
+msgstr "Mexico City, Mexico"
+
+msgid "Todos los derechos reservados."
+msgstr "All rights reserved."
+
+msgid "Términos y Condiciones"
+msgstr "Terms and Conditions"
+
+msgid "Política de Privacidad"
+msgstr "Privacy Policy"
+
+msgid "PROPIEDADES DESTACADAS"
+msgstr "FEATURED PROPERTIES"
+
+msgid "Recámaras"
+msgstr "Bedrooms"
+
+msgid "Baños"
+msgstr "Bathrooms"
+
+msgid "Ver Detalles"
+msgstr "View Details"
+
+msgid "Anterior"
+msgstr "Previous"
+
+msgid "Siguiente"
+msgstr "Next"
+
+msgid "Busca rápido tu propiedad"
+msgstr "Find your property quickly"
+
+msgid "Tipo"
+msgstr "Type"
+
+msgid "Todos"
+msgstr "All"
+
+msgid "Casa"
+msgstr "House"
+
+msgid "Departamento"
+msgstr "Apartment"
+
+msgid "Terreno"
+msgstr "Land"
+
+msgid "Oficina"
+msgstr "Office"
+
+msgid "Bodega"
+msgstr "Warehouse"
+
+msgid "Rancho"
+msgstr "Ranch"
+
+msgid "Operación"
+msgstr "Operation"
+
+msgid "Todas"
+msgstr "All"
+
+msgid "Venta"
+msgstr "Sale"
+
+msgid "Renta"
+msgstr "Rent"
+
+msgid "Venta o Renta"
+msgstr "Sale or Rent"
+
+msgid "Estado"
+msgstr "State"
+
+msgid "Ej: Querétaro"
+msgstr "Ex: Queretaro"
+
+msgid "Precio máximo"
+msgstr "Maximum price"
+
+msgid "Sin límite"
+msgstr "No limit"
+
+msgid "TOTAL LIVING LISTINGS EXCLUSIVOS"
+msgstr "TOTAL LIVING EXCLUSIVE LISTINGS"
+
+msgid "rec"
+msgstr "bd"
+
+msgid "baños"
+msgstr "ba"
+
+msgid "Ver propiedad"
+msgstr "View property"
+
+msgid "Ver Todas las Propiedades"
+msgstr "View All Properties"
+
+msgid "No hay propiedades disponibles"
+msgstr "No properties available"
+
+msgid "Búsqueda Avanzada"
+msgstr "Advanced search"
+
+msgid "Filtros de Búsqueda"
+msgstr "Search filters"
+
+msgid "Palabras clave"
+msgstr "Keywords"
+
+msgid "Buscar..."
+msgstr "Search..."
+
+msgid "Ciudad"
+msgstr "City"
+
+msgid "Seleccionar ciudad..."
+msgstr "Select city..."
+
+msgid "Rango de Precio"
+msgstr "Price Range"
+
+msgid "Mínimo"
+msgstr "Minimum"
+
+msgid "Máximo"
+msgstr "Maximum"
+
+msgid "Mín. Recámaras"
+msgstr "Min. Bedrooms"
+
+msgid "Mín. Baños"
+msgstr "Min. Bathrooms"
+
+msgid "Área Mínima (m²)"
+msgstr "Minimum Area (m²)"
+
+msgid "Ordenar por"
+msgstr "Sort by"
+
+msgid "Más recientes"
+msgstr "Newest first"
+
+msgid "Precio: Menor a Mayor"
+msgstr "Price: Low to High"
+
+msgid "Precio: Mayor a Menor"
+msgstr "Price: High to Low"
+
+msgid "Área: Menor a Mayor"
+msgstr "Area: Low to High"
+
+msgid "Área: Mayor a Menor"
+msgstr "Area: High to Low"
+
+msgid "Buscar"
+msgstr "Search"
+
+msgid "de"
+msgstr "of"
+
+msgid "Limpiar"
+msgstr "Clear"
+
+msgid "Se encontraron"
+msgstr "Found"
+
+msgid "propiedades"
+msgstr "properties"
+
+msgid "Destacada"
+msgstr "Featured"
+
+msgid "Rec."
+msgstr "Bed."
+
+msgid "Página"
+msgstr "Page"
+
+msgid "No se encontraron propiedades"
+msgstr "No properties were found"
+
+msgid "Contáctanos"
+msgstr "Contact us"
+
+msgid "Estamos aquí para ayudarte a encontrar la propiedad perfecta"
+msgstr "We are here to help you find the perfect property"
+
+msgid "Consulta sobre:"
+msgstr "Inquiry about:"
+
+msgid "Precio:"
+msgstr "Price:"
+
+msgid "Ubicación:"
+msgstr "Location:"
+
+msgid "Ver Detalles de la Propiedad"
+msgstr "View Property Details"
+
+msgid "Nombre Completo"
+msgstr "Full Name"
+
+msgid "Por favor ingresa tu nombre."
+msgstr "Please enter your name."
+
+msgid "Correo Electrónico"
+msgstr "Email Address"
+
+msgid "Por favor ingresa un correo electrónico válido."
+msgstr "Please enter a valid email address."
+
+msgid "Teléfono"
+msgstr "Phone"
+
+msgid "Opcional"
+msgstr "Optional"
+
+msgid "Asunto"
+msgstr "Subject"
+
+msgid "Consulta sobre"
+msgstr "Inquiry about"
+
+msgid "Mensaje"
+msgstr "Message"
+
+msgid "Me interesa obtener más información sobre esta propiedad."
+msgstr "I am interested in getting more information about this property."
+
+msgid "Por favor ingresa tu mensaje."
+msgstr "Please enter your message."
+
+msgid "Enviar Mensaje"
+msgstr "Send Message"
+
+msgid "Tu información está segura y será usada únicamente para contactarte."
+msgstr "Your information is safe and will only be used to contact you."
+
+msgid "Condominios"
+msgstr "Condominiums"
+
+msgid "en Venta"
+msgstr "for Sale"
+
+msgid "Todos los tipos"
+msgstr "All types"
+
+msgid "Condominio"
+msgstr "Condominium"
+
+msgid "Mostrando"
+msgstr "Showing"
+
+msgid "Volver al Inicio"
+msgstr "Back to Home"
+
+msgid "m² Mín"
+msgstr "m² Min"
+
+msgid "m² Máx"
+msgstr "m² Max"
+
+msgid "resultado"
+msgstr "result"
+
+msgid "No hay resultados"
+msgstr "No results"
+
+msgid "Ver todas las propiedades"
+msgstr "View all properties"
+
+msgid "Departamentos en Venta"
+msgstr "Apartments for Sale"
+
+msgid "departamento"
+msgstr "apartment"
+
+msgid "No hay departamentos disponibles"
+msgstr "No apartments available"
+
+msgid "Propiedades en Renta"
+msgstr "Properties for Rent"
+
+msgid "propiedades en renta"
+msgstr "rental properties"
+
+msgid "No hay propiedades en renta disponibles"
+msgstr "No rental properties available"
+
+msgid "Más información"
+msgstr "More information"
+
+msgid "Regiones de Querétaro"
+msgstr "Regions of Queretaro"
+
+msgid "REGIONES DE QUERÉTARO"
+msgstr "REGIONS OF QUERETARO"
+
+msgid "Próximamente agregaremos información de regiones"
+msgstr "We will add region information soon"
+
+msgid "Mapa de propiedades"
+msgstr "Property map"
+
+msgid "Explora en el mapa las propiedades disponibles con ubicación registrada. Haz clic en un marcador para ver detalles."
+msgstr "Explore available properties with a saved location on the map. Click a marker for details."
+
+msgid "Solo se muestran propiedades con coordenadas guardadas (latitud y longitud)."
+msgstr "Only properties with saved coordinates (latitude and longitude) are shown."
+
+msgid "Ver ficha"
+msgstr "View listing"

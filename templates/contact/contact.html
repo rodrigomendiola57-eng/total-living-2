@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "Contacto" %} - Total Living{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contact-tl-page {
+        --tl-olive: #3d4436;
+        --tl-olive-deep: #2a3025;
+        --tl-gold: #c9a66e;
+        --tl-gold-soft: rgba(201, 166, 110, 0.14);
+        --tl-cream: #f7f5f0;
+        --tl-ink: #1a1e18;
+        --tl-muted: #5e6854;
+        background: var(--tl-cream);
+        padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(3rem, 6vw, 5rem);
+        overflow-x: clip;
+    }
+    .contact-tl-wrap { max-width: 1120px; margin: 0 auto; padding: 0 1.1rem; }
+    .contact-tl-head { text-align: center; margin-bottom: clamp(2rem, 4vw, 2.75rem); }
+    .contact-tl-eyebrow {
+        display: inline-block;
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.58rem;
+        font-weight: 600;
+        letter-spacing: 0.36em;
+        text-transform: uppercase;
+        color: #8a7450;
+        margin-bottom: 0.75rem;
+        padding: 0.28rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid rgba(201, 166, 110, 0.38);
+        background: rgba(201, 166, 110, 0.08);
+    }
+    .contact-tl-title {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 200;
+        font-size: clamp(1.85rem, 4vw, 2.65rem);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--tl-ink);
+        margin: 0 0 0.6rem;
+        line-height: 1.12;
+    }
+    .contact-tl-lead {
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-weight: 300;
+        font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+        color: var(--tl-muted);
+        max-width: 32rem;
+        margin: 0 auto;
+        line-height: 1.65;
+    }
+    .contact-tl-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        gap: clamp(1.5rem, 3vw, 2.5rem);
+        align-items: start;
+    }
+    .contact-tl-aside {
+        background: linear-gradient(160deg, var(--tl-olive) 0%, var(--tl-olive-deep) 100%);
+        color: rgba(252, 250, 246, 0.92);
+        border-radius: 28px;
+        padding: clamp(1.75rem, 3vw, 2.25rem);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 50px rgba(10, 12, 8, 0.22);
+        position: relative;
+        overflow: hidden;
+    }
+    .contact-tl-aside::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 18%; right: 18%; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(215, 178, 122, 0.55), transparent);
+    }
+    .contact-tl-aside h2 {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 300;
+        font-size: 1.05rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin: 0 0 1rem;
+        color: #d7b27a;
+    }
+    .contact-tl-aside ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem;
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-weight: 300;
+        font-size: 0.9rem;
+        line-height: 1.65;
+        color: rgba(230, 224, 210, 0.82);
+    }
+    .contact-tl-aside li {
+        display: flex;
+        gap: 0.55rem;
+        margin-bottom: 0.65rem;
+        align-items: flex-start;
+    }
+    .contact-tl-aside li i {
+        color: #d7b27a;
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+    }
+    .contact-tl-aside-foot {
+        font-size: 0.78rem;
+        color: rgba(210, 204, 192, 0.55);
+        line-height: 1.55;
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-weight: 300;
+    }
+    .contact-tl-card {
+        background: #fff;
+        border-radius: 28px;
+        border: 1px solid rgba(47, 52, 45, 0.08);
+        box-shadow: 0 16px 48px rgba(22, 24, 20, 0.08);
+        padding: clamp(1.5rem, 3vw, 2.25rem);
+    }
+    .contact-tl-card h2 {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 300;
+        font-size: 0.95rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--tl-ink);
+        margin: 0 0 1.25rem;
+    }
+    .contact-tl-alert {
+        border-radius: 16px;
+        border: 1px solid rgba(201, 166, 110, 0.35);
+        background: linear-gradient(135deg, rgba(201, 166, 110, 0.1), rgba(61, 68, 54, 0.06));
+        padding: 1rem 1.15rem;
+        margin-bottom: 1.35rem;
+    }
+    .contact-tl-alert h3 {
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        margin: 0 0 0.5rem;
+        color: var(--tl-olive-deep);
+    }
+    .contact-tl-alert p { margin: 0; font-size: 0.88rem; color: var(--tl-muted); font-family: 'Nunito', sans-serif; font-weight: 300; line-height: 1.55; }
+    .contact-tl-alert .btn-sm {
+        margin-top: 0.65rem;
+        border-radius: 999px;
+        border-color: var(--tl-olive);
+        color: var(--tl-olive);
+        font-size: 0.78rem;
+    }
+    .contact-tl-field { margin-bottom: 1.1rem; }
+    .contact-tl-field label,
+    .contact-tl-label {
+        display: block;
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        color: var(--tl-muted);
+        margin-bottom: 0.35rem;
+    }
+    .contact-tl-field label .req { color: #b4534a; }
+    .contact-tl-input,
+    .contact-tl-select,
+    .contact-tl-textarea {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid rgba(47, 52, 45, 0.12);
+        background: #fafaf8;
+        padding: 0.72rem 1rem;
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.95rem;
+        font-weight: 300;
+        color: var(--tl-ink);
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .contact-tl-input:focus,
+    .contact-tl-select:focus,
+    .contact-tl-textarea:focus {
+        outline: none;
+        border-color: rgba(201, 166, 110, 0.65);
+        box-shadow: 0 0 0 3px var(--tl-gold-soft);
+        background: #fff;
+    }
+    .contact-tl-textarea { min-height: 140px; resize: vertical; line-height: 1.55; }
+    .contact-tl-quick-hint {
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.8rem;
+        font-weight: 300;
+        color: var(--tl-muted);
+        margin: 0 0 0.65rem;
+        line-height: 1.45;
+    }
+    .contact-tl-quick-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-bottom: 0.85rem;
+    }
+    .contact-tl-quick-btn {
+        border: 1px solid rgba(47, 52, 45, 0.14);
+        background: #fff;
+        color: var(--tl-olive);
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.76rem;
+        font-weight: 500;
+        padding: 0.42rem 0.75rem;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+        line-height: 1.3;
+        text-align: left;
+    }
+    .contact-tl-quick-btn:hover {
+        border-color: rgba(201, 166, 110, 0.55);
+        background: rgba(201, 166, 110, 0.1);
+        color: var(--tl-olive-deep);
+    }
+    .contact-tl-quick-btn.is-active {
+        border-color: rgba(201, 166, 110, 0.85);
+        background: linear-gradient(135deg, rgba(215, 178, 122, 0.22), rgba(201, 166, 110, 0.12));
+        color: var(--tl-olive-deep);
+        box-shadow: 0 0 0 1px rgba(201, 166, 110, 0.2);
+    }
+    .contact-tl-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .contact-tl-row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+    .contact-tl-section-title {
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--tl-olive);
+        margin: 1.5rem 0 0.75rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 1px solid rgba(201, 166, 110, 0.25);
+    }
+    .contact-tl-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        margin-top: 0.5rem;
+        font-family: 'Nunito', system-ui, sans-serif;
+        font-size: 0.82rem;
+        font-weight: 300;
+        color: var(--tl-muted);
+        line-height: 1.45;
+    }
+    .contact-tl-check input { margin-top: 0.2rem; accent-color: var(--tl-olive); }
+    .contact-tl-submit {
+        margin-top: 1.35rem;
+        width: 100%;
+        border: none;
+        border-radius: 999px;
+        padding: 0.95rem 1.5rem;
+        font-family: 'Raleway', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #1a1e18;
+        background: linear-gradient(135deg, #d7b27a, #c9a66e);
+        box-shadow: 0 10px 28px rgba(201, 166, 110, 0.35);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .contact-tl-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 36px rgba(201, 166, 110, 0.45);
+    }
+    .contact-tl-trust {
+        text-align: center;
+        margin-top: 1.25rem;
+        font-size: 0.8rem;
+        color: var(--tl-muted);
+        font-family: 'Nunito', sans-serif;
+        font-weight: 300;
+    }
+    .contact-tl-trust i { color: var(--tl-gold); margin-right: 0.25rem; }
+    @media (max-width: 991.98px) {
+        .contact-tl-grid { grid-template-columns: 1fr; }
+        .contact-tl-aside { order: 2; }
+        .contact-tl-card { order: 1; }
+    }
+    @media (max-width: 575.98px) {
+        .contact-tl-row2, .contact-tl-row3 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="contact-tl-page">
+    <div class="contact-tl-wrap">
+        <header class="contact-tl-head">
+            <p class="contact-tl-eyebrow">{% trans "Total Living" %}</p>
+            <h1 class="contact-tl-title">{% trans "Hablemos de tu siguiente paso" %}</h1>
+            <p class="contact-tl-lead">{% trans "Deja tus datos con confianza: el mismo formulario alimenta el buzón de solicitudes de nuestro equipo para darte seguimiento ágil y ordenado." %}</p>
+        </header>
+
+        <div class="contact-tl-grid">
+            <aside class="contact-tl-aside" aria-labelledby="contact-tl-aside-title">
+                <h2 id="contact-tl-aside-title">{% trans "Por qué escribirnos" %}</h2>
+                <ul>
+                    <li><i class="bi bi-check2-circle"></i> {% trans "Respuesta humana; tu mensaje llega al panel interno de Total Living." %}</li>
+                    <li><i class="bi bi-check2-circle"></i> {% trans "Si vienes desde una propiedad, el equipo ya verá el inmueble vinculado a tu solicitud." %}</li>
+                    <li><i class="bi bi-check2-circle"></i> {% trans "Indica tu interés y cómo te gustaría que te contactemos: priorizamos según lo que elijas." %}</li>
+                </ul>
+                <p class="contact-tl-aside-foot">{% trans "Los campos con autocompletado ayudan a rellenar el formulario más rápido desde tu dispositivo." %}</p>
+            </aside>
+
+            <div class="contact-tl-card">
+                <h2>{% trans "Enviar mensaje" %}</h2>
+
+                {% if property %}
+                <div class="contact-tl-alert" role="status">
+                    <h3><i class="bi bi-house-heart"></i> {% trans "Consulta ligada a una propiedad" %}</h3>
+                    <p>
+                        <strong>{{ property.title }}</strong><br>
+                        {% trans "Precio:" %} {{ property.get_price_display }} · {{ property.city }}, {{ property.state }}
+                    </p>
+                    <a href="{% url 'properties:detail' property.pk %}" class="btn btn-sm btn-outline-dark">{% trans "Ver ficha" %}</a>
+                </div>
+                {% endif %}
+
+                <form method="post" class="contact-tl-form" novalidate>
+                    {% csrf_token %}
+                    <input type="text" name="website" tabindex="-1" autocomplete="off"
+                           style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;"
+                           aria-hidden="true">
+
+                    {% if property %}
+                    <input type="hidden" name="property_id" value="{{ property.pk }}">
+                    {% endif %}
+
+                    <p class="contact-tl-section-title">{% trans "Tus datos" %}</p>
+                    <div class="contact-tl-row2">
+                        <div class="contact-tl-field">
+                            <label for="contact-name">{% trans "Nombre completo" %} <span class="req">*</span></label>
+                            <input class="contact-tl-input" type="text" id="contact-name" name="name" required
+                                   autocomplete="name" enterkeyhint="next"
+                                   value="{% if form_data %}{{ form_data.name }}{% endif %}">
+                        </div>
+                        <div class="contact-tl-field">
+                            <label for="contact-email">{% trans "Correo electrónico" %} <span class="req">*</span></label>
+                            <input class="contact-tl-input" type="email" id="contact-email" name="email" required
+                                   autocomplete="email" inputmode="email" enterkeyhint="next"
+                                   value="{% if form_data %}{{ form_data.email }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="contact-tl-field">
+                        <label for="contact-phone">{% trans "Teléfono" %} <span class="text-muted" style="font-weight:300;">({% trans "opcional" %})</span></label>
+                        <input class="contact-tl-input" type="tel" id="contact-phone" name="phone"
+                               autocomplete="tel" inputmode="tel" enterkeyhint="next"
+                               placeholder="{% trans 'Incluye lada si aplica' %}"
+                               value="{% if form_data %}{{ form_data.phone }}{% endif %}">
+                    </div>
+
+                    <p class="contact-tl-section-title">{% trans "Qué necesitas" %} <span class="text-muted" style="font-size:0.65rem;font-weight:300;letter-spacing:0.04em;">({% trans "ayuda a priorizar tu lead" %})</span></p>
+                    <div class="contact-tl-field">
+                        <label for="lead_interest" class="contact-tl-label">{% trans "Motivo principal" %}</label>
+                        <select class="contact-tl-select" id="lead_interest" name="lead_interest" autocomplete="off">
+                            <option value="">{% trans "Selecciona una opción" %}</option>
+                            {% for code, label in lead_interest_items %}
+                            <option value="{{ code }}" {% if form_data %}{% if form_data.lead_interest == code %}selected{% endif %}{% elif prefill_lead_interest == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="contact-tl-row2">
+                        <div class="contact-tl-field">
+                            <label for="contact_channel" class="contact-tl-label">{% trans "¿Cómo te contactamos?" %}</label>
+                            <select class="contact-tl-select" id="contact_channel" name="contact_channel" autocomplete="off">
+                                <option value="">{% trans "Sin preferencia" %}</option>
+                                {% for code, label in contact_channel_items %}
+                                <option value="{{ code }}" {% if form_data and form_data.contact_channel == code %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="contact-tl-field">
+                            <label for="timeline" class="contact-tl-label">{% trans "Plazo aproximado" %}</label>
+                            <select class="contact-tl-select" id="timeline" name="timeline" autocomplete="off">
+                                <option value="">{% trans "Selecciona una opción" %}</option>
+                                {% for code, label in timeline_items %}
+                                <option value="{{ code }}" {% if form_data and form_data.timeline == code %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <p class="contact-tl-section-title">{% trans "Mensaje" %}</p>
+                    <div class="contact-tl-field">
+                        <label for="contact-subject">{% trans "Asunto" %} <span class="text-muted" style="font-weight:300;">({% trans "opcional" %})</span></label>
+                        <input class="contact-tl-input" type="text" id="contact-subject" name="subject"
+                               autocomplete="on"
+                               value="{% if form_data %}{{ form_data.subject }}{% elif prefill_subject %}{{ prefill_subject }}{% elif property %}{% trans 'Consulta sobre' %} {{ property.title }}{% endif %}">
+                    </div>
+                    <div class="contact-tl-field">
+                        <label for="contact-message">{% trans "Mensaje" %} <span class="req">*</span></label>
+                        <p class="contact-tl-quick-hint">{% trans "Mensajes rápidos: elige uno y el texto se colocará solo; puedes editarlo o enviar tal cual." %}</p>
+                        <div class="contact-tl-quick-wrap" role="group" aria-label="{% trans 'Mensajes rápidos' %}">
+                            {% for p in contact_quick_presets %}
+                            <button type="button" class="contact-tl-quick-btn"{% if p.lead %} data-lead="{{ p.lead|escape }}"{% endif %}
+                                    data-msg="{{ p.message|escape }}">{{ p.label }}</button>
+                            {% endfor %}
+                        </div>
+                        <textarea class="contact-tl-textarea" id="contact-message" name="message" required
+                                  autocomplete="off" enterkeyhint="send">{% if form_data %}{{ form_data.message }}{% elif prefill_message %}{{ prefill_message }}{% elif property %}{% trans "Me interesa obtener más información sobre esta propiedad." %}{% endif %}</textarea>
+                    </div>
+
+                    <label class="contact-tl-check">
+                        <input type="checkbox" name="marketing_ok" value="1" {% if form_data and form_data.marketing_ok %}checked{% endif %}>
+                        <span>{% trans "Deseo recibir información sobre propiedades y servicios Total Living (opcional)." %}</span>
+                    </label>
+
+                    <button type="submit" class="contact-tl-submit">
+                        <i class="bi bi-send-fill me-2"></i>{% trans "Enviar" %}
+                    </button>
+                </form>
+
+                <p class="contact-tl-trust">
+                    <i class="bi bi-shield-lock"></i>{% trans "Tus datos se usan solo para contactarte respecto a tu solicitud." %}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var ta = document.getElementById('contact-message');
+    var lead = document.getElementById('lead_interest');
+    if (!ta) return;
+    var quickBtns = document.querySelectorAll('.contact-tl-quick-btn');
+    quickBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var text = this.getAttribute('data-msg');
+            if (text) ta.value = text;
+            var ld = this.getAttribute('data-lead');
+            if (lead && ld) {
+                var opt = lead.querySelector('option[value="' + ld + '"]');
+                if (opt) lead.value = ld;
+            }
+            quickBtns.forEach(function (b) { b.classList.remove('is-active'); });
+            this.classList.add('is-active');
+            ta.focus();
+        });
+    });
+    ta.addEventListener('input', function () {
+        quickBtns.forEach(function (b) { b.classList.remove('is-active'); });
+    });
+})();
+</script>
+{% endblock %}

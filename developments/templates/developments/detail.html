@@ -1,0 +1,1214 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load dev_extras %}
+{% load l10n %}
+
+{% block title %}{{ development.name }} - Total Living{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* Alto del navbar (style.css: ~80px móvil, ~120px desktop) para que hero + nav = 1 pantalla a zoom 100% */
+    .development-hero {
+        --dev-hero-nav: 80px;
+        position: relative;
+        overflow: hidden;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        /* Una sola altura de “resto de pantalla” bajo el navbar (zoom 100%) */
+        height: calc(100vh - var(--dev-hero-nav));
+        height: calc(100svh - var(--dev-hero-nav));
+        min-height: 260px;
+        background: linear-gradient(135deg, #40452E 0%, #2d3120 100%);
+    }
+
+    @media (min-width: 992px) {
+        .development-hero {
+            --dev-hero-nav: 120px;
+        }
+    }
+    
+    .development-hero-image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        opacity: 1;
+        display: block;
+    }
+    
+    .development-hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        box-sizing: border-box;
+        background: linear-gradient(
+            180deg,
+            rgba(0,0,0,0.06) 0%,
+            rgba(0,0,0,0.1) 40%,
+            rgba(0,0,0,0.42) 100%
+        );
+        display: flex;
+        align-items: flex-end;
+        justify-content: stretch;
+        padding: 0 0 1.75rem;
+        z-index: 1;
+    }
+
+    .development-hero-overlay .container {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .development-hero-content {
+        color: #fff;
+        z-index: 2;
+        max-width: 42rem;
+        margin: 0;
+        padding: 0;
+        text-align: left;
+    }
+    
+    .development-hero-title {
+        font-size: clamp(1.45rem, 3.6vw, 2.1rem);
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        margin: 0 0 0.5rem;
+        font-family: 'Montserrat', sans-serif;
+        color: #FFFFFF;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+        line-height: 1.22;
+    }
+    
+    .development-hero-location {
+        font-size: clamp(0.88rem, 2vw, 1.05rem);
+        font-weight: 400;
+        margin: 0 0 0.4rem;
+        font-family: 'Montserrat', sans-serif;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        opacity: 0.97;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        line-height: 1.35;
+    }
+    
+    .development-hero-location .bi {
+        font-size: 1em;
+        flex-shrink: 0;
+        opacity: 0.9;
+    }
+    
+    /* Precio: minimal, fino, sin efectos llamativos */
+    .development-hero-price {
+        font-size: clamp(0.92rem, 2.1vw, 1.15rem);
+        font-weight: 300;
+        font-family: 'Montserrat', sans-serif;
+        letter-spacing: 0.06em;
+        line-height: 1.4;
+        margin: 0;
+        color: rgba(255, 245, 228, 0.96);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+    
+    .development-gallery {
+        margin-top: 40px;
+    }
+    
+    .development-gallery img {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        border-radius: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .development-gallery img:hover {
+        transform: scale(1.05);
+    }
+
+    .amenities-section,
+    .gallery-section {
+        margin: 44px auto 0;
+        max-width: 1320px;
+        padding: 0 22px;
+    }
+
+    .section-title-pro {
+        font-family: 'Montserrat', sans-serif;
+        font-size: clamp(1.5rem, 2.4vw, 2rem);
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        color: #40452E;
+        margin: 0 0 1rem;
+    }
+
+    .section-sub-pro {
+        font-size: 0.95rem;
+        color: #6b7280;
+        margin: 0 0 1.45rem;
+    }
+
+    .amenities-pro-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 14px;
+    }
+
+    .amenity-pro-card {
+        border-radius: 16px;
+        border: 1px solid #ece8df;
+        background: linear-gradient(180deg, #fbfaf8 0%, #f6f3ed 100%);
+        padding: 14px 14px 12px;
+        min-height: 128px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .amenity-pro-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        color: #40452E;
+        background: rgba(64, 69, 46, 0.08);
+    }
+
+    .amenity-pro-name {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #2f3428;
+        line-height: 1.35;
+    }
+
+    .development-gallery-block-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .gallery-block-item {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        display: block;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    }
+
+    .gallery-block-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.35s ease;
+    }
+
+    .gallery-block-item:hover img {
+        transform: scale(1.04);
+    }
+
+    .development-map-section {
+        margin: 42px auto 0;
+        max-width: 1320px;
+        padding: 0 22px;
+    }
+
+    .development-map-wrap {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        min-height: 450px;
+        background: #0f1723;
+        box-shadow: 0 16px 36px rgba(0,0,0,0.2);
+    }
+
+    #development-map {
+        width: 100%;
+        height: 450px;
+    }
+    #development-map.leaflet-container img {
+        max-width: none !important;
+    }
+
+    /* —— Modelos (tipologías): imagen un poco más ancha; foto más alta que el texto —— */
+    .models-section-pro {
+        margin: 48px 0 0;
+        max-width: none;
+        padding: 40px 22px 48px;
+        background: #eceae4;
+        border-radius: 0;
+    }
+
+    .models-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin-bottom: 10px;
+        padding-top: 0;
+        max-width: 1120px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .models-line {
+        flex: 1;
+        max-width: 180px;
+        height: 1px;
+        background: #c8c4bc;
+    }
+
+    .models-section-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: clamp(1.6rem, 2.5vw, 2rem);
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #2f3428;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .models-accent {
+        width: 56px;
+        height: 4px;
+        border-radius: 999px;
+        background: #12b9c3;
+        margin: 0 auto 36px;
+    }
+
+    .models-cards-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        padding-bottom: 8px;
+        max-width: 1180px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .model-card-pro {
+        display: grid;
+        grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr);
+        align-items: stretch;
+        min-height: 0;
+        background: #fff;
+        border-radius: 1.35rem;
+        overflow: hidden;
+        box-shadow: 0 10px 36px rgba(31, 36, 43, 0.09);
+        text-decoration: none;
+        color: inherit;
+        transition: box-shadow 0.25s ease, transform 0.22s ease;
+        max-width: 100%;
+    }
+
+    a.model-card-pro:hover {
+        box-shadow: 0 16px 44px rgba(31, 36, 43, 0.12);
+        transform: translateY(-2px);
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .model-card-pro-media {
+        position: relative;
+        min-height: 252px;
+        max-height: 360px;
+        background: #e5e3de;
+        overflow: hidden;
+    }
+
+    .model-card-pro-media img {
+        width: 100%;
+        height: 100%;
+        min-height: 252px;
+        max-height: 360px;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+    }
+
+    .model-card-pro-media-placeholder {
+        width: 100%;
+        min-height: 252px;
+        max-height: 360px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(145deg, #4a5040 0%, #2d3120 100%);
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 3rem;
+    }
+
+    .model-card-camera-badge {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.88);
+        color: #3d3d3d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        pointer-events: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .model-card-pro-body {
+        padding: clamp(1.45rem, 3.2vw, 2.2rem) clamp(1.2rem, 2.8vw, 2.25rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1.25rem;
+        min-width: 0;
+    }
+
+    .model-card-pro-name {
+        font-family: 'Montserrat', sans-serif;
+        font-size: clamp(1.35rem, 2.1vw, 1.75rem);
+        font-weight: 600;
+        color: #161814;
+        margin: 0;
+        line-height: 1.18;
+        letter-spacing: -0.035em;
+    }
+
+    /* Specs: barra tipo dashboard, etiquetas micro + valor destacado */
+    .model-spec-row {
+        display: flex;
+        align-items: stretch;
+        border-radius: 16px;
+        border: 1px solid rgba(42, 45, 38, 0.08);
+        background: linear-gradient(165deg, #fafaf8 0%, #f3f2ee 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        overflow: hidden;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .model-spec-stat {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.5rem;
+        padding: 1rem 0.5rem;
+        position: relative;
+    }
+
+    .model-spec-stat-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.2rem;
+        min-width: 0;
+    }
+
+    .model-spec-stat + .model-spec-stat::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 18%;
+        bottom: 18%;
+        width: 1px;
+        background: linear-gradient(
+            180deg,
+            transparent,
+            rgba(42, 45, 38, 0.12) 20%,
+            rgba(42, 45, 38, 0.12) 80%,
+            transparent
+        );
+    }
+
+    .model-spec-stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(58, 58, 54, 0.08);
+        color: #5c5c56;
+        font-size: 1.05rem;
+        line-height: 1;
+    }
+
+    /* Montserrat en el padre hereda al <i> y puede anular el glifo de Bootstrap Icons */
+    .model-spec-stat-icon i.bi {
+        font-family: 'bootstrap-icons' !important;
+        font-style: normal;
+        font-weight: normal !important;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        vertical-align: -0.05em;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .model-spec-stat-label {
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6f7269;
+        line-height: 1.2;
+        max-width: 100%;
+    }
+
+    .model-spec-stat-value {
+        font-size: clamp(1rem, 2.1vw, 1.2rem);
+        font-weight: 700;
+        color: #1c1e19;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
+    }
+
+    .model-card-pro-price-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .model-card-pro-price-eyebrow {
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #7a7d74;
+        margin: 0;
+    }
+
+    .model-card-pro-price {
+        margin: 0;
+        line-height: 1.25;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.35rem 0.5rem;
+    }
+
+    .model-card-pro-price .model-card-pro-price-amount {
+        font-size: clamp(1.2rem, 2.4vw, 1.45rem);
+        font-weight: 700;
+        color: #121411;
+        letter-spacing: -0.025em;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
+    }
+
+    .model-card-pro-price-suffix {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #8a8d84;
+    }
+
+    /* CTA: oliva corporativa (#40452E) + brillo dorado muy sutil (no saturar) */
+    .model-card-pro-cta {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.9rem 1.25rem;
+        border-radius: 14px;
+        background: linear-gradient(175deg, #4a5036 0%, #40452E 42%, #353828 100%);
+        color: #faf9f6 !important;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        border: 1px solid rgba(215, 178, 122, 0.22);
+        text-decoration: none;
+        box-shadow:
+            inset 0 1px 0 rgba(215, 178, 122, 0.32),
+            0 4px 14px rgba(32, 34, 24, 0.18);
+        transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        margin-top: 0.25rem;
+        box-sizing: border-box;
+    }
+
+    a.model-card-pro:hover .model-card-pro-cta {
+        filter: brightness(1.06);
+        color: #faf9f6 !important;
+        box-shadow:
+            inset 0 1px 0 rgba(215, 178, 122, 0.42),
+            0 6px 18px rgba(32, 34, 24, 0.22);
+    }
+
+    @media (min-width: 992px) {
+        .model-card-pro-media {
+            max-height: none;
+            min-height: 320px;
+            height: 100%;
+            align-self: stretch;
+        }
+        .model-card-pro-media img,
+        .model-card-pro-media-placeholder {
+            max-height: none;
+            min-height: 320px;
+            height: 100%;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .model-card-pro {
+            grid-template-columns: 1fr;
+        }
+        .model-card-pro-media {
+            max-height: 268px;
+        }
+        .model-card-pro-media img {
+            max-height: 268px;
+            min-height: 216px;
+        }
+        .model-spec-row {
+            flex-wrap: wrap;
+        }
+        .model-spec-stat {
+            flex: 1 1 100%;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            text-align: left;
+        }
+        .model-spec-stat + .model-spec-stat::before {
+            top: 0;
+            bottom: auto;
+            left: 1rem;
+            right: 1rem;
+            width: auto;
+            height: 1px;
+            background: rgba(42, 45, 38, 0.1);
+        }
+        .model-spec-stat-icon {
+            flex-shrink: 0;
+        }
+        .model-spec-stat-text {
+            align-items: flex-start;
+            text-align: left;
+        }
+    }
+
+    .development-cta-below-models {
+        max-width: 1320px;
+        margin: 0 auto 48px;
+        padding: 0 22px;
+        text-align: center;
+    }
+
+    .map-address-card {
+        position: absolute;
+        left: 22px;
+        top: 22px;
+        width: min(360px, calc(100% - 44px));
+        z-index: 500;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.26);
+        padding: 16px 16px 14px;
+    }
+
+    .map-address-title {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #8c8c8c;
+        margin-bottom: 6px;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .map-address-text {
+        margin: 0 0 12px;
+        color: #2f2f2f;
+        line-height: 1.45;
+        font-size: 0.95rem;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .map-route-btn {
+        border: none;
+        border-radius: 999px;
+        background: #12b9c3;
+        color: #fff;
+        padding: 10px 14px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        font-family: 'Montserrat', sans-serif;
+        cursor: pointer;
+        transition: filter 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .map-route-btn:hover {
+        filter: brightness(1.05);
+    }
+    
+    .development-info-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .development-info-title {
+        font-size: 1.8rem;
+        font-weight: 400;
+        letter-spacing: 2px;
+        color: #40452E;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #D6B585;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-top: 30px;
+    }
+    
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        background: #f8f8f8;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .info-item:hover {
+        background: #f0f0f0;
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 300;
+    }
+    
+    .info-value {
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #40452E;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .info-value-highlight {
+        color: #D6B585;
+        font-weight: 500;
+    }
+
+    .amenities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .amenity-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid #ece7dc;
+        border-radius: 12px;
+        background: #fcfbf8;
+    }
+
+    .amenity-pill .icon {
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+
+    .amenity-pill .txt {
+        font-size: 0.9rem;
+        color: #454545;
+        font-weight: 500;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .bento-spec-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .bento-spec-card {
+        border-radius: 14px;
+        padding: 14px 14px 12px;
+        background: #f9f7f2;
+        border: 1px solid #ebe4d6;
+    }
+
+    .bento-spec-label {
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.11em;
+        color: #7f7f7f;
+        margin-bottom: 6px;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .bento-spec-value {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #40452E;
+        line-height: 1.2;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .bento-spec-value.gold {
+        color: #b89560;
+    }
+    
+    .description-text {
+        font-size: 1.1rem;
+        line-height: 1.9;
+        color: #555;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 300;
+    }
+    
+    .badge-development {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .badge-primary {
+        background: linear-gradient(135deg, #40452E 0%, #38382E 100%);
+        color: white;
+    }
+    
+    .badge-gold {
+        background: linear-gradient(135deg, #D6B585 0%, #C4A572 100%);
+        color: #38382E;
+    }
+    
+    .related-developments {
+        margin-top: 80px;
+        padding: 60px 0;
+        background: linear-gradient(to bottom, #f8f8f8 0%, #ffffff 100%);
+    }
+    
+    .related-title {
+        font-size: 2.5rem;
+        font-weight: 300;
+        letter-spacing: 4px;
+        color: #40452E;
+        text-align: center;
+        margin-bottom: 50px;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .related-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    
+    .related-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .related-card-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+    
+    .related-card-content {
+        padding: 25px;
+    }
+    
+    .related-card-name {
+        font-size: 1.3rem;
+        font-weight: 400;
+        color: #40452E;
+        margin-bottom: 10px;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .related-card-location {
+        color: #888;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .related-card-price {
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #D6B585;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .contact-button {
+        background: linear-gradient(135deg, #40452E 0%, #38382E 100%);
+        color: white;
+        padding: 18px 50px;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        font-family: 'Montserrat', sans-serif;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .contact-button:hover {
+        background: linear-gradient(135deg, #38382E 0%, #2d2d25 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        color: white;
+        text-decoration: none;
+    }
+    
+    @media (max-width: 992px) {
+        .development-gallery-block-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .development-hero-overlay {
+            padding-bottom: 1.25rem;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        .bento-spec-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .development-info-card {
+            padding: 25px;
+        }
+        .amenities-section,
+        .gallery-section,
+        .development-map-section {
+            margin-top: 30px;
+            padding: 0 14px;
+        }
+        .development-gallery-block-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .map-address-card {
+            left: 12px;
+            top: 12px;
+            width: calc(100% - 24px);
+        }
+        .models-section-pro {
+            padding: 28px 14px 36px;
+        }
+        .models-line {
+            max-width: 48px;
+        }
+        .model-card-pro-body {
+            padding: 22px 18px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="development-hero">
+    {% with main_image=development.get_main_image %}
+    {% if main_image and main_image.resolved_image_url %}
+    <img src="{{ main_image.resolved_image_url }}" alt="{{ development.name }}" class="development-hero-image">
+    {% endif %}
+    {% endwith %}
+    
+    <div class="development-hero-overlay">
+        <div class="container">
+            <div class="development-hero-content">
+                <h1 class="development-hero-title">{{ development.name }}</h1>
+                <div class="development-hero-location">
+                    <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                    <span>{{ development.location }}, {{ development.city }}, {{ development.state }}</span>
+                </div>
+                <div class="development-hero-price">
+                    Desde ${{ development.price_from|price_intcomma }} MXN
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% with am=development.selected_amenities %}
+{% if am %}
+<section class="amenities-section">
+    <h2 class="section-title-pro">{{ page_config.detail_amenities_title }}</h2>
+    <p class="section-sub-pro">{{ page_config.detail_amenities_subtitle }}</p>
+    <div class="amenities-pro-grid">
+        {% for amenity in am %}
+        <article class="amenity-pro-card">
+            <span class="amenity-pro-icon"><i class="bi {{ amenity.icon_class }}"></i></span>
+            <span class="amenity-pro-name">{{ amenity.display_name }}</span>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endwith %}
+
+{% if gallery_images %}
+<section class="gallery-section">
+    <h2 class="section-title-pro">{{ page_config.detail_gallery_title }}</h2>
+    <p class="section-sub-pro">{{ page_config.detail_gallery_subtitle }}</p>
+    <div class="development-gallery-block-grid">
+        {% for image in gallery_images %}
+        {% if image.resolved_image_url %}
+        <a href="{{ image.resolved_image_url }}" class="gallery-block-item" data-lightbox="development-gallery" data-title="{{ development.name }}">
+            <img src="{{ image.resolved_image_url }}" alt="{{ development.name }} {{ forloop.counter }}" loading="lazy">
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if plan_images %}
+<section class="gallery-section" aria-label="Planos y amenidades">
+    <h2 class="section-title-pro">Planos y amenidades</h2>
+    <p class="section-sub-pro">Imágenes de plantas, amenidades y material de apoyo.</p>
+    <div class="development-gallery-block-grid">
+        {% for image in plan_images %}
+        {% if image.resolved_image_url %}
+        <a href="{{ image.resolved_image_url }}" class="gallery-block-item" data-lightbox="development-plans" data-title="{{ development.name }} · planos">
+            <img src="{{ image.resolved_image_url }}" alt="{{ development.name }} plano {{ forloop.counter }}" loading="lazy">
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="development-map-section">
+    <div class="development-map-wrap">
+        <div id="development-map"></div>
+        <div class="map-address-card">
+            <div class="map-address-title">Dirección</div>
+            <p class="map-address-text">{{ development.location }}, {{ development.city }}, {{ development.state }}</p>
+            <a class="map-route-btn" id="openRouteBtn"
+               href="{% if development.google_maps_url %}{{ development.google_maps_url }}{% else %}#{% endif %}"
+               target="_blank" rel="noopener"
+               data-route-url="{% if development.google_maps_url %}{{ development.google_maps_url|escapejs }}{% endif %}">
+                <i class="bi bi-sign-turn-right"></i> ¿Cómo llegar?
+            </a>
+        </div>
+    </div>
+</section>
+
+{% if unit_models %}
+<section class="models-section-pro" aria-labelledby="models-heading">
+    <header class="models-section-header">
+        <span class="models-line" aria-hidden="true"></span>
+        <h2 id="models-heading" class="models-section-title">{{ page_config.detail_models_title }}</h2>
+        <span class="models-line" aria-hidden="true"></span>
+    </header>
+    <div class="models-accent" aria-hidden="true"></div>
+    <div class="models-cards-stack">
+        {% for um in unit_models %}
+        <a href="{% url 'developments:unit_model_detail' development.slug um.slug %}" class="model-card-pro">
+            <div class="model-card-pro-media">
+                {% if um.card_image %}
+                <img src="{{ um.card_image.url }}" alt="{{ um.name }}" loading="lazy">
+                {% else %}
+                <div class="model-card-pro-media-placeholder" aria-hidden="true">
+                    <i class="bi bi-image"></i>
+                </div>
+                {% endif %}
+                <span class="model-card-camera-badge" aria-hidden="true"><i class="bi bi-camera"></i></span>
+            </div>
+            <div class="model-card-pro-body">
+                <h3 class="model-card-pro-name">{{ um.name }}</h3>
+                <div class="model-spec-row" role="list">
+                    <div class="model-spec-stat" role="listitem">
+                        <span class="model-spec-stat-icon" aria-hidden="true"><i class="bi bi-house-door"></i></span>
+                        <div class="model-spec-stat-text">
+                            <span class="model-spec-stat-label">{% if um.bedrooms == 1 %}Habitación{% else %}Habitaciones{% endif %}</span>
+                            <span class="model-spec-stat-value">{{ um.bedrooms }}</span>
+                        </div>
+                    </div>
+                    <div class="model-spec-stat" role="listitem">
+                        <span class="model-spec-stat-icon" aria-hidden="true"><i class="bi bi-droplet"></i></span>
+                        <div class="model-spec-stat-text">
+                            <span class="model-spec-stat-label">{% if um.bathrooms == 1 %}Baño{% else %}Baños{% endif %}</span>
+                            <span class="model-spec-stat-value">{{ um.bathrooms_display }}</span>
+                        </div>
+                    </div>
+                    <div class="model-spec-stat" role="listitem">
+                        <span class="model-spec-stat-icon" aria-hidden="true"><i class="bi bi-rulers"></i></span>
+                        <div class="model-spec-stat-text">
+                            <span class="model-spec-stat-label">Construcción</span>
+                            <span class="model-spec-stat-value">{% if um.construction_m2 is not None %}{{ um.construction_m2_display }} m²{% else %}—{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="model-card-pro-price-wrap">
+                    <p class="model-card-pro-price-eyebrow">Precio desde</p>
+                    <p class="model-card-pro-price">
+                        <span class="model-card-pro-price-amount">${{ um.display_price_from|price_intcomma }}</span>
+                        <span class="model-card-pro-price-suffix">MXN</span>
+                    </p>
+                </div>
+                <span class="model-card-pro-cta" role="presentation"><span aria-hidden="true">+</span> Ver más información</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<div class="development-cta-below-models">
+    <a href="{% url 'contact:contact' %}" class="contact-button">
+        <i class="bi bi-envelope"></i> Solicitar información
+    </a>
+</div>
+
+<!-- Desarrollos Relacionados -->
+{% if related_developments %}
+<section class="related-developments">
+    <div class="container">
+        <h2 class="related-title">Desarrollos Relacionados</h2>
+        <div class="row g-4">
+            {% for related in related_developments %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{% url 'developments:detail' related.slug %}" class="related-card">
+                    {% with main_image=related.get_main_image %}
+                    {% if main_image and main_image.resolved_image_url %}
+                    <img src="{{ main_image.resolved_image_url }}" alt="{{ related.name }}" class="related-card-image">
+                    {% else %}
+                    <div class="related-card-image" style="background: linear-gradient(135deg, #40452E 0%, #2d3120 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-building" style="font-size: 4rem; color: rgba(255,255,255,0.3);"></i>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="related-card-content">
+                        <h3 class="related-card-name">{{ related.name }}</h3>
+                        <p class="related-card-location">
+                            <i class="bi bi-geo-alt-fill"></i> {{ related.city }}, {{ related.state }}
+                        </p>
+                        <div class="related-card-price">
+                            Desde ${{ related.price_from|price_intcomma }} MXN
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof L === 'undefined') {
+            return;
+        }
+        const mapEl = document.getElementById('development-map');
+        if (!mapEl) {
+            return;
+        }
+
+        const latRaw = '{% if development.latitude %}{{ development.latitude|unlocalize }}{% else %}20.5888{% endif %}';
+        const lngRaw = '{% if development.longitude %}{{ development.longitude|unlocalize }}{% else %}-100.3899{% endif %}';
+        const lat = Number.parseFloat(latRaw);
+        const lng = Number.parseFloat(lngRaw);
+        const safeLat = Number.isFinite(lat) ? lat : 20.5888;
+        const safeLng = Number.isFinite(lng) ? lng : -100.3899;
+
+        let map;
+        try {
+            map = L.map('development-map', { zoomControl: true }).setView([safeLat, safeLng], 14);
+        } catch (err) {
+            return;
+        }
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(map);
+        setTimeout(function() { map.invalidateSize(true); }, 120);
+        
+        const marker = L.marker([safeLat, safeLng], { draggable: false }).addTo(map);
+        
+        marker.bindPopup('{{ development.location|escapejs }}').openPopup();
+
+        const routeBtn = document.getElementById('openRouteBtn');
+        if (routeBtn) {
+            routeBtn.addEventListener('click', function(e) {
+                const directUrl = (routeBtn.dataset.routeUrl || '').trim();
+                const url = directUrl || `https://www.google.com/maps/search/?api=1&query=${safeLat},${safeLng}`;
+                if (!directUrl) {
+                    e.preventDefault();
+                    window.open(url, '_blank', 'noopener');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

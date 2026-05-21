@@ -1,0 +1,641 @@
+/**
+ * Gestión de propiedades (panel) — misma línea visual que buzón Total Living.
+ * Alcance: .panel-properties-page
+ */
+.panel-properties-page {
+    --tl-olive: #3d4436;
+    --tl-olive-mid: #4a5242;
+    --tl-olive-deep: #252b21;
+    --tl-gold: #c9a66e;
+    --tl-gold-bright: #d7b27a;
+    --tl-cream: #f5f3ee;
+    --tl-paper: #faf9f6;
+    --tl-white: #ffffff;
+    --tl-ink: #1a1e18;
+    --tl-muted: #5c6554;
+    --tl-line: rgba(61, 68, 54, 0.12);
+    --tl-shadow: 0 18px 48px rgba(10, 12, 8, 0.08);
+    --tl-radius: 20px;
+    --tl-radius-sm: 14px;
+    font-family: 'Montserrat', system-ui, sans-serif;
+}
+
+.panel-properties-page .properties-container,
+.panel-properties-page .edit-container,
+.panel-properties-page .delete-container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 1rem 2.5rem;
+}
+
+.panel-properties-page .edit-container,
+.panel-properties-page .delete-container {
+    max-width: 1000px;
+}
+
+/* —— Cabecera (lista y edición) —— */
+.panel-properties-page .page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--tl-line);
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--tl-line);
+    padding: 0 0 1.25rem;
+}
+
+.panel-properties-page .page-title {
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+    color: var(--tl-olive-deep);
+    margin: 0;
+    line-height: 1.15;
+}
+
+.panel-properties-page .page-header::before {
+    content: 'Total Living';
+    display: block;
+    width: 100%;
+    flex-basis: 100%;
+    order: -1;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--tl-gold);
+    margin-bottom: 0.35rem;
+}
+
+.panel-properties-page .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1.35rem;
+    border-radius: 999px;
+    border: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--tl-gold-bright), var(--tl-gold));
+    color: var(--tl-olive-deep);
+    box-shadow: 0 10px 28px rgba(201, 166, 110, 0.32);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.panel-properties-page .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px rgba(201, 166, 110, 0.42);
+    color: var(--tl-olive-deep);
+}
+
+.panel-properties-page .page-header .btn-secondary {
+    border-radius: 999px;
+    padding: 0.5rem 1.15rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    border: 1px solid rgba(201, 166, 110, 0.45);
+    background: rgba(201, 166, 110, 0.1);
+    color: var(--tl-olive-deep);
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.panel-properties-page .page-header .btn-secondary:hover {
+    background: rgba(201, 166, 110, 0.2);
+    border-color: var(--tl-gold);
+    color: var(--tl-olive-deep);
+}
+
+/* —— Filtros lista —— */
+.panel-properties-page .filters-section {
+    background: var(--tl-white);
+    border: 1px solid var(--tl-line);
+    border-radius: var(--tl-radius);
+    padding: 1.1rem 1.15rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--tl-shadow);
+}
+
+.panel-properties-page .filters-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 2.2fr) repeat(3, minmax(140px, 1fr)) auto auto;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.panel-properties-page .filters-form input,
+.panel-properties-page .filters-form select {
+    box-sizing: border-box;
+    min-height: 48px;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--tl-line);
+    padding: 11px 14px;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    font-family: inherit;
+    color: var(--tl-ink);
+    background: var(--tl-paper);
+    min-width: 0;
+    flex: unset;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.panel-properties-page .filters-form select {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%233d4436' d='M1 1.5L6 6l5-4.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-color: var(--tl-paper);
+    padding-right: 2.25rem;
+}
+
+.panel-properties-page .filters-form input:focus,
+.panel-properties-page .filters-form select:focus {
+    outline: none;
+    border-color: rgba(201, 166, 110, 0.65);
+    box-shadow: 0 0 0 3px rgba(201, 166, 110, 0.18);
+    background: var(--tl-white);
+}
+
+.panel-properties-page .filters-form .btn-filter {
+    min-height: 48px;
+    height: auto;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    border: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--tl-gold-bright), var(--tl-gold));
+    color: var(--tl-olive-deep);
+    cursor: pointer;
+    box-shadow: 0 8px 22px rgba(201, 166, 110, 0.28);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel-properties-page .filters-form .btn-clear {
+    min-height: 48px;
+    height: auto;
+    padding: 0 1rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    border: 1px solid var(--tl-line);
+    background: var(--tl-white);
+    color: var(--tl-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel-properties-page .filters-form .btn-clear:hover {
+    border-color: var(--tl-olive);
+    color: var(--tl-olive-deep);
+}
+
+/* —— Tabla propiedades —— */
+.panel-properties-page .properties-table {
+    background: var(--tl-white);
+    border: 1px solid var(--tl-line);
+    border-radius: var(--tl-radius);
+    overflow: hidden;
+    box-shadow: var(--tl-shadow);
+    padding: 0;
+}
+
+.panel-properties-page .properties-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.panel-properties-page .properties-table thead {
+    background: linear-gradient(180deg, var(--tl-olive-mid) 0%, var(--tl-olive-deep) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.panel-properties-page .properties-table th {
+    padding: 14px 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(252, 250, 246, 0.95);
+    border-bottom: none;
+}
+
+.panel-properties-page .properties-table td {
+    padding: 14px 12px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--tl-line);
+    color: var(--tl-ink);
+}
+
+.panel-properties-page .properties-table tbody tr:hover {
+    background: rgba(201, 166, 110, 0.06);
+}
+
+.panel-properties-page .properties-table tr:last-child td {
+    border-bottom: none;
+}
+
+.panel-properties-page .properties-table td strong {
+    color: var(--tl-olive-deep);
+}
+
+/* Badges estado */
+.panel-properties-page .badge {
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.panel-properties-page .badge-disponible {
+    background: rgba(45, 90, 60, 0.12);
+    color: #1e4d2e;
+    border: 1px solid rgba(45, 90, 60, 0.22);
+}
+
+.panel-properties-page .badge-vendida,
+.panel-properties-page .badge-rentada {
+    background: rgba(100, 108, 120, 0.1);
+    color: #4a5568;
+    border: 1px solid rgba(100, 108, 120, 0.2);
+}
+
+.panel-properties-page .badge-reservada {
+    background: rgba(201, 166, 110, 0.2);
+    color: #6b5420;
+    border: 1px solid rgba(201, 166, 110, 0.35);
+}
+
+/* Acciones fila */
+.panel-properties-page .actions-cell {
+    white-space: normal;
+}
+
+.panel-properties-page .actions-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.panel-properties-page .btn-action {
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid transparent;
+}
+
+.panel-properties-page .btn-edit {
+    background: transparent;
+    color: var(--tl-olive-deep);
+    border-color: var(--tl-olive);
+}
+
+.panel-properties-page .btn-edit:hover {
+    background: var(--tl-olive-deep);
+    color: var(--tl-gold-bright);
+    border-color: var(--tl-olive-deep);
+}
+
+.panel-properties-page .btn-images {
+    background: rgba(61, 68, 54, 0.12);
+    color: var(--tl-olive-deep);
+    border-color: rgba(61, 68, 54, 0.2);
+}
+
+.panel-properties-page .btn-images:hover {
+    background: rgba(61, 68, 54, 0.2);
+    color: var(--tl-olive-deep);
+}
+
+.panel-properties-page .btn-view {
+    background: rgba(201, 166, 110, 0.15) !important;
+    color: var(--tl-olive-deep) !important;
+    border-color: rgba(201, 166, 110, 0.4) !important;
+}
+
+.panel-properties-page .btn-view:hover {
+    background: rgba(201, 166, 110, 0.28) !important;
+    border-color: var(--tl-gold) !important;
+}
+
+.panel-properties-page .btn-delete {
+    background: transparent;
+    color: #8b2635;
+    border-color: rgba(155, 28, 46, 0.45);
+}
+
+.panel-properties-page .btn-delete:hover {
+    background: rgba(155, 28, 46, 0.1);
+    color: #6b1522;
+}
+
+/* Paginación */
+.panel-properties-page .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding: 1rem;
+    background: var(--tl-white);
+    border: 1px solid var(--tl-line);
+    border-radius: var(--tl-radius-sm);
+    box-shadow: var(--tl-shadow);
+}
+
+.panel-properties-page .pagination a {
+    color: var(--tl-olive-mid);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid var(--tl-line);
+}
+
+.panel-properties-page .pagination a:hover {
+    background: rgba(201, 166, 110, 0.12);
+    border-color: var(--tl-gold);
+}
+
+.panel-properties-page .pagination .current-page {
+    font-size: 0.82rem;
+    color: var(--tl-muted);
+}
+
+.panel-properties-page .properties-table tbody td[colspan] {
+    text-align: center;
+    padding: 2rem 1rem !important;
+    color: var(--tl-muted);
+}
+
+/* —— Edición de propiedad —— */
+.panel-properties-page .form-section {
+    background: var(--tl-white);
+    border: 1px solid var(--tl-line);
+    border-radius: var(--tl-radius);
+    padding: 1.5rem 1.4rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--tl-shadow);
+}
+
+.panel-properties-page .section-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tl-olive-deep);
+    margin: 0 0 1.1rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 2px solid rgba(201, 166, 110, 0.35);
+}
+
+.panel-properties-page .form-group label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tl-muted);
+}
+
+.panel-properties-page .form-group input,
+.panel-properties-page .form-group select,
+.panel-properties-page .form-group textarea {
+    border-radius: 12px;
+    border: 1px solid var(--tl-line);
+    background: var(--tl-paper);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.panel-properties-page .form-group input:focus,
+.panel-properties-page .form-group select:focus,
+.panel-properties-page .form-group textarea:focus {
+    outline: none;
+    border-color: rgba(201, 166, 110, 0.65);
+    box-shadow: 0 0 0 3px rgba(201, 166, 110, 0.15);
+    background: var(--tl-white);
+}
+
+.panel-properties-page .edit-form .btn-primary,
+.panel-properties-page .edit-form .btn-filter,
+.panel-properties-page .edit-form button[type="submit"].btn-primary {
+    border-radius: 999px;
+    padding: 0.65rem 1.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: none;
+    background: linear-gradient(135deg, var(--tl-gold-bright), var(--tl-gold));
+    color: var(--tl-olive-deep);
+    box-shadow: 0 8px 22px rgba(201, 166, 110, 0.28);
+    cursor: pointer;
+}
+
+.panel-properties-page .edit-form .btn-secondary {
+    border-radius: 999px;
+    border: 1px solid var(--tl-line);
+    padding: 0.55rem 1.1rem;
+    font-weight: 600;
+    color: var(--tl-olive-deep);
+}
+
+.panel-properties-page .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--tl-line);
+}
+
+.panel-properties-page .delete-form .form-actions {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+    justify-content: flex-end;
+}
+
+.panel-properties-page #property-pick-map-edit {
+    border-radius: var(--tl-radius-sm);
+    border: 1px solid var(--tl-line);
+}
+
+.panel-properties-page .map-picker-actions-edit button {
+    border-radius: 999px;
+    background: var(--tl-olive-deep);
+    color: var(--tl-gold-bright);
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.panel-properties-page .map-picker-actions-edit button:hover {
+    filter: brightness(1.08);
+}
+
+/* —— Eliminar propiedad —— */
+.panel-properties-page .delete-box {
+    background: var(--tl-white);
+    border: 1px solid var(--tl-line);
+    border-radius: var(--tl-radius);
+    padding: 2rem 1.75rem;
+    box-shadow: var(--tl-shadow);
+    max-width: 480px;
+    margin: 2rem auto;
+}
+
+.panel-properties-page .delete-box h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tl-olive-deep);
+    letter-spacing: 0.02em;
+}
+
+.panel-properties-page .delete-warning {
+    color: #8b2635;
+    font-weight: 500;
+}
+
+.panel-properties-page .property-info {
+    background: var(--tl-cream);
+    border-radius: var(--tl-radius-sm);
+    border: 1px solid var(--tl-line);
+    padding: 1rem 1.1rem;
+    margin: 1rem 0 1.25rem;
+}
+
+.panel-properties-page .delete-form .btn-secondary {
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--tl-line);
+    font-weight: 600;
+    color: var(--tl-olive-deep);
+    text-decoration: none;
+}
+
+.panel-properties-page .delete-form .btn-danger {
+    border-radius: 999px;
+    padding: 0.55rem 1.2rem;
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #9b1c2e, #6b1522);
+    color: #fff;
+    cursor: pointer;
+}
+
+@media (max-width: 1200px) {
+    .panel-properties-page .filters-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .panel-properties-page .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .panel-properties-page .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .panel-properties-page .filters-form {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-properties-page .properties-table table,
+    .panel-properties-page .properties-table thead,
+    .panel-properties-page .properties-table tbody,
+    .panel-properties-page .properties-table tr,
+    .panel-properties-page .properties-table th,
+    .panel-properties-page .properties-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .panel-properties-page .properties-table thead {
+        display: none;
+    }
+
+    .panel-properties-page .properties-table tr {
+        background: var(--tl-white);
+        margin: 0 0 12px;
+        border: 1px solid var(--tl-line);
+        border-radius: var(--tl-radius-sm);
+        padding: 10px 12px;
+    }
+
+    .panel-properties-page .properties-table td {
+        border: none;
+        padding: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.82rem;
+    }
+
+    .panel-properties-page .properties-table td::before {
+        content: attr(data-label);
+        color: var(--tl-muted);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        flex-shrink: 0;
+    }
+
+    .panel-properties-page .properties-table td.actions-cell {
+        display: block;
+        padding-top: 10px;
+    }
+
+    .panel-properties-page .properties-table td.actions-cell::before {
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .panel-properties-page .actions-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .panel-properties-page .btn-action {
+        justify-content: center;
+        width: 100%;
+    }
+}

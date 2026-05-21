@@ -1,0 +1,69 @@
+{% extends 'developments/panel/shell.html' %}
+
+{% block title %}Modelos · Desarrollos{% endblock %}
+
+{% block dev_panel_body %}
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">C. Modelos / prototipos</h1>
+        <a href="{% url 'developments:panel_unit_model_add' %}" class="btn-primary" style="font-size:1rem;padding:0.75rem 1.4rem;">
+            <i class="bi bi-plus-lg"></i> Agregar nuevo modelo
+        </a>
+    </div>
+
+    <form method="get" class="form-section" style="margin-bottom:1.25rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
+        <div class="form-group" style="margin:0;min-width:220px;">
+            <label for="devf">Desarrollo</label>
+            <select id="devf" name="development_id" class="form-control">
+                <option value="">Todos</option>
+                {% for d in developments %}
+                <option value="{{ d.pk }}" {% if filter_development_id == d.pk %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-secondary">Filtrar</button>
+        {% if filter_development_id %}
+        <a href="{% url 'developments:panel_unit_models' %}" class="btn-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+
+    <div class="properties-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Modelo</th>
+                    <th>Desarrollo</th>
+                    <th>Rec.</th>
+                    <th>Baños</th>
+                    <th>m²</th>
+                    <th>Activo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for um in unit_models %}
+                <tr>
+                    <td><strong>{{ um.name }}</strong><div class="text-muted" style="font-size:0.8rem;">/{{ um.slug }}/</div></td>
+                    <td>{{ um.development.name }}</td>
+                    <td>{{ um.bedrooms }}</td>
+                    <td>{{ um.bathrooms_display }}</td>
+                    <td>{% if um.construction_m2 is not None %}{{ um.construction_m2_display }} m²{% else %}—{% endif %}</td>
+                    <td>{% if um.is_active %}<span class="badge badge-disponible">Sí</span>{% else %}<span class="badge badge-vendida">No</span>{% endif %}</td>
+                    <td class="actions-cell">
+                        {% if um.development.slug and um.slug %}
+                        <a href="{% url 'developments:unit_model_detail' um.development.slug um.slug %}" class="btn-action btn-edit" target="_blank" rel="noopener">Ver</a>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                        <a href="{% url 'developments:panel_unit_model_edit' um.pk %}" class="btn-action btn-edit">Editar</a>
+                        <a href="{% url 'developments:panel_unit_model_images' um.pk %}" class="btn-action btn-images">Galería</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center;">No hay modelos. Crea uno y asígnalo a un desarrollo.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

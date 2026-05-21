@@ -1,0 +1,35 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar ficha — Organigrama{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-properties-tl.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="panel-properties-page">
+<div class="delete-container">
+    <div class="page-header">
+        <h1 class="page-title">Eliminar ficha</h1>
+        <a href="{% url 'panel:organigram_list' %}" class="btn-secondary">Volver</a>
+    </div>
+    <div class="delete-box">
+        <h2>¿Eliminar esta ficha del organigrama?</h2>
+        <p class="delete-warning">Se quitará de la página Nosotros y del perfil público. No se puede deshacer.</p>
+        <div class="property-info">
+            <h3>{{ member.full_name }}</h3>
+            <p>{{ member.get_tier_display }} — {{ member.role_label }}</p>
+            <p class="small text-muted mb-0">Slug: {{ member.slug }}</p>
+        </div>
+        <form method="post" class="delete-form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="{% url 'panel:organigram_list' %}" class="btn-secondary">Cancelar</a>
+                <button type="submit" class="btn-danger">Sí, eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}

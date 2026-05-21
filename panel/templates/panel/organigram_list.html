@@ -1,0 +1,116 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Organigrama — Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-properties-tl.css' %}?v=1">
+<style>
+    .org-thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--tl-line);
+    }
+    .org-thumb-ph {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: var(--tl-cream);
+        color: var(--tl-olive-deep);
+        border: 1px solid var(--tl-line);
+    }
+    .org-table-wrap { overflow-x: auto; }
+    .org-actions-cell { white-space: nowrap; vertical-align: middle; }
+    .org-actions-cell .actions-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    /* Siempre visibles: el CSS global .btn-edit en panel TL usa fondo transparente */
+    .panel-properties-page .org-table-wrap .btn-action.btn-edit {
+        background: var(--tl-olive-deep) !important;
+        color: var(--tl-gold-bright) !important;
+        border: 1px solid var(--tl-olive-deep) !important;
+        opacity: 1 !important;
+    }
+    .panel-properties-page .org-table-wrap .btn-action.btn-edit:hover {
+        background: #2a3024 !important;
+        color: #e8d4a8 !important;
+        border-color: #2a3024 !important;
+    }
+    .panel-properties-page .org-table-wrap .btn-action.btn-delete {
+        background: linear-gradient(135deg, #9b1c2e, #6b1522) !important;
+        color: #fff !important;
+        border: 1px solid #6b1522 !important;
+        opacity: 1 !important;
+    }
+    .panel-properties-page .org-table-wrap .btn-action.btn-delete:hover {
+        filter: brightness(1.08);
+        color: #fff !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-properties-page">
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">Organigrama</h1>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+            <a href="{% url 'panel:organigram_add' %}" class="btn-primary">+ Nueva ficha</a>
+            <a href="{% url 'panel:nosotros_edit' %}" class="btn-secondary">← Textos Nosotros</a>
+            <a href="{% url 'about' %}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Vista pública</a>
+        </div>
+    </div>
+    <div class="form-section org-table-wrap">
+        <table class="properties-table" style="min-width:720px;">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Nombre</th>
+                    <th>Nivel</th>
+                    <th>Puesto</th>
+                    <th>Slug / URL</th>
+                    <th>Visible</th>
+                    <th class="org-actions-cell">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in members %}
+                <tr>
+                    <td style="width:56px;">
+                        {% if m.photo %}
+                            <img class="org-thumb" src="{{ m.photo.url }}" alt="">
+                        {% else %}
+                            <span class="org-thumb-ph">{{ m.initials }}</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ m.full_name }}</strong></td>
+                    <td>{{ m.get_tier_display }}</td>
+                    <td>{{ m.role_label }}</td>
+                    <td><code style="font-size:0.75rem;">{{ m.slug }}</code></td>
+                    <td>{% if m.is_visible %}Sí{% else %}No{% endif %}</td>
+                    <td class="org-actions-cell">
+                        <div class="actions-group">
+                            <a href="{% url 'panel:organigram_edit' m.pk %}" class="btn-action btn-edit">Editar</a>
+                            <a href="{% url 'panel:organigram_delete' m.pk %}" class="btn-action btn-delete">Eliminar</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No hay fichas. Crea la primera con «Nueva ficha».</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+{% endblock %}

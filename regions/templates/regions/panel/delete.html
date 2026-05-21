@@ -1,0 +1,98 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Región - Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+.region-delete-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.region-delete-card {
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(22, 32, 42, 0.06);
+}
+
+.region-delete-card .card-body {
+    padding: 18px;
+}
+
+.region-delete-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #2f3227;
+}
+
+.region-image-preview {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e1e6ed;
+}
+
+.region-delete-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.region-delete-actions .btn {
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+@media (max-width: 768px) {
+    .region-delete-card .card-body {
+        padding: 14px;
+    }
+
+    .region-delete-title {
+        font-size: 1.2rem;
+    }
+
+    .region-delete-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 region-delete-wrap">
+    <h2 class="panel-title mb-3 region-delete-title">Eliminar Región</h2>
+
+    <div class="card region-delete-card">
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>¿Estás seguro de eliminar esta región?</strong>
+                <p class="mb-0 mt-2">Esta acción no se puede deshacer.</p>
+            </div>
+
+            <div class="mb-4">
+                <h4>{{ region.name }}</h4>
+                <p class="text-muted">{{ region.description|truncatewords:30 }}</p>
+                {% if region.image %}
+                <img src="{{ region.image.url }}" class="region-image-preview" alt="{{ region.name }}">
+                {% endif %}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="region-delete-actions">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Sí, Eliminar Región
+                    </button>
+                    <a href="{% url 'regions:panel_regions' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

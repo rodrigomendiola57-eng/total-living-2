@@ -1,0 +1,87 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar solicitud{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-inbox-tl.css' %}?v=2">
+<style>
+    .inbox-delete-wrap { max-width: 520px; margin: 2rem auto; padding: 0 1rem; }
+    .inbox-delete-card {
+        background: #fff;
+        border: 1px solid rgba(61, 68, 54, 0.12);
+        border-radius: 20px;
+        padding: 1.75rem 1.5rem;
+        box-shadow: 0 18px 48px rgba(10, 12, 8, 0.08);
+    }
+    .inbox-delete-card h1 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #252b21;
+        margin: 0 0 0.5rem;
+    }
+    .inbox-delete-card .warn { color: #8b2635; font-size: 0.88rem; margin-bottom: 1rem; }
+    .inbox-delete-meta { font-size: 0.9rem; color: #5c6554; line-height: 1.55; margin-bottom: 1.25rem; }
+    .inbox-delete-meta strong { color: #3d4436; }
+    .inbox-delete-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+    .inbox-delete-actions a {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.55rem 1.1rem;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        border: 1px solid rgba(61, 68, 54, 0.15);
+        color: #3d4436;
+    }
+    .inbox-delete-actions a:hover { border-color: #c9a66e; background: rgba(201, 166, 110, 0.12); }
+    .inbox-delete-actions button {
+        padding: 0.55rem 1.15rem;
+        border-radius: 999px;
+        border: none;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        background: linear-gradient(135deg, #9b1c2e, #6b1522);
+        color: #fff;
+    }
+    .inbox-delete-actions button:hover { filter: brightness(1.06); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-inbox-page">
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">Eliminar solicitud</h1>
+        <a href="{% url 'panel:inbox' %}" class="btn-clear">Volver al buzón</a>
+    </div>
+
+    <div class="inbox-delete-wrap">
+        <div class="inbox-delete-card">
+            <h1>¿Eliminar esta solicitud?</h1>
+            <p class="warn">Esta acción no se puede deshacer. Se borrarán también las notas internas vinculadas.</p>
+            <div class="inbox-delete-meta">
+                <strong>{{ contact.name }}</strong><br>
+                {{ contact.email }}{% if contact.phone %} · {{ contact.phone }}{% endif %}<br>
+                <strong>Asunto:</strong> {{ contact.subject }}<br>
+                <strong>ID:</strong> #{{ contact.pk }} · <strong>Ingreso:</strong> {{ contact.created_at|date:"d/m/Y H:i" }}
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="inbox-delete-actions">
+                    <a href="{% url 'panel:inbox' %}">Cancelar</a>
+                    <button type="submit">Sí, eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

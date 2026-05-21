@@ -1,0 +1,77 @@
+{% extends 'panel/base.html' %}
+
+{% block extra_css %}
+<style>
+    .dev-module-layout {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 1.25rem 2rem;
+    }
+    .dev-module-sidebar {
+        flex: 0 0 240px;
+        background: var(--white);
+        border-radius: 14px;
+        padding: 1rem 0.75rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        position: sticky;
+        top: 1rem;
+    }
+    .dev-module-sidebar a {
+        display: block;
+        padding: 0.65rem 0.9rem;
+        border-radius: 10px;
+        color: var(--gray-800);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.88rem;
+        margin-bottom: 0.2rem;
+        line-height: 1.35;
+    }
+    .dev-module-sidebar a:hover {
+        background: var(--gray-100);
+        color: var(--olive);
+    }
+    .dev-module-sidebar a.active {
+        background: var(--olive);
+        color: #fff;
+    }
+    .dev-module-sidebar .nav-label {
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--gray-600);
+        margin: 0.85rem 0 0.4rem 0.9rem;
+        font-weight: 600;
+    }
+    .dev-module-body {
+        flex: 1;
+        min-width: 0;
+    }
+    @media (max-width: 900px) {
+        .dev-module-layout { flex-direction: column; }
+        .dev-module-sidebar {
+            position: static;
+            flex: none;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.35rem;
+        }
+        .dev-module-sidebar .nav-label { grid-column: 1 / -1; }
+    }
+</style>
+{% block dev_panel_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="dev-module-layout">
+    {% include 'developments/panel/_sidebar.html' %}
+    <div class="dev-module-body">
+        {% block dev_panel_body %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

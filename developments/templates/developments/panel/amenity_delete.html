@@ -1,0 +1,17 @@
+{% extends 'developments/panel/shell.html' %}
+
+{% block title %}Eliminar amenidad{% endblock %}
+
+{% block dev_panel_body %}
+<div class="delete-container">
+    <div class="delete-box">
+        <h1>¿Eliminar amenidad?</h1>
+        <p class="delete-warning">{{ amenity.display_name }} (<code>{{ amenity.slug }}</code>)</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger"><i class="bi bi-trash"></i> Sí, eliminar</button>
+            <a href="{% url 'developments:panel_amenities' %}" class="btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

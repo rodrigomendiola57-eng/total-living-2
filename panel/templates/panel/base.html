@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel de Gestión{% endblock %} - Total Living</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/panel.css' %}?v=2.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated and user.is_staff %}
+    <nav class="panel-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    <img src="{% static 'images/SharedScreenshot.png' %}" alt="Total Living" class="nav-logo" style="height: 50px; width: auto;">
+                    <img src="{% static 'images/logo.png' %}" alt="Total Living" style="height: 35px; width: auto;">
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'panel:home_edit' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'home_edit' %}active{% endif %}">Inicio</a></li>
+                <li><a href="{% url 'panel:dashboard' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+                <li><a href="{% url 'panel:nosotros_edit' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'nosotros_edit' %}active{% elif request.resolver_match and request.resolver_match.url_name and 'organigram' in request.resolver_match.url_name %}active{% endif %}" title="Textos de la página Nosotros y organigrama">Nosotros</a></li>
+                <li><a href="{% url 'panel:properties' %}" class="{% if request.resolver_match and request.resolver_match.url_name and 'properties' in request.resolver_match.url_name %}active{% endif %}">Propiedades</a></li>
+                <li><a href="{% url 'panel:inbox' %}" class="{% if request.resolver_match and request.resolver_match.url_name and 'inbox' in request.resolver_match.url_name %}active{% endif %}">Buzon de Solicitudes</a></li>
+                <li><a href="{% url 'developments:panel_list' %}" class="{% if request.resolver_match and request.resolver_match.namespace == 'developments' and request.resolver_match.url_name and 'panel' in request.resolver_match.url_name %}active{% endif %}">Desarrollos</a></li>
+                <li><a href="{% url 'regions:panel_regions' %}" class="{% if request.resolver_match and request.resolver_match.url_name and 'regions' in request.resolver_match.url_name %}active{% endif %}">Regiones</a></li>
+                <li class="nav-user">
+                    <span>{{ user.username }}</span>
+                    <a href="{% url 'panel:logout' %}" class="btn-logout">Salir</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="panel-main">
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="panel-footer">
+        <p>&copy; 2024 Total Living. Panel de Gestión Interno.</p>
+    </footer>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

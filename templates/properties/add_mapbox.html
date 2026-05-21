@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Agregar Propiedad - Total Living</title>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+        h1 { color: #40452E; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        textarea { min-height: 100px; resize: vertical; }
+        #map { height: 500px; width: 100%; border: 2px solid #40452E; border-radius: 8px; margin: 20px 0; }
+        .map-info { background: #f0f0f0; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        .btn { background: #40452E; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #2a2d1e; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Agregar Nueva Propiedad</h1>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Título *</label>
+                <input type="text" name="title" required>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Precio *</label>
+                    <input type="number" name="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select name="property_type" required>
+                        {% for value, label in property_types_catalog %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción *</label>
+                <textarea name="description" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Dirección *</label>
+                <input type="text" name="address" id="address" required>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Ciudad *</label>
+                    <input type="text" name="city" required>
+                </div>
+                <div class="form-group">
+                    <label>Estado *</label>
+                    <input type="text" name="state" required>
+                </div>
+            </div>
+
+            <div class="map-info">
+                <strong>📍 Selecciona la ubicación en el mapa:</strong>
+                <p>Haz clic en el mapa o arrastra el marcador para establecer la ubicación exacta de la propiedad.</p>
+                <p id="coords">Coordenadas: No seleccionadas</p>
+            </div>
+
+            <div id="map"></div>
+
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Recámaras</label>
+                    <input type="number" name="bedrooms" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Baños</label>
+                    <input type="number" name="bathrooms" min="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Imágenes</label>
+                <input type="file" name="images" multiple accept="image/*">
+            </div>
+
+            <button type="submit" class="btn">💾 Guardar Propiedad</button>
+        </form>
+    </div>
+
+    <script>
+        // REEMPLAZA ESTO CON TU TOKEN DE MAPBOX
+        mapboxgl.accessToken = 'TU_TOKEN_AQUI';
+        
+        // Crear mapa centrado en México
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [-99.1332, 19.4326], // CDMX
+            zoom: 12
+        });
+
+        // Marcador arrastrable
+        const marker = new mapboxgl.Marker({
+            draggable: true,
+            color: '#C4A572'
+        })
+        .setLngLat([-99.1332, 19.4326])
+        .addTo(map);
+
+        // Actualizar coordenadas cuando se arrastra el marcador
+        function updateCoords(lngLat) {
+            document.getElementById('latitude').value = lngLat.lat.toFixed(6);
+            document.getElementById('longitude').value = lngLat.lng.toFixed(6);
+            document.getElementById('coords').innerHTML = 
+                `Coordenadas: <strong>${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}</strong>`;
+        }
+
+        marker.on('dragend', () => {
+            updateCoords(marker.getLngLat());
+        });
+
+        // Click en el mapa mueve el marcador
+        map.on('click', (e) => {
+            marker.setLngLat(e.lngLat);
+            updateCoords(e.lngLat);
+        });
+
+        // Inicializar coordenadas
+        updateCoords(marker.getLngLat());
+
+        // Controles de zoom
+        map.addControl(new mapboxgl.NavigationControl());
+    </script>
+</body>
+</html>

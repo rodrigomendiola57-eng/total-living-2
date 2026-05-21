@@ -1,0 +1,284 @@
+{% extends 'developments/panel/shell.html' %}
+
+
+
+{% block title %}{{ title }}{% endblock %}
+
+
+
+{% block dev_panel_body %}
+
+<div class="edit-container">
+
+    <div class="page-header">
+
+        <h1 class="page-title">{{ title }}</h1>
+
+        <a href="{% url 'developments:panel_unit_models' %}" class="btn-secondary">← Volver a modelos</a>
+
+    </div>
+
+
+
+    <div class="form-section" style="margin-bottom:1.25rem;padding:1rem 1.25rem;background:#f8f9f6;border-radius:12px;border:1px solid #e8ebe3;">
+
+        <strong style="display:block;margin-bottom:0.5rem;color:#40452E;">Qué se muestra en el sitio público</strong>
+
+        <ul style="margin:0;padding-left:1.2rem;font-size:0.9rem;line-height:1.55;color:#444;">
+
+            <li><strong>Imagen de tarjeta</strong> → miniatura en el listado de modelos del desarrollo y <strong>primera diapositiva</strong> del carrusel en la ficha del modelo.</li>
+
+            <li><strong>Galería</strong> → resto del carrusel en <code>/desarrollos/…/modelos/…/</code> (puedes añadir varias al guardar).</li>
+
+            <li><strong>Descripción</strong> y <strong>otras características</strong> (una línea por viñeta) → columna derecha de esa misma ficha.</li>
+
+            <li><strong>Precio desde</strong> → si lo dejas vacío, se usa el precio del desarrollo.</li>
+
+            {% if floor_plans_supported %}
+
+            <li><strong>Plantas</strong> → sección inferior “Plantas” en la ficha (etiquetas = pestañas si hay más de una).</li>
+
+            {% endif %}
+
+        </ul>
+
+    </div>
+
+
+
+    <form method="post" enctype="multipart/form-data" class="form-section">
+
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+            <h2 class="form-section-heading full" style="grid-column:1/-1;font-size:1rem;margin:0 0 0.5rem;color:#40452E;border-bottom:1px solid #e5e5e5;padding-bottom:0.35rem;">Datos del modelo</h2>
+
+
+
+            <div class="form-group full">
+
+                <label for="development_id">Desarrollo padre *</label>
+
+                <select id="development_id" name="development_id" class="form-control" required>
+
+                    <option value="">— Seleccionar —</option>
+
+                    {% for d in developments %}
+
+                    <option value="{{ d.pk }}" {% if unit_model and unit_model.development_id == d.pk %}selected{% endif %}>{{ d.name }} ({{ d.slug }})</option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <div class="form-group full">
+
+                <label for="name">Nombre del modelo *</label>
+
+                <input type="text" id="name" name="name" class="form-control" required maxlength="120"
+
+                       value="{{ unit_model.name|default:'' }}" placeholder="Ej. Bosques PB">
+
+            </div>
+
+            <div class="form-group full">
+
+                <label for="slug">Slug URL (opcional)</label>
+
+                <input type="text" id="slug" name="slug" class="form-control" maxlength="130"
+
+                       value="{{ unit_model.slug|default:'' }}" placeholder="Se genera desde el nombre si está vacío">
+
+                <small class="text-muted">URL pública: /desarrollos/<strong>slug-desarrollo</strong>/modelos/<strong>slug-modelo</strong>/</small>
+
+                {% if unit_model %}
+
+                <div class="mt-1"><label class="mb-0"><input type="checkbox" name="regenerate_slug" value="1"> Regenerar slug desde el nombre</label></div>
+
+                {% endif %}
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="bedrooms">Habitaciones</label>
+
+                <input type="number" id="bedrooms" name="bedrooms" class="form-control" min="0" value="{{ unit_model.bedrooms|default:0 }}">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="bathrooms">Baños</label>
+
+                <input type="text" id="bathrooms" name="bathrooms" class="form-control" value="{{ unit_model.bathrooms|default:0 }}" placeholder="2 o 2.5">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="construction_m2">M² construcción</label>
+
+                <input type="text" id="construction_m2" name="construction_m2" class="form-control"
+
+                       value="{% if unit_model %}{{ unit_model.construction_m2_display }}{% endif %}" placeholder="Ej. 120 o 120.5">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="price_from">Precio desde (opcional)</label>
+
+                <input type="text" id="price_from" name="price_from" class="form-control"
+
+                       value="{% if unit_model %}{{ unit_model.price_from_plain }}{% endif %}" placeholder="Ej. 2500000 (vacío = precio del desarrollo)">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="order">Orden en listado</label>
+
+                <input type="number" id="order" name="order" class="form-control" min="0" value="{{ unit_model.order|default:0 }}">
+
+            </div>
+
+            <div class="form-group full">
+
+                <label><input type="checkbox" name="is_active" value="1" {% if not unit_model or unit_model.is_active %}checked{% endif %}> Activo (visible en la ficha del desarrollo)</label>
+
+            </div>
+
+
+
+            <h2 class="form-section-heading full" style="grid-column:1/-1;font-size:1rem;margin:1.25rem 0 0.5rem;color:#40452E;border-bottom:1px solid #e5e5e5;padding-bottom:0.35rem;">Textos en la ficha pública</h2>
+
+
+
+            <div class="form-group full">
+
+                <label for="description">Descripción breve</label>
+
+                <textarea id="description" name="description" class="form-control" rows="3"
+
+                          placeholder="Párrafo opcional debajo de las especificaciones.">{{ unit_model.description|default:'' }}</textarea>
+
+            </div>
+
+            <div class="form-group full">
+
+                <label for="other_features_text">Otras características (una por línea)</label>
+
+                <textarea id="other_features_text" name="other_features_text" class="form-control" rows="5"
+
+                          placeholder="Jardín&#10;Área de lavado&#10;2 lugares de estacionamiento">{{ unit_model.other_features_text|default:'' }}</textarea>
+
+            </div>
+
+
+
+            <h2 class="form-section-heading full" style="grid-column:1/-1;font-size:1rem;margin:1.25rem 0 0.5rem;color:#40452E;border-bottom:1px solid #e5e5e5;padding-bottom:0.35rem;">Imágenes</h2>
+
+
+
+            <div class="form-group full">
+
+                <label for="card_image">Imagen de tarjeta</label>
+
+                <input type="file" id="card_image" name="card_image" class="form-control" accept="image/*">
+
+                <small class="text-muted">Listado del desarrollo + primera imagen del carrusel en la ficha del modelo.</small>
+
+                {% if unit_model and unit_model.card_image %}
+
+                <p class="mt-2 mb-0"><img src="{{ unit_model.card_image.url }}" alt="" style="max-height:140px;border-radius:8px;border:1px solid #eee;"></p>
+
+                {% endif %}
+
+            </div>
+
+            <div class="form-group full">
+
+                <label for="gallery">Galería del modelo (varios archivos)</label>
+
+                <input type="file" id="gallery" name="gallery" class="form-control" accept="image/*" multiple>
+
+                <small class="text-muted">Se añaden al guardar. Reordenar o eliminar: enlace <strong>Galería</strong> en el listado de modelos.</small>
+
+            </div>
+
+
+
+            {% if floor_plans_supported %}
+
+            <h2 class="form-section-heading full" style="grid-column:1/-1;font-size:1rem;margin:1.25rem 0 0.5rem;color:#40452E;border-bottom:1px solid #e5e5e5;padding-bottom:0.35rem;">Plantas arquitectónicas</h2>
+
+            <div class="form-group full">
+
+                <label>Plantas actuales</label>
+
+                {% if unit_model %}
+
+                    {% for fp in floor_plan_items %}
+
+                    <div style="display:flex;align-items:center;gap:0.65rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+
+                        <label style="margin:0;font-size:0.85rem;color:#666;"><input type="checkbox" name="delete_floor_plan" value="{{ fp.pk }}"> Eliminar</label>
+
+                        <img src="{{ fp.thumb_url }}" alt="" style="max-height:52px;border-radius:6px;border:1px solid #e0e0e0;">
+
+                        <span style="font-size:0.9rem;">{{ fp.label }}</span>
+
+                    </div>
+
+                    {% empty %}
+
+                    <p class="text-muted small mb-2">Ninguna. Sube imágenes abajo (ej. Planta baja / Planta alta).</p>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <p class="text-muted small mb-2">Tras crear el modelo podrás subir plantas aquí al editar, o en este mismo formulario si añades archivos abajo después del primer guardado.</p>
+
+                {% endif %}
+
+                <label for="floor_plans" class="mt-2 d-block">Subir nuevas plantas</label>
+
+                <input type="file" id="floor_plans" name="floor_plans" class="form-control" accept="image/*" multiple>
+
+                <label for="floor_plan_labels" class="mt-2 d-block">Etiqueta por línea (mismo orden que los archivos)</label>
+
+                <textarea id="floor_plan_labels" name="floor_plan_labels" class="form-control" rows="3"
+
+                          placeholder="Planta baja&#10;Planta alta"></textarea>
+
+            </div>
+
+            {% else %}
+
+            <div class="form-group full">
+
+                <p class="text-muted small mb-0">Las plantas arquitectónicas requieren la migración de base de datos actualizada (<code>python manage.py migrate</code>).</p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="form-actions mt-3">
+
+            <button type="submit" class="btn-primary">Guardar</button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+

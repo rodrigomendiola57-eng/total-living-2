@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "Mapa de propiedades" %} - Total Living{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+    .properties-map-page {
+        padding: 0;
+        margin: 0;
+    }
+    .properties-map-hero {
+        background: linear-gradient(135deg, #40452E 0%, #2d3120 100%);
+        color: #fff;
+        padding: 1.75rem 1rem 1.25rem;
+        text-align: center;
+    }
+    .properties-map-hero h1 {
+        font-size: clamp(1.25rem, 3vw, 1.75rem);
+        letter-spacing: 2px;
+        margin: 0 0 0.5rem;
+        font-weight: 400;
+    }
+    .properties-map-hero p {
+        margin: 0;
+        opacity: 0.88;
+        font-size: 0.95rem;
+        max-width: 640px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    #properties-map-canvas {
+        width: 100%;
+        height: calc(100vh - 200px);
+        min-height: 420px;
+        z-index: 1;
+    }
+    @media (max-width: 768px) {
+        #properties-map-canvas {
+            height: calc(100vh - 220px);
+            min-height: 360px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="properties-map-page">
+    <div class="properties-map-hero">
+        <h1>{% trans "Mapa de propiedades" %}</h1>
+        <p>{% trans "Explora en el mapa las propiedades disponibles con ubicación registrada. Haz clic en un marcador para ver detalles." %}</p>
+        <p class="small mt-2 mb-0 opacity-75">{% trans "Solo se muestran propiedades con coordenadas guardadas (latitud y longitud)." %}</p>
+    </div>
+    {{ map_markers|json_script:"properties-map-markers" }}
+    <div id="properties-map-canvas" role="application" aria-label="{% trans 'Mapa de propiedades' %}"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function () {
+    var el = document.getElementById('properties-map-markers');
+    var raw = el ? el.textContent : '[]';
+    var markers;
+    try {
+        markers = JSON.parse(raw);
+    } catch (e) {
+        markers = [];
+    }
+
+    var map = L.map('properties-map-canvas').setView([20.5888, -100.3899], 7);
+    L.tileLayer('{{ MAP_TILES.url|escapejs }}', {
+        attribution: '{{ MAP_TILES.attribution|escapejs }}',
+        subdomains: '{{ MAP_TILES.subdomains|escapejs }}',
+        maxNativeZoom: 16,
+        maxZoom: 18
+    }).addTo(map);
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    var bounds = [];
+    markers.forEach(function (m) {
+        if (m.lat == null || m.lng == null) return;
+        var ll = [m.lat, m.lng];
+        bounds.push(ll);
+        var popup = '<div style="min-width:200px;"><strong>' + esc(m.title) + '</strong><br>' +
+            esc(m.price) + '<br><a href="' + esc(m.url) + '">{% trans "Ver ficha" %}</a></div>';
+        L.marker(ll).addTo(map).bindPopup(popup);
+    });
+
+    if (bounds.length === 1) {
+        map.setView(bounds[0], 14);
+    } else if (bounds.length > 1) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    }
+
+    setTimeout(function () { map.invalidateSize(); }, 300);
+})();
+</script>
+{% endblock %}

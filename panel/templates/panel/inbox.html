@@ -1,0 +1,180 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Buzón de solicitudes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-inbox-tl.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+<div class="panel-inbox-page">
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">Buzón de solicitudes</h1>
+    </div>
+
+    <div class="inbox-grid">
+        <div class="inbox-kpi"><small>Total</small><strong>{{ counts.total }}</strong></div>
+        <div class="inbox-kpi"><small>Nuevas</small><strong>{{ counts.new }}</strong></div>
+        <div class="inbox-kpi"><small>En seguimiento</small><strong>{{ counts.in_progress }}</strong></div>
+        <div class="inbox-kpi"><small>Respondidas</small><strong>{{ counts.responded }}</strong></div>
+        <div class="inbox-kpi"><small>Cerradas</small><strong>{{ counts.closed }}</strong></div>
+        <div class="inbox-kpi"><small>Vencidas</small><strong>{{ counts.overdue }}</strong></div>
+    </div>
+
+    <div class="inbox-filters">
+        <form method="get" class="inbox-filters-grid">
+            <input type="text" name="search" value="{{ search }}" placeholder="Buscar por contacto, correo, teléfono, asunto o propiedad">
+
+            <select name="status">
+                <option value="">Estado (todos)</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="priority">
+                <option value="">Prioridad (todas)</option>
+                {% for value, label in priority_choices %}
+                    <option value="{{ value }}" {% if priority_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="assigned_to">
+                <option value="">Asignado (todos)</option>
+                <option value="none" {% if assigned_to_filter == 'none' %}selected{% endif %}>Sin asignar</option>
+                {% for u in staff_users %}
+                    <option value="{{ u.pk }}" {% if assigned_to_filter == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="mine">
+                <option value="">Propietario (todos)</option>
+                <option value="1" {% if mine_filter == '1' %}selected{% endif %}>Solo mis solicitudes</option>
+            </select>
+
+            <select name="overdue">
+                <option value="">Seguimiento</option>
+                <option value="1" {% if overdue_filter == '1' %}selected{% endif %}>Solo vencidas</option>
+            </select>
+
+            <select name="source">
+                {% for value, label in source_choices %}
+                    <option value="{{ value }}" {% if source_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn-filter">Filtrar</button>
+            <a href="{% url 'panel:inbox' %}" class="btn-clear">Limpiar</a>
+        </form>
+    </div>
+
+    <form method="post" class="inbox-table-wrap">
+        {% csrf_token %}
+        <table class="inbox-table">
+            <thead>
+                <tr>
+                    <th style="width:34px;"><input type="checkbox" id="selectAll"></th>
+                    <th>Contacto</th>
+                    <th>Asunto</th>
+                    <th>Origen</th>
+                    <th>Propiedad</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Asignado</th>
+                    <th>Seguimiento</th>
+                    <th>Fecha</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in contacts %}
+                <tr>
+                    <td><input type="checkbox" name="selected_contacts" value="{{ item.pk }}" class="rowSelector"></td>
+                    <td>
+                        <strong>{{ item.name }}</strong><br>
+                        <span class="inline-muted">{{ item.email }}</span>
+                        {% if item.phone %}<br><span class="inline-muted">{{ item.phone }}</span>{% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ item.subject|truncatechars:50 }}</strong><br>
+                        <span class="inline-muted">{{ item.message|truncatechars:80 }}</span>
+                    </td>
+                    <td><span class="inline-muted">{{ item.source|default:"sitio_web" }}</span></td>
+                    <td>
+                        {% if item.property %}
+                            <a href="{% url 'properties:detail' item.property.pk %}" target="_blank" rel="noopener noreferrer">{{ item.property.title|truncatechars:42 }}</a>
+                        {% else %}
+                            <span class="inline-muted">Consulta general</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.status == 'new' %}<span class="inbox-status st-new">Nueva</span>{% endif %}
+                        {% if item.status == 'in_progress' %}<span class="inbox-status st-progress">En seguimiento</span>{% endif %}
+                        {% if item.status == 'responded' %}<span class="inbox-status st-responded">Respondida</span>{% endif %}
+                        {% if item.status == 'closed' %}<span class="inbox-status st-closed">Cerrada</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if item.priority == 'high' %}<span class="inbox-priority prio-high">Alta</span>{% endif %}
+                        {% if item.priority == 'medium' %}<span class="inbox-priority prio-medium">Media</span>{% endif %}
+                        {% if item.priority == 'low' %}<span class="inbox-priority prio-low">Baja</span>{% endif %}
+                    </td>
+                    <td>{% if item.assigned_to %}{{ item.assigned_to.username }}{% else %}<span class="inline-muted">Sin asignar</span>{% endif %}</td>
+                    <td>{% if item.follow_up_at %}{{ item.follow_up_at|date:"d/m/Y H:i" }}{% else %}<span class="inline-muted">-</span>{% endif %}</td>
+                    <td>{{ item.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <div class="inbox-action-cell">
+                            <a href="{% url 'panel:inbox_detail' item.pk %}" class="btn-action btn-edit"><i class="bi bi-eye"></i> Ver</a>
+                            <a href="{% url 'panel:inbox_delete' item.pk %}" class="btn-action btn-delete-inbox"><i class="bi bi-trash3"></i> Eliminar</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="11">No hay solicitudes registradas con esos filtros.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="inbox-bulk">
+            <select name="bulk_action">
+                <option value="">Acción masiva…</option>
+                <option value="mark_read">Marcar leídas</option>
+                <option value="mark_in_progress">En seguimiento</option>
+                <option value="mark_responded">Marcar respondidas</option>
+                <option value="mark_closed">Cerrar solicitudes</option>
+                <option value="assign_to_me">Asignar a mi usuario</option>
+            </select>
+            <button type="submit" class="btn-filter">Aplicar</button>
+        </div>
+    </form>
+
+    {% if contacts.has_other_pages %}
+    <div class="pagination-wrapper mt-3">
+        <div class="pagination">
+            {% if contacts.has_previous %}
+            <a href="?page={{ contacts.previous_page_number }}&search={{ search|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_to_filter }}&mine={{ mine_filter }}&overdue={{ overdue_filter }}&source={{ source_filter|urlencode }}">Anterior</a>
+            {% endif %}
+            <span class="current">Página {{ contacts.number }} de {{ contacts.paginator.num_pages }}</span>
+            {% if contacts.has_next %}
+            <a href="?page={{ contacts.next_page_number }}&search={{ search|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_to_filter }}&mine={{ mine_filter }}&overdue={{ overdue_filter }}&source={{ source_filter|urlencode }}">Siguiente</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectAll = document.getElementById('selectAll');
+    const rows = document.querySelectorAll('.rowSelector');
+    if (!selectAll) return;
+    selectAll.addEventListener('change', function () {
+        rows.forEach(cb => cb.checked = selectAll.checked);
+    });
+});
+</script>
+{% endblock %}

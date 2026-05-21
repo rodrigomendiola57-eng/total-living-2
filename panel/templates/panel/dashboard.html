@@ -1,0 +1,555 @@
+{% extends 'panel/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-modern {
+        padding: 0;
+        max-width: 100%;
+    }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 16px;
+        background: #fff;
+        border: 1px solid #e8edf3;
+        border-radius: 14px;
+        padding: 16px;
+    }
+
+    .dashboard-title {
+        font-size: 1.45rem;
+        font-weight: 600;
+        color: #2f3227;
+        letter-spacing: 0.3px;
+        margin: 0;
+    }
+
+    .dashboard-actions-modern {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-modern {
+        padding: 10px 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.2px;
+    }
+
+    .btn-modern-primary {
+        background: var(--olive);
+        color: white;
+        border: none;
+    }
+
+    .btn-modern-primary:hover {
+        background: var(--olive-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(64, 69, 46, 0.28);
+    }
+
+    .btn-modern-secondary {
+        background: white;
+        color: var(--olive);
+        border: 1px solid var(--gray-300);
+    }
+
+    .btn-modern-secondary:hover {
+        background: var(--gray-50);
+        border-color: var(--olive);
+    }
+
+    /* Stats Grid Moderno */
+    .stats-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .stat-card-modern {
+        background: white;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border: 1px solid #e8edf3;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--olive);
+    }
+
+    .stat-card-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.09);
+    }
+
+    .stat-card-modern.highlight {
+        background: linear-gradient(135deg, var(--olive) 0%, var(--olive-dark) 100%);
+        color: white;
+        border-color: var(--olive);
+    }
+
+    .stat-card-modern.highlight::before {
+        background: var(--gold);
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gray-600);
+        letter-spacing: 0.35px;
+        text-transform: uppercase;
+    }
+
+    .stat-card-modern.highlight .stat-label {
+        color: rgba(255,255,255,0.8);
+    }
+
+    .stat-icon-modern {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        background: var(--gray-100);
+        color: var(--olive);
+    }
+
+    .stat-card-modern.highlight .stat-icon-modern {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--olive);
+        letter-spacing: -0.6px;
+        line-height: 1;
+    }
+
+    .stat-card-modern.highlight .stat-value {
+        color: white;
+    }
+
+    /* Analytics Section - Preparado para futuro */
+    .analytics-section {
+        background: white;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border: 1px solid #e8edf3;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf1f5;
+    }
+
+    .section-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--olive);
+        letter-spacing: 0.2px;
+        margin: 0;
+    }
+
+    .analytics-placeholder {
+        text-align: center;
+        padding: 28px 10px;
+        color: var(--gray-600);
+    }
+
+    .analytics-placeholder-icon {
+        font-size: 44px;
+        color: var(--gray-300);
+        margin-bottom: 16px;
+    }
+
+    .analytics-placeholder-text {
+        font-size: 0.92rem;
+        font-weight: 500;
+        letter-spacing: 0.1px;
+    }
+
+    /* Recent Properties Modern */
+    .recent-section-modern {
+        background: white;
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border: 1px solid #e8edf3;
+    }
+
+    .properties-list-modern {
+        display: grid;
+        gap: 10px;
+    }
+
+    .property-item-modern {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #e8edf3;
+        transition: all 0.2s ease;
+        background: #fbfcfd;
+    }
+
+    .property-item-modern:hover {
+        background: white;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.07);
+        transform: translateY(-1px);
+    }
+
+    .property-info-modern {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .property-title-modern {
+        font-size: 0.98rem;
+        font-weight: 600;
+        color: var(--olive);
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+    }
+
+    .property-meta-modern {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: var(--gray-600);
+    }
+
+    .property-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .property-price-modern {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--olive);
+        white-space: nowrap;
+    }
+
+    .property-actions-modern {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid var(--gray-300);
+        background: white;
+        color: var(--olive);
+    }
+
+    .btn-icon:hover {
+        background: var(--olive);
+        color: white;
+        border-color: var(--olive);
+        transform: translateY(-1px);
+    }
+
+    .badge-modern {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .badge-disponible {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .badge-vendida {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .badge-rentada {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--gray-600);
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        color: var(--gray-300);
+        margin-bottom: 16px;
+    }
+
+    @media (max-width: 992px) {
+        .dashboard-actions-modern {
+            width: 100%;
+        }
+
+        .dashboard-actions-modern .btn-modern {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        .stats-grid-modern {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-actions-modern {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-actions-modern .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .analytics-section,
+        .recent-section-modern {
+            padding: 12px;
+        }
+
+        .property-item-modern {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .property-price-modern {
+            width: 100%;
+            text-align: left;
+        }
+
+        .property-actions-modern {
+            width: 100%;
+            justify-content: flex-start;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .property-actions-modern .btn-icon {
+            width: 100%;
+        }
+
+        .analytics-placeholder-text br {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-modern">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Dashboard</h1>
+        <div class="dashboard-actions-modern">
+            <a href="{% url 'panel:properties' %}" class="btn-modern btn-modern-secondary">
+                <i class="bi bi-list-ul"></i>
+                Ver Todas
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="stats-grid-modern">
+        <div class="stat-card-modern">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">Total Propiedades</div>
+                    <div class="stat-value">{{ total_properties }}</div>
+                </div>
+                <div class="stat-icon-modern">
+                    <i class="bi bi-building"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-modern">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">Disponibles</div>
+                    <div class="stat-value">{{ disponibles }}</div>
+                </div>
+                <div class="stat-icon-modern">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-modern">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">Vendidas</div>
+                    <div class="stat-value">{{ vendidas }}</div>
+                </div>
+                <div class="stat-icon-modern">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-modern">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">Rentadas</div>
+                    <div class="stat-value">{{ rentadas }}</div>
+                </div>
+                <div class="stat-icon-modern">
+                    <i class="bi bi-key"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-modern highlight">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">Destacadas</div>
+                    <div class="stat-value">{{ destacadas }}</div>
+                </div>
+                <div class="stat-icon-modern">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Analytics - Preparada para futuro -->
+    <div class="analytics-section">
+        <div class="section-header">
+            <h2 class="section-title">Analytics & Insights</h2>
+        </div>
+        <div class="analytics-placeholder">
+            <div class="analytics-placeholder-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="analytics-placeholder-text">
+                Próximamente: Estadísticas de visitas, propiedades más vistas,<br>
+                análisis de tráfico y métricas de rendimiento
+            </div>
+        </div>
+    </div>
+
+    <!-- Propiedades Recientes -->
+    <div class="recent-section-modern">
+        <div class="section-header">
+            <h2 class="section-title">Propiedades Recientes</h2>
+        </div>
+
+        {% if recent_properties %}
+        <div class="properties-list-modern">
+            {% for property in recent_properties %}
+            <div class="property-item-modern">
+                <div class="property-info-modern">
+                    <div class="property-title-modern">{{ property.title }}</div>
+                    <div class="property-meta-modern">
+                        <span class="property-meta-item">
+                            <i class="bi bi-geo-alt"></i>
+                            {{ property.city }}, {{ property.state }}
+                        </span>
+                        <span class="property-meta-item">
+                            <i class="bi bi-house-door"></i>
+                            {{ property.get_property_type_display }}
+                        </span>
+                        <span class="badge-modern badge-{{ property.status }}">
+                            {{ property.get_status_display }}
+                        </span>
+                        <span class="property-meta-item" style="color: var(--olive); font-weight: 500;">
+                            <i class="bi bi-diagram-3"></i>
+                            {{ property.get_process_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="property-price-modern">
+                    {{ property.get_price_display }}
+                </div>
+                <div class="property-actions-modern">
+                    <a href="{% url 'panel:property_edit' property.pk %}" class="btn-icon" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'properties:detail' property.pk %}" class="btn-icon" title="Ver" target="_blank">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-inbox"></i>
+            </div>
+            <div class="analytics-placeholder-text">
+                No hay propiedades registradas aún
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

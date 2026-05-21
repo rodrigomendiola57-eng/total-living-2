@@ -1,0 +1,67 @@
+{% extends 'panel/base.html' %}
+
+{% block title %}Agregar Slide - Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+.carousel-form-wrap { max-width: 920px; margin: 0 auto; }
+.carousel-form-card { border: 1px solid #e8edf3; border-radius: 14px; box-shadow: 0 10px 24px rgba(22, 32, 42, 0.06); }
+.carousel-form-card .card-body { padding: 18px; }
+.carousel-form-title { font-size: 1.3rem; font-weight: 600; color: #2f3227; margin-bottom: 14px; }
+.form-label { font-weight: 600; font-size: 0.86rem; color: #334155; }
+.form-control, .form-check-input { border-radius: 10px; }
+.form-control { border: 1px solid #d6dde6; }
+.form-control:focus { border-color: #b89965; box-shadow: 0 0 0 3px rgba(184, 153, 101, 0.18); }
+.form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+@media (max-width: 768px) { .carousel-form-card .card-body { padding: 14px; } .form-actions .btn { width: 100%; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="carousel-form-wrap">
+        <div class="card carousel-form-card">
+            <div class="card-body">
+                <h2 class="carousel-form-title">Agregar Nuevo Slide</h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subtítulo</label>
+                        <input type="text" name="subtitle" class="form-control">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Texto del botón</label>
+                            <input type="text" name="link_text" class="form-control" value="Ver Más">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Orden</label>
+                            <input type="number" name="order" class="form-control" value="0" min="0">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">URL de destino</label>
+                        <input type="url" name="link_url" class="form-control" placeholder="https://...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Imagen *</label>
+                        <input type="file" name="image" class="form-control" accept="image/*" required>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
+                        <label class="form-check-label" for="is_active">Slide activo</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Guardar</button>
+                        <a href="{% url 'panel:carousel_list' %}" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i>Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

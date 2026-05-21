@@ -1,0 +1,85 @@
+{% load i18n %}
+<a href="{% url 'properties:detail' property.pk %}" class="property-card-link" style="text-decoration: none; color: inherit;">
+<div class="property-card-modern">
+    {% with main_image=property.get_main_image %}
+    {% if main_image %}
+    <div class="property-card-image-container">
+        <img src="{{ main_image.image.url }}" class="property-card-image" alt="{{ property.title }}">
+        
+        <!-- Overlay con toda la información sobre la imagen -->
+        <div class="property-card-overlay">
+            <!-- Ubicación arriba -->
+            <div class="property-card-location">
+                {{ property.city|upper }}, {{ property.state|upper }}
+            </div>
+            
+            <!-- Características -->
+            <div class="property-card-features">
+                {% if property.bedrooms > 0 %}
+                <span>{{ property.bedrooms }} RE</span>
+                {% endif %}
+                {% if property.bedrooms > 0 and property.bathrooms > 0 %}
+                <span>|</span>
+                {% endif %}
+                {% if property.bathrooms > 0 %}
+                <span>{{ property.bathrooms }} BA</span>
+                {% endif %}
+            </div>
+            
+            <!-- Nombre de la propiedad -->
+            <div class="property-card-name">
+                {{ property.title|upper }}
+            </div>
+            
+            <!-- Precio -->
+            <div class="property-card-price">
+                {{ property.get_price_display }}
+            </div>
+            
+            <!-- Botón -->
+            <div class="property-card-button-container">
+                <span class="property-card-button">{% trans "Más información" %}</span>
+            </div>
+        </div>
+        
+        {% if property.is_featured %}
+        <span class="property-badge-featured">
+            <i class="bi bi-star-fill"></i> {% trans "Destacada" %}
+        </span>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="property-card-image-container" style="background: linear-gradient(135deg, #40452E 0%, #2d3120 100%);">
+        <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
+            <i class="bi bi-image text-white" style="font-size: 4rem; opacity: 0.3;"></i>
+        </div>
+        <div class="property-card-overlay">
+            <div class="property-card-location">
+                {{ property.city|upper }}, {{ property.state|upper }}
+            </div>
+            <div class="property-card-features">
+                {% if property.bedrooms > 0 %}
+                <span>{{ property.bedrooms }} RE</span>
+                {% endif %}
+                {% if property.bedrooms > 0 and property.bathrooms > 0 %}
+                <span>|</span>
+                {% endif %}
+                {% if property.bathrooms > 0 %}
+                <span>{{ property.bathrooms }} BA</span>
+                {% endif %}
+            </div>
+            <div class="property-card-name">
+                {{ property.title|upper }}
+            </div>
+            <div class="property-card-price">
+                {{ property.get_price_display }}
+            </div>
+            <div class="property-card-button-container">
+                <span class="property-card-button">{% trans "Más información" %}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
+</a>

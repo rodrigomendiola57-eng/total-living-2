@@ -1,0 +1,48 @@
+{% extends 'panel/base.html' %}
+
+{% block title %}Eliminar Slide - Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+.carousel-delete-wrap { max-width: 760px; margin: 0 auto; }
+.carousel-delete-card { border: 1px solid #e8edf3; border-radius: 14px; box-shadow: 0 10px 24px rgba(22, 32, 42, 0.06); }
+.carousel-delete-card .card-body { padding: 18px; }
+.slide-preview { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; border: 1px solid #dfe5ee; margin-top: 10px; }
+.delete-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+@media (max-width: 768px) { .carousel-delete-card .card-body { padding: 14px; } .delete-actions .btn { width: 100%; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="carousel-delete-wrap">
+        <div class="card carousel-delete-card">
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>¿Eliminar este slide?</strong>
+                    <p class="mb-0 mt-2">Esta acción no se puede deshacer.</p>
+                </div>
+
+                <h4 class="mb-2">{{ slide.title }}</h4>
+                {% if slide.subtitle %}
+                <p class="text-muted mb-2">{{ slide.subtitle }}</p>
+                {% endif %}
+                {% if slide.image %}
+                <img src="{{ slide.image.url }}" alt="{{ slide.title }}" class="slide-preview">
+                {% endif %}
+
+                <form method="post" class="delete-actions">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Sí, eliminar
+                    </button>
+                    <a href="{% url 'panel:carousel_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,400 @@
+{% extends 'developments/panel/shell.html' %}
+{% load static %}
+
+{% block title %}Nuevo Desarrollo{% endblock %}
+
+{% block dev_panel_body %}
+<div class="edit-container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-plus-circle"></i> Nuevo Desarrollo</h1>
+        <a href="{% url 'developments:panel_list' %}" class="btn-secondary">← Volver</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="developmentForm" onsubmit="return validateForm()">
+        {% csrf_token %}
+        
+        <!-- Información Básica -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="bi bi-info-circle"></i> Información Básica
+            </h2>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="name">
+                        <i class="bi bi-building"></i> Nombre del Desarrollo *
+                    </label>
+                    <input type="text" id="name" name="name" class="form-control form-control-lg" 
+                           placeholder="Ej: Residencial Las Lomas" required
+                           onblur="validateField(this)">
+                    <small class="text-muted"><i class="bi bi-lightbulb"></i> Nombre descriptivo y atractivo del desarrollo</small>
+                </div>
+                <div class="form-group full">
+                    <label for="slug"><i class="bi bi-link-45deg"></i> Slug URL (opcional)</label>
+                    <input type="text" id="slug" name="slug" class="form-control form-control-lg"
+                           placeholder="se-genera-automaticamente si lo dejas vacío">
+                    <small class="text-muted">URL pública: /desarrollos/<strong>slug</strong>/</small>
+                </div>
+                <div class="form-group full">
+                    <label for="subtitle"><i class="bi bi-quote"></i> Subtítulo / tagline (opcional)</label>
+                    <input type="text" id="subtitle" name="subtitle" class="form-control form-control-lg"
+                           placeholder="Ej. Torre residencial · Juriquilla · Querétaro">
+                    <small class="text-muted">Aparece bajo el nombre en listados y carrusel.</small>
+                </div>
+                <div class="form-group full">
+                    <label for="developer_name"><i class="bi bi-briefcase"></i> Desarrollador o promotora (opcional)</label>
+                    <input type="text" id="developer_name" name="developer_name" class="form-control form-control-lg"
+                           placeholder="Nombre comercial">
+                </div>
+                <div class="form-group full">
+                    <label for="description">
+                        <i class="bi bi-file-text"></i> Descripción Detallada *
+                    </label>
+                    <textarea id="description" name="description" class="form-control form-control-lg" rows="8" 
+                              placeholder="Describe las características principales, amenidades, diseño arquitectónico, beneficios del desarrollo..." required
+                              onblur="validateField(this)"></textarea>
+                    <small class="text-muted">
+                        <i class="bi bi-lightbulb"></i> Incluye información sobre amenidades, acabados, diseño y beneficios únicos
+                    </small>
+                </div>
+                <div class="form-group full" data-amenity-selector>
+                    <label><i class="bi bi-stars"></i> Selector visual de amenidades</label>
+                    <input type="text" data-amenity-search class="form-control mb-2" placeholder="Buscar amenidad...">
+                    <small class="text-muted d-block mb-2">Seleccionadas: <strong data-amenity-counter>0</strong></small>
+                    <div class="mb-2 d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-amenity-select-visible>Seleccionar visibles</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-amenity-clear>Limpiar</button>
+                    </div>
+                    <div data-amenity-chips class="mb-2"></div>
+                    <div class="row g-2">
+                        {% for amenity in amenity_catalog %}
+                        <div class="col-md-4 col-lg-3" data-amenity-card data-amenity-text="{{ amenity.display_name }} {{ amenity.slug }} {{ amenity.category.name }}">
+                            <label class="checkbox-label" style="cursor:pointer;padding:10px 12px;background:#f8f8f8;border-radius:10px;display:flex;align-items:center;gap:8px;border:1px solid #ececec;">
+                                <input type="checkbox" name="amenities" value="{{ amenity.id }}" style="width:18px;height:18px;cursor:pointer;">
+                                <span style="font-size:1.1rem;color:#40452E;"><i class="bi {{ amenity.icon_class }}"></i></span>
+                                <span style="font-weight:500;" data-amenity-label>{{ amenity.display_name }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">Selecciona solo las que aplican. Esto se refleja igual en la ficha pública.</small>
+                </div>
+                <div class="form-group full">
+                    <label for="website_url"><i class="bi bi-link-45deg"></i> Sitio web del desarrollo (opcional)</label>
+                    <input type="url" id="website_url" name="website_url" class="form-control form-control-lg"
+                           placeholder="https://...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Ubicación -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="bi bi-geo-alt-fill"></i> Ubicación
+            </h2>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="location">
+                        <i class="bi bi-geo-alt"></i> Dirección Completa / Ubicación *
+                    </label>
+                    <input type="text" id="location" name="location" class="form-control form-control-lg" 
+                           placeholder="Ej: Av. Reforma 123, Col. Centro" required
+                           onblur="validateField(this)">
+                    <small class="text-muted"><i class="bi bi-lightbulb"></i> Incluye calle, número y colonia</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="city">
+                        <i class="bi bi-building"></i> Ciudad *
+                    </label>
+                    <input type="text" id="city" name="city" class="form-control form-control-lg" 
+                           placeholder="Ej: Querétaro" required
+                           onblur="validateField(this)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="state">
+                        <i class="bi bi-geo-alt-fill"></i> Estado *
+                    </label>
+                    <input type="text" id="state" name="state" class="form-control form-control-lg" 
+                           placeholder="Ej: Querétaro" required
+                           onblur="validateField(this)">
+                </div>
+                
+                <div class="form-group full">
+                    <label for="google_maps_url">
+                        <i class="bi bi-map"></i> URL de Google Maps (Opcional)
+                    </label>
+                    <input type="url" id="google_maps_url" name="google_maps_url" class="form-control form-control-lg" 
+                           placeholder="https://maps.app.goo.gl/... o https://goo.gl/maps/...">
+                    <small class="text-muted">
+                        <i class="bi bi-lightbulb"></i> Pega el enlace compartido de Google Maps para mostrar la ubicación exacta
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label for="latitude">
+                        <i class="bi bi-pin-map"></i> Latitud (Mapa)
+                    </label>
+                    <input type="number" id="latitude" name="latitude" class="form-control form-control-lg"
+                           step="0.000001" placeholder="20.588793">
+                </div>
+                <div class="form-group">
+                    <label for="longitude">
+                        <i class="bi bi-sign-turn-right"></i> Longitud (Mapa)
+                    </label>
+                    <input type="number" id="longitude" name="longitude" class="form-control form-control-lg"
+                           step="0.000001" placeholder="-100.389888">
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalles del Desarrollo -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="bi bi-clipboard-data"></i> Detalles del Desarrollo
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="operation_type">
+                        <i class="bi bi-tag"></i> Tipo de Operación *
+                    </label>
+                    <select id="operation_type" name="operation_type" class="form-control form-control-lg" required>
+                        <option value="">-- Selecciona una opción --</option>
+                        <option value="venta">Venta</option>
+                        <option value="renta">Renta</option>
+                        <option value="venta_renta">Venta y Renta</option>
+                    </select>
+                    <small class="text-muted">Define cómo se comercializa el desarrollo</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="product_type">
+                        <i class="bi bi-grid-3x3-gap"></i> Tipo de producto *
+                    </label>
+                    <select id="product_type" name="product_type" class="form-control form-control-lg" required>
+                        <option value="casa">Casa / residencial</option>
+                        <option value="depto">Departamento</option>
+                        <option value="mixto" selected>Mixto</option>
+                        <option value="terreno">Terreno / lote</option>
+                    </select>
+                    <small class="text-muted">Usado en el filtro público con iconos (casa, depto, etc.).</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="construction_status">
+                        <i class="bi bi-hammer"></i> Estatus de obra *
+                    </label>
+                    <select id="construction_status" name="construction_status" class="form-control form-control-lg" required>
+                        <option value="preventa" selected>Preventa ✨</option>
+                        <option value="construccion">En Construcción 🏗️</option>
+                        <option value="entrega_inmediata">Entrega Inmediata 🔑</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="levels">
+                        <i class="bi bi-layers"></i> Niveles
+                    </label>
+                    <input type="number" id="levels" name="levels" class="form-control form-control-lg"
+                           min="0" placeholder="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="total_units">
+                        <i class="bi bi-building"></i> Total de Unidades *
+                    </label>
+                    <input type="number" id="total_units" name="total_units" class="form-control form-control-lg" 
+                           min="0" placeholder="0" required
+                           onblur="validateUnits()">
+                    <small class="text-muted">Número total de unidades en el desarrollo</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="available_units">
+                        <i class="bi bi-check-circle"></i> Unidades Disponibles *
+                    </label>
+                    <input type="number" id="available_units" name="available_units" class="form-control form-control-lg" 
+                           min="0" placeholder="0" required
+                           onblur="validateUnits()">
+                    <small class="text-muted">Unidades que aún están disponibles</small>
+                    <small id="units_warning" class="text-danger" style="display:none;">
+                        <i class="bi bi-exclamation-triangle"></i> Las unidades disponibles no pueden ser mayores al total
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="parking_spaces">
+                        <i class="bi bi-car-front"></i> Cajones de estacionamiento
+                    </label>
+                    <input type="number" id="parking_spaces" name="parking_spaces" class="form-control form-control-lg"
+                           min="0" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="total_m2">
+                        <i class="bi bi-bounding-box"></i> M2 totales
+                    </label>
+                    <input type="number" id="total_m2" name="total_m2" class="form-control form-control-lg"
+                           min="0" placeholder="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="price_from">
+                        <i class="bi bi-currency-dollar"></i> Precio Desde (MXN) *
+                    </label>
+                    <input type="text" id="price_from" name="price_from" class="form-control form-control-lg"
+                           inputmode="decimal" autocomplete="off" placeholder="Ej. 2500000 o 2,500,000" required>
+                    <small class="text-muted">Precio inicial (separadores de miles opcionales; sin centavos si no aplican)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="delivery_date">
+                        <i class="bi bi-calendar-event"></i> Fecha de Entrega (Opcional)
+                    </label>
+                    <input type="date" id="delivery_date" name="delivery_date" class="form-control form-control-lg">
+                    <small class="text-muted">Fecha estimada de entrega del desarrollo</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Imágenes -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="bi bi-images"></i> Imágenes del Desarrollo
+            </h2>
+            <div class="form-group full">
+                <label for="images">
+                    <i class="bi bi-cloud-upload"></i> Subir Imágenes (múltiples) *
+                </label>
+                <input type="file" id="images" name="images" class="form-control form-control-lg" 
+                       multiple accept="image/*" onchange="previewImages(this)" required>
+                <small class="text-muted">
+                    <i class="bi bi-lightbulb"></i> Puedes seleccionar múltiples imágenes a la vez. La primera imagen será la imagen principal.
+                    <br>
+                    <i class="bi bi-info-circle"></i> Formatos aceptados: JPG, PNG, WEBP. Tamaño recomendado: mínimo 1200x800px
+                </small>
+                <div id="imagePreview" class="mt-3" style="display: none;">
+                    <h4 style="font-size: 0.9rem; margin-bottom: 15px;">Vista Previa:</h4>
+                    <div id="previewContainer" class="row g-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opciones de Publicación -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="bi bi-gear"></i> Opciones de Publicación
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="checkbox-label" style="cursor: pointer; padding: 15px; background: #f8f8f8; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="is_featured" style="width: 20px; height: 20px; cursor: pointer;">
+                        <span style="font-weight: 500;">
+                            <i class="bi bi-star-fill" style="color: #D6B585;"></i> Marcar como Destacado
+                        </span>
+                    </label>
+                    <small class="text-muted">Los desarrollos destacados aparecen primero en la lista</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label" style="cursor: pointer; padding: 15px; background: #f8f8f8; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="is_active" checked style="width: 20px; height: 20px; cursor: pointer;">
+                        <span style="font-weight: 500;">
+                            <i class="bi bi-eye-fill" style="color: #40452E;"></i> Publicar (Activo)
+                        </span>
+                    </label>
+                    <small class="text-muted">Si no está activo, el desarrollo no será visible públicamente</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="form-actions" style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 40px; padding-top: 30px; border-top: 2px solid #eee;">
+            <a href="{% url 'developments:panel_list' %}" class="btn-secondary" style="padding: 12px 30px;">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+            <button type="submit" class="btn-primary" style="padding: 12px 40px;">
+                <i class="bi bi-check-circle"></i> Crear Desarrollo
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function validateField(field) {
+    if (field.value.trim() === '' && field.required) {
+        field.style.borderColor = '#dc3545';
+        return false;
+    } else {
+        field.style.borderColor = '#28a745';
+        return true;
+    }
+}
+
+function validateUnits() {
+    const total = parseInt(document.getElementById('total_units').value) || 0;
+    const available = parseInt(document.getElementById('available_units').value) || 0;
+    const warning = document.getElementById('units_warning');
+    
+    if (available > total) {
+        warning.style.display = 'block';
+        document.getElementById('available_units').style.borderColor = '#dc3545';
+        return false;
+    } else {
+        warning.style.display = 'none';
+        document.getElementById('available_units').style.borderColor = '';
+        return true;
+    }
+}
+
+function previewImages(input) {
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    previewContainer.innerHTML = '';
+    
+    if (input.files && input.files.length > 0) {
+        imagePreview.style.display = 'block';
+        Array.from(input.files).forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-md-3';
+                col.innerHTML = `
+                    <div style="position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <img src="${e.target.result}" style="width: 100%; height: 150px; object-fit: cover;">
+                        ${index === 0 ? '<div style="position: absolute; top: 5px; right: 5px; background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">Principal</div>' : ''}
+                    </div>
+                `;
+                previewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        imagePreview.style.display = 'none';
+    }
+}
+
+function validateForm() {
+    let isValid = true;
+    const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
+    
+    requiredFields.forEach(field => {
+        if (!validateField(field)) {
+            isValid = false;
+        }
+    });
+    
+    if (!validateUnits()) {
+        isValid = false;
+    }
+    
+    if (document.getElementById('images').files.length === 0) {
+        alert('Por favor, sube al menos una imagen del desarrollo.');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+</script>
+<script src="{% static 'js/amenity-selector.js' %}"></script>
+{% endblock dev_panel_body %}
+

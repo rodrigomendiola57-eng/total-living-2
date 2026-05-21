@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "Propiedades" %} - Total Living{% endblock %}
+
+{% block extra_css %}
+<style>
+.property-grid-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+    border: none;
+    height: 500px;
+    transition: all 0.4s ease;
+}
+
+.property-grid-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.property-grid-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.property-grid-card:hover .property-grid-image {
+    transform: scale(1.1);
+}
+
+.property-grid-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
+    padding: 30px;
+    transition: all 0.4s ease;
+}
+
+.property-grid-card:hover .property-grid-overlay {
+    background: linear-gradient(to top, rgba(59, 62, 42, 0.95) 0%, rgba(59, 62, 42, 0.7) 60%, transparent 100%);
+}
+
+.property-grid-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.property-grid-price {
+    font-family: 'Raleway', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #C4A572;
+    margin-bottom: 15px;
+}
+
+.property-grid-location {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 15px;
+}
+
+.property-grid-features {
+    display: flex;
+    gap: 20px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+}
+
+.hero-filter {
+    background: linear-gradient(135deg, #40452E 0%, #38382E 100%);
+    padding: 30px 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero con Filtros -->
+<div class="hero-filter">
+    <div class="container">
+        <div class="text-center mb-3">
+            <h1 class="display-5 fw-light text-white" style="font-family: 'Raleway', sans-serif; letter-spacing: 3px;">
+                {% if current_filters.tipo == 'departamento' %}{% trans "Condominios" %}{% elif current_filters.tipo == 'casa' %}{% trans "Casas" %}{% elif current_filters.tipo == 'terreno' %}{% trans "Terrenos" %}{% else %}{% trans "Propiedades" %}{% endif %} {% trans "en Venta" %}
+            </h1>
+        </div>
+        
+        <!-- Filtros Rápidos -->
+        <div class="card border-0 shadow-lg" style="background: rgba(255,255,255,0.98);">
+            <div class="card-body p-3">
+                <form method="get" class="row g-2">
+                    {% if current_filters.region %}
+                    <input type="hidden" name="region" value="{{ current_filters.region }}">
+                    {% endif %}
+                    <div class="col-md-3">
+                        <select name="tipo" class="form-select">
+                            <option value="">{% trans "Todos los tipos" %}</option>
+                            {% for value, label in property_types|default:property_types_catalog %}
+                            <option value="{{ value }}" {% if current_filters.tipo == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="operacion" class="form-select">
+                            <option value="venta" {% if current_filters.operacion == 'venta' %}selected{% endif %}>{% trans "Venta" %}</option>
+                            <option value="renta">{% trans "Renta" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="ciudad" class="form-control" placeholder="{% trans 'Ciudad...' %}" value="{{ current_filters.ciudad }}">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> {% trans "Buscar" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grid de Propiedades -->
+<div class="container-fluid px-4 py-5">
+    {% if properties %}
+    <div class="row mb-4">
+        <div class="col">
+            <p class="text-muted" style="font-family: 'Montserrat', sans-serif;">
+                {% trans "Mostrando" %} {{ properties.start_index }} - {{ properties.end_index }} {% trans "de" %} {{ properties.paginator.count }} {% trans "propiedades" %}
+            </p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        {% for property in properties %}
+        <div class="col-md-6 col-lg-6">
+            {% include 'properties/property_card.html' with property=property %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Paginación -->
+    {% if properties.has_other_pages %}
+    <nav aria-label="Paginación" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if properties.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ properties.previous_page_number }}{% if current_filters.tipo %}&tipo={{ current_filters.tipo }}{% endif %}{% if current_filters.operacion %}&operacion={{ current_filters.operacion }}{% endif %}{% if current_filters.ciudad %}&ciudad={{ current_filters.ciudad }}{% endif %}{% if current_filters.region %}&region={{ current_filters.region }}{% endif %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">{{ properties.number }} / {{ properties.paginator.num_pages }}</span>
+            </li>
+            
+            {% if properties.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ properties.next_page_number }}{% if current_filters.tipo %}&tipo={{ current_filters.tipo }}{% endif %}{% if current_filters.operacion %}&operacion={{ current_filters.operacion }}{% endif %}{% if current_filters.ciudad %}&ciudad={{ current_filters.ciudad }}{% endif %}{% if current_filters.region %}&region={{ current_filters.region }}{% endif %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-inbox" style="font-size: 5rem; color: #ccc;"></i>
+        <h3 class="mt-4 fw-bold" style="font-family: 'Montserrat', sans-serif;">{% trans "No hay propiedades disponibles" %}</h3>
+        <p class="text-muted" style="font-family: 'Montserrat', sans-serif;">{% trans "Próximamente agregaremos nuevas propiedades" %}</p>
+        <a href="{% url 'home' %}" class="btn btn-primary mt-3">
+            <i class="bi bi-house"></i> {% trans "Volver al Inicio" %}
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

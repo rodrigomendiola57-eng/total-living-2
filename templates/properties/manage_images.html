@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestionar Imágenes - {{ property.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Botones de Gestión Corporativos */
+    .btn-management {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.2rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        letter-spacing: 0.5px;
+        border: 2px solid;
+        text-transform: none;
+    }
+    
+    .btn-management:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn-management:active {
+        transform: translateY(0);
+    }
+    
+    .btn-set-main {
+        background: linear-gradient(135deg, #D6B585 0%, #C4A572 100%);
+        color: #38382E;
+        border-color: #D6B585;
+    }
+    
+    .btn-set-main:hover {
+        background: linear-gradient(135deg, #C4A572 0%, #B8965F 100%);
+        color: #38382E;
+        border-color: #C4A572;
+    }
+    
+    .btn-delete-image {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: #ffffff;
+        border-color: #dc3545;
+    }
+    
+    .btn-delete-image:hover {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        color: #ffffff;
+        border-color: #c82333;
+    }
+    
+    .btn-upload {
+        background: linear-gradient(135deg, #40452E 0%, #38382E 100%);
+        color: #F2ECE0;
+        border-color: #40452E;
+        font-weight: 600;
+    }
+    
+    .btn-upload:hover {
+        background: linear-gradient(135deg, #38382E 0%, #2d2d25 100%);
+        color: #F2ECE0;
+        border-color: #38382E;
+    }
+    
+    .image-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .image-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+    }
+    
+    .badge-main-image {
+        background: linear-gradient(135deg, #D6B585 0%, #C4A572 100%);
+        color: #38382E;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6 fw-bold" style="font-family: 'Montserrat', sans-serif; color: var(--olive-green);">
+                <i class="bi bi-images"></i> Gestionar Imágenes
+            </h1>
+            <p class="lead text-muted">{{ property.title }}</p>
+            <a href="{% url 'properties:detail' property.pk %}" class="btn btn-management btn-images">
+                <i class="bi bi-arrow-left"></i> Volver a la Propiedad
+            </a>
+        </div>
+    </div>
+
+    <!-- Subir Nuevas Imágenes -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-cloud-upload"></i> Subir Nuevas Imágenes</h5>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload">
+                <div class="row g-3">
+                    <div class="col-md-10">
+                        <input type="file" name="images" class="form-control form-control-lg" multiple accept="image/*" required>
+                        <small class="text-muted">Selecciona múltiples imágenes (Ctrl+Click o Cmd+Click)</small>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-upload btn-lg w-100">
+                            <i class="bi bi-upload"></i> Subir
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Galería de Imágenes -->
+    <div class="row g-4">
+        {% for image in images %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 image-card">
+                <img src="{{ image.image.url }}" class="card-img-top" style="height: 300px; object-fit: cover; border-radius: 8px 8px 0 0;" alt="{{ image.alt_text }}">
+                <div class="card-body d-flex flex-column">
+                    {% if image.is_main %}
+                    <span class="badge-main-image mb-3 d-inline-block text-center">
+                        <i class="bi bi-star-fill"></i> IMAGEN PRINCIPAL
+                    </span>
+                    {% else %}
+                    <form method="post" class="mb-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="set_main">
+                        <input type="hidden" name="image_id" value="{{ image.id }}">
+                        <button type="submit" class="btn btn-management btn-set-main w-100">
+                            <i class="bi bi-star"></i> Establecer como Principal
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <form method="post" class="mt-auto" onsubmit="return confirm('¿Estás seguro de eliminar esta imagen? Esta acción no se puede deshacer.');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="image_id" value="{{ image.id }}">
+                        <button type="submit" class="btn btn-management btn-delete-image w-100">
+                            <i class="bi bi-trash"></i> Eliminar Imagen
+                        </button>
+                    </form>
+                    
+                    <p class="card-text small text-muted mb-0 mt-2 text-center">Orden: {{ image.order }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> Esta propiedad no tiene imágenes. Sube algunas usando el formulario de arriba.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

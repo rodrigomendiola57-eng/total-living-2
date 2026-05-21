@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Entornos locales
+venv/
+env/
+ENV/
+.venv/
+.python-version
+
+# Variables y secretos (inyectar en runtime)
+.env
+.env.*
+!.env.example
+
+# Bases de datos locales
+*.sqlite3
+db.sqlite3
+db.sqlite3-journal
+
+# Caché Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+
+# Archivos generados / medios locales
+media/
+staticfiles/
+static_collected/
+
+# Documentación (opcional; quita la línea si quieres README en la imagen)
+*.md
+
+# IDE / OS
+.vscode/
+.idea/
+.cursor/
+.DS_Store
+Thumbs.db
+
+# Cobertura
+htmlcov/
+.coverage

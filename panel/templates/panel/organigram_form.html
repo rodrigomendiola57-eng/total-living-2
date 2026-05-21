@@ -1,0 +1,398 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}{% if member %}Editar ficha{% else %}Nueva ficha{% endif %} — Organigrama{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-properties-tl.css' %}?v=1">
+<style>
+    .panel-properties-page.organigram-form-tl .org-form-lead {
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: var(--tl-muted);
+        margin: -0.35rem 0 1.5rem;
+        max-width: 40rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-form-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.35rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-form-step {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--tl-olive-deep);
+        background: rgba(201, 166, 110, 0.12);
+        border: 1px solid rgba(201, 166, 110, 0.35);
+    }
+    .panel-properties-page.organigram-form-tl .org-form-step span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 50%;
+        background: var(--tl-olive-deep);
+        color: var(--tl-gold-bright);
+        font-size: 0.55rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-url-preview {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.85rem 1rem;
+        margin-bottom: 1.25rem;
+        border-radius: var(--tl-radius-sm);
+        border: 1px solid rgba(201, 166, 110, 0.4);
+        background: linear-gradient(135deg, rgba(61, 68, 54, 0.04), rgba(201, 166, 110, 0.1));
+        font-size: 0.8rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-url-preview strong {
+        color: var(--tl-olive-deep);
+        font-weight: 600;
+    }
+    .panel-properties-page.organigram-form-tl .org-url-preview code {
+        font-size: 0.78rem;
+        word-break: break-all;
+        color: var(--tl-olive-mid);
+        background: rgba(255, 255, 255, 0.7);
+        padding: 0.2rem 0.45rem;
+        border-radius: 8px;
+    }
+    .panel-properties-page.organigram-form-tl .org-section-hint {
+        font-size: 0.8rem;
+        color: var(--tl-muted);
+        margin: -0.35rem 0 1rem;
+        line-height: 1.45;
+        max-width: 42rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-field-hint {
+        font-size: 0.72rem;
+        color: var(--tl-muted);
+        margin: 0.35rem 0 0;
+        line-height: 1.4;
+    }
+    .panel-properties-page.organigram-form-tl .org-photo-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        align-items: start;
+    }
+    @media (min-width: 720px) {
+        .panel-properties-page.organigram-form-tl .org-photo-row {
+            grid-template-columns: 1fr minmax(140px, 180px);
+        }
+    }
+    .panel-properties-page.organigram-form-tl .org-photo-preview {
+        border-radius: var(--tl-radius-sm);
+        border: 1px solid var(--tl-line);
+        background: var(--tl-paper);
+        padding: 0.75rem;
+        text-align: center;
+    }
+    .panel-properties-page.organigram-form-tl .org-photo-preview img {
+        width: 100%;
+        max-width: 160px;
+        height: auto;
+        border-radius: 12px;
+        object-fit: cover;
+        aspect-ratio: 1;
+        box-shadow: var(--tl-shadow);
+    }
+    .panel-properties-page.organigram-form-tl .org-photo-preview .org-photo-placeholder {
+        width: 100%;
+        max-width: 160px;
+        margin: 0 auto;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(61, 68, 54, 0.06);
+        color: var(--tl-muted);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .panel-properties-page.organigram-form-tl .org-social-grid {
+        display: grid;
+        gap: 1rem;
+    }
+    @media (min-width: 640px) {
+        .panel-properties-page.organigram-form-tl .org-social-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    .panel-properties-page.organigram-form-tl .org-social-card {
+        border-radius: var(--tl-radius-sm);
+        border: 1px solid var(--tl-line);
+        background: var(--tl-paper);
+        padding: 1rem 1rem 0.85rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-social-card .form-group {
+        margin-bottom: 0;
+    }
+    .panel-properties-page.organigram-form-tl .org-visibility-card {
+        border-radius: var(--tl-radius-sm);
+        border: 1px dashed rgba(201, 166, 110, 0.55);
+        background: rgba(201, 166, 110, 0.06);
+        padding: 1rem 1.1rem;
+        margin-top: 0.5rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-visibility-card .form-check {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+    .panel-properties-page.organigram-form-tl .org-form-actions-sticky {
+        position: sticky;
+        bottom: 0;
+        z-index: 4;
+        margin: 1.5rem -0.25rem -0.5rem;
+        padding: 1rem 0.25rem 0.5rem;
+        background: linear-gradient(to top, var(--tl-cream) 70%, transparent);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-properties-page organigram-form-tl">
+<div class="edit-container">
+    <div class="page-header">
+        <h1 class="page-title">{% if member %}Editar ficha{% else %}Nueva ficha{% endif %}</h1>
+        <a href="{% url 'panel:organigram_list' %}" class="btn-secondary">← Organigrama</a>
+    </div>
+
+    <p class="org-form-lead">
+        Completa los bloques en orden: primero <strong>dónde</strong> aparece la persona en Nosotros,
+        luego <strong>textos y foto</strong>, después <strong>especialidades</strong> del perfil detallado
+        y por último <strong>contacto y redes</strong>. Los cambios visibles en la web respetan el interruptor «Visible».
+    </p>
+
+    <div class="org-form-steps" aria-hidden="true">
+        <span class="org-form-step"><span>1</span> Posición</span>
+        <span class="org-form-step"><span>2</span> Contenido</span>
+        <span class="org-form-step"><span>3</span> Perfil</span>
+        <span class="org-form-step"><span>4</span> Redes</span>
+    </div>
+
+    {% if member %}
+    <div class="org-url-preview">
+        <strong>URL pública del perfil</strong>
+        <code>/nosotros/equipo/{{ member.slug }}/</code>
+    </div>
+    {% else %}
+    <div class="org-url-preview">
+        <strong>URL del perfil</strong>
+        <span style="color: var(--tl-muted);">Se asignará al guardar (desde el nombre o el slug que indiques).</span>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="edit-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-section">
+            <h3 class="section-title">1 · Posición en la página</h3>
+            <p class="org-section-hint">El nivel agrupa la tarjeta con dirección, gerencia o asesores. El orden numérico define la secuencia dentro del mismo nivel.</p>
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.tier.label_tag }}
+                    {{ form.tier }}
+                    {% if form.tier.help_text %}<p class="org-field-hint">{{ form.tier.help_text }}</p>{% endif %}
+                    {% if form.tier.errors %}<div class="text-danger small">{{ form.tier.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.sort_order.label_tag }}
+                    {{ form.sort_order }}
+                    {% if form.sort_order.help_text %}<p class="org-field-hint">{{ form.sort_order.help_text }}</p>{% endif %}
+                    {% if form.sort_order.errors %}<div class="text-danger small">{{ form.sort_order.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    {{ form.slug.label_tag }}
+                    {{ form.slug }}
+                    {% if form.slug.help_text %}<p class="org-field-hint">{{ form.slug.help_text }}</p>{% endif %}
+                    {% if form.slug.errors %}<div class="text-danger small">{{ form.slug.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">2 · Datos visibles en la tarjeta</h3>
+            <p class="org-section-hint">Nombre, rol y biografía son lo primero que ve el visitante en Nosotros. La etiqueta y el icono son opcionales y refuerzan el mensaje.</p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    {{ form.full_name.label_tag }}
+                    {{ form.full_name }}
+                    {% if form.full_name.help_text %}<p class="org-field-hint">{{ form.full_name.help_text }}</p>{% endif %}
+                    {% if form.full_name.errors %}<div class="text-danger small">{{ form.full_name.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    {{ form.role_label.label_tag }}
+                    {{ form.role_label }}
+                    {% if form.role_label.help_text %}<p class="org-field-hint">{{ form.role_label.help_text }}</p>{% endif %}
+                    {% if form.role_label.errors %}<div class="text-danger small">{{ form.role_label.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.tag_label.label_tag }}
+                    {{ form.tag_label }}
+                    {% if form.tag_label.help_text %}<p class="org-field-hint">{{ form.tag_label.help_text }}</p>{% endif %}
+                    {% if form.tag_label.errors %}<div class="text-danger small">{{ form.tag_label.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.tag_icon.label_tag }}
+                    {{ form.tag_icon }}
+                    {% if form.tag_icon.help_text %}<p class="org-field-hint">{{ form.tag_icon.help_text }}</p>{% endif %}
+                    {% if form.tag_icon.errors %}<div class="text-danger small">{{ form.tag_icon.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    {{ form.bio.label_tag }}
+                    {{ form.bio }}
+                    {% if form.bio.help_text %}<p class="org-field-hint">{{ form.bio.help_text }}</p>{% endif %}
+                    {% if form.bio.errors %}<div class="text-danger small">{{ form.bio.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <div class="org-photo-row">
+                        <div>
+                            {{ form.photo.label_tag }}
+                            {{ form.photo }}
+                            {% if form.photo.help_text %}<p class="org-field-hint">{{ form.photo.help_text }}</p>{% endif %}
+                            {% if form.photo.errors %}<div class="text-danger small">{{ form.photo.errors }}</div>{% endif %}
+                        </div>
+                        <div class="org-photo-preview">
+                            {% if member and member.photo %}
+                                <img src="{{ member.photo.url }}" alt="Foto actual">
+                                <p class="org-field-hint mt-2 mb-0">Vista previa. Sube otra imagen para reemplazar.</p>
+                            {% else %}
+                                <div class="org-photo-placeholder">Sin foto</div>
+                                <p class="org-field-hint mt-2 mb-0">Opcional. Mejora reconocimiento y confianza.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group full">
+                    <div class="org-visibility-card">
+                        <div class="form-check">
+                            {{ form.is_visible }}
+                            <div>
+                                <label class="form-check-label mb-0" for="{{ form.is_visible.id_for_label }}">{{ form.is_visible.label }}</label>
+                                {% if form.is_visible.help_text %}<p class="org-field-hint mb-0">{{ form.is_visible.help_text }}</p>{% endif %}
+                            </div>
+                        </div>
+                        {% if form.is_visible.errors %}<div class="text-danger small mt-1">{{ form.is_visible.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">3 · Especialidades (página de perfil)</h3>
+            <p class="org-section-hint">Hasta tres líneas en la ficha detallada <code>/nosotros/equipo/…</code>. Déjalas vacías si no aplican.</p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    {{ form.expertise_1.label_tag }}
+                    {{ form.expertise_1 }}
+                    {% if form.expertise_1.help_text %}<p class="org-field-hint">{{ form.expertise_1.help_text }}</p>{% endif %}
+                    {% if form.expertise_1.errors %}<div class="text-danger small">{{ form.expertise_1.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    {{ form.expertise_2.label_tag }}
+                    {{ form.expertise_2 }}
+                    {% if form.expertise_2.help_text %}<p class="org-field-hint">{{ form.expertise_2.help_text }}</p>{% endif %}
+                    {% if form.expertise_2.errors %}<div class="text-danger small">{{ form.expertise_2.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    {{ form.expertise_3.label_tag }}
+                    {{ form.expertise_3 }}
+                    {% if form.expertise_3.help_text %}<p class="org-field-hint">{{ form.expertise_3.help_text }}</p>{% endif %}
+                    {% if form.expertise_3.errors %}<div class="text-danger small">{{ form.expertise_3.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">4 · Contacto y redes sociales</h3>
+            <p class="org-section-hint">Todos los campos son opcionales. Usa la URL completa (https://…) para que los enlaces funcionen en la ficha pública.</p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {% if form.email.help_text %}<p class="org-field-hint">{{ form.email.help_text }}</p>{% endif %}
+                    {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="org-social-grid">
+                <div class="org-social-card">
+                    <div class="form-group">
+                        {{ form.url_whatsapp.label_tag }}
+                        {{ form.url_whatsapp }}
+                        {% if form.url_whatsapp.help_text %}<p class="org-field-hint">{{ form.url_whatsapp.help_text }}</p>{% endif %}
+                        {% if form.url_whatsapp.errors %}<div class="text-danger small">{{ form.url_whatsapp.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="org-social-card">
+                    <div class="form-group">
+                        {{ form.url_instagram.label_tag }}
+                        {{ form.url_instagram }}
+                        {% if form.url_instagram.help_text %}<p class="org-field-hint">{{ form.url_instagram.help_text }}</p>{% endif %}
+                        {% if form.url_instagram.errors %}<div class="text-danger small">{{ form.url_instagram.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="org-social-card">
+                    <div class="form-group">
+                        {{ form.url_facebook.label_tag }}
+                        {{ form.url_facebook }}
+                        {% if form.url_facebook.help_text %}<p class="org-field-hint">{{ form.url_facebook.help_text }}</p>{% endif %}
+                        {% if form.url_facebook.errors %}<div class="text-danger small">{{ form.url_facebook.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="org-social-card">
+                    <div class="form-group">
+                        {{ form.url_linkedin.label_tag }}
+                        {{ form.url_linkedin }}
+                        {% if form.url_linkedin.help_text %}<p class="org-field-hint">{{ form.url_linkedin.help_text }}</p>{% endif %}
+                        {% if form.url_linkedin.errors %}<div class="text-danger small">{{ form.url_linkedin.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="org-social-card">
+                    <div class="form-group">
+                        {{ form.url_tiktok.label_tag }}
+                        {{ form.url_tiktok }}
+                        {% if form.url_tiktok.help_text %}<p class="org-field-hint">{{ form.url_tiktok.help_text }}</p>{% endif %}
+                        {% if form.url_tiktok.errors %}<div class="text-danger small">{{ form.url_tiktok.errors }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="org-social-card">
+                    <div class="form-group">
+                        {{ form.url_x.label_tag }}
+                        {{ form.url_x }}
+                        {% if form.url_x.help_text %}<p class="org-field-hint">{{ form.url_x.help_text }}</p>{% endif %}
+                        {% if form.url_x.errors %}<div class="text-danger small">{{ form.url_x.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="org-form-actions-sticky">
+            <div class="form-actions" style="border-top: none; padding-top: 0;">
+                <button type="submit" class="btn btn-primary">Guardar ficha</button>
+                <a href="{% url 'panel:organigram_list' %}" class="btn-secondary">Cancelar</a>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock %}

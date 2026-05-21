@@ -1,0 +1,41 @@
+{% extends 'developments/panel/shell.html' %}
+
+{% block title %}Eliminar Desarrollo{% endblock %}
+
+{% block dev_panel_body %}
+<div class="delete-container">
+    <div class="delete-box">
+        <div class="delete-icon">
+            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+        </div>
+        
+        <h1>¿Eliminar Desarrollo?</h1>
+        
+        <p class="delete-warning">
+            Esta acción no se puede deshacer. Se eliminará permanentemente el desarrollo y todas sus imágenes asociadas.
+        </p>
+        
+        <div class="property-info">
+            <h3>{{ development.name }}</h3>
+            <p class="text-muted mb-2">
+                <i class="bi bi-geo-alt"></i> {{ development.location }}, {{ development.city }}
+            </p>
+            <p class="price">Desde ${{ development.price_from|floatformat:0 }} MXN</p>
+            <p class="text-muted">
+                {{ development.available_units }}/{{ development.total_units }} unidades disponibles
+            </p>
+        </div>
+        
+        <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger">
+                <i class="bi bi-trash"></i> Sí, Eliminar Desarrollo
+            </button>
+        </form>
+        
+        <a href="{% url 'developments:panel_list' %}" class="btn-secondary" style="margin-left: 10px;">
+            Cancelar
+        </a>
+    </div>
+</div>
+{% endblock dev_panel_body %}

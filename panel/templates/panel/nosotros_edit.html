@@ -1,0 +1,444 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Página Nosotros — textos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-properties-tl.css' %}?v=1">
+<style>
+    .panel-properties-page .nosotros-page-lead {
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: var(--tl-muted);
+        margin: -0.5rem 0 1.5rem;
+        max-width: 52rem;
+    }
+    .panel-properties-page .nosotros-section-meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--tl-gold);
+        margin-bottom: 0.75rem;
+    }
+    .panel-properties-page .nosotros-manifest-chip {
+        margin: 1.25rem 0 0.65rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--tl-olive-deep);
+        background: rgba(201, 166, 110, 0.14);
+        border: 1px solid rgba(201, 166, 110, 0.35);
+    }
+    .panel-properties-page .nosotros-organigram-cta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+        padding: 1.35rem 1.5rem;
+        margin: 0 0 1.5rem;
+        border-radius: var(--tl-radius);
+        border: 1px solid rgba(201, 166, 110, 0.45);
+        background: linear-gradient(135deg, rgba(61, 68, 54, 0.06) 0%, rgba(201, 166, 110, 0.12) 100%);
+        box-shadow: var(--tl-shadow);
+    }
+    .panel-properties-page .nosotros-organigram-cta-text {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: var(--tl-olive-deep);
+        font-weight: 600;
+        max-width: 26rem;
+    }
+    .panel-properties-page .nosotros-organigram-cta-text span {
+        display: block;
+        margin-top: 0.35rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--tl-muted);
+    }
+    .panel-properties-page .nosotros-organigram-cta-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.65rem;
+        padding: 1rem 2rem;
+        min-height: 3.25rem;
+        border-radius: 999px;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: var(--tl-olive-deep);
+        background: linear-gradient(135deg, var(--tl-gold-bright), var(--tl-gold));
+        box-shadow: 0 12px 32px rgba(201, 166, 110, 0.45);
+        transition: transform 0.2s, box-shadow 0.2s;
+        flex-shrink: 0;
+    }
+    .panel-properties-page .nosotros-organigram-cta-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px rgba(201, 166, 110, 0.55);
+        color: var(--tl-olive-deep);
+    }
+    .panel-properties-page .nosotros-organigram-cta-btn .bi {
+        font-size: 1.35rem;
+    }
+    @media (max-width: 700px) {
+        .panel-properties-page .nosotros-organigram-cta {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .panel-properties-page .nosotros-organigram-cta-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    .panel-properties-page .nosotros-field-hint {
+        font-size: 0.75rem;
+        color: var(--tl-muted);
+        margin-top: 0.35rem;
+        line-height: 1.45;
+    }
+    .panel-properties-page .nosotros-form-actions {
+        position: sticky;
+        bottom: 1rem;
+        z-index: 4;
+        margin-top: 0.5rem;
+        padding: 1rem 1.1rem;
+        border-radius: var(--tl-radius-sm);
+        border: 1px solid var(--tl-line);
+        background: rgba(250, 249, 246, 0.92);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--tl-shadow);
+    }
+    @media (max-width: 900px) {
+        .panel-properties-page .nosotros-form-actions {
+            position: static;
+            backdrop-filter: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-properties-page">
+<div class="edit-container">
+    <div class="page-header">
+        <h1 class="page-title">Nosotros</h1>
+        <a href="{% url 'about' %}" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            <i class="bi bi-eye me-1"></i>Vista pública
+        </a>
+    </div>
+    <div class="nosotros-organigram-cta">
+        <p class="nosotros-organigram-cta-text">
+            Organigrama del equipo
+            <span>Fotos, redes, puestos y orden en la sección «Estructura de equipo».</span>
+        </p>
+        <a href="{% url 'panel:organigram_list' %}" class="nosotros-organigram-cta-btn">
+            <i class="bi bi-diagram-3-fill" aria-hidden="true"></i>
+            Abrir organigrama
+        </a>
+    </div>
+    <p class="nosotros-page-lead">
+        Textos de la página <strong>Nosotros</strong> (hero bajo el vídeo, manifiesto, valores, misión/visión, banner).
+        El vídeo y el diseño siguen en plantillas; el botón de sonido usa traducciones.
+    </p>
+
+    <form method="post" class="edit-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-section">
+            <div class="nosotros-section-meta"><i class="bi bi-camera-video"></i> Zona superior</div>
+            <h3 class="section-title">Hero (debajo del vídeo)</h3>
+            <p class="nosotros-field-hint" style="margin-top:-0.35rem;margin-bottom:1rem;">
+                Justo <strong>debajo</strong> del vídeo: título (H1), dos líneas y manifiesto; luego «Valores».
+            </p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="{{ form.hero_title.id_for_label }}">Título principal (H1)</label>
+                    {{ form.hero_title }}
+                    {% if form.hero_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.hero_title.errors }}</div>{% endif %}
+                    <div class="nosotros-field-hint">Frase corta bajo el vídeo.</div>
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.hero_line_1.id_for_label }}">Primera línea del párrafo</label>
+                    {{ form.hero_line_1 }}
+                    {% if form.hero_line_1.errors %}<div class="nosotros-field-hint text-danger">{{ form.hero_line_1.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.hero_line_2.id_for_label }}">Segunda línea del párrafo</label>
+                    {{ form.hero_line_2 }}
+                    {% if form.hero_line_2.errors %}<div class="nosotros-field-hint text-danger">{{ form.hero_line_2.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="nosotros-section-meta"><i class="bi bi-layout-three-columns"></i> Cinco tarjetas</div>
+            <h3 class="section-title">Manifiesto T · O · T · A · L</h3>
+            <p class="nosotros-field-hint" style="margin-top:-0.35rem;margin-bottom:1rem;">
+                Letras <strong>T O T A L</strong> fijas. Subtítulo (mayúsculas en web) + descripción. Orden: T → O → T → A → L.
+            </p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="{{ form.manifest_title.id_for_label }}">Título interno «Manifiesto…» (opcional)</label>
+                    {{ form.manifest_title }}
+                    {% if form.manifest_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_title.errors }}</div>{% endif %}
+                    <div class="nosotros-field-hint">La web actual <strong>no muestra</strong> este titular en hero.</div>
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Tarjeta 1 — T</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.manifest_t_meaning.id_for_label }}">Subtítulo</label>
+                    {{ form.manifest_t_meaning }}
+                    {% if form.manifest_t_meaning.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_t_meaning.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.manifest_t_desc.id_for_label }}">Descripción</label>
+                    {{ form.manifest_t_desc }}
+                    {% if form.manifest_t_desc.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_t_desc.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Tarjeta 2 — O</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.manifest_o_meaning.id_for_label }}">Subtítulo</label>
+                    {{ form.manifest_o_meaning }}
+                    {% if form.manifest_o_meaning.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_o_meaning.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.manifest_o_desc.id_for_label }}">Descripción</label>
+                    {{ form.manifest_o_desc }}
+                    {% if form.manifest_o_desc.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_o_desc.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Tarjeta 3 — segunda T</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.manifest_t2_meaning.id_for_label }}">Subtítulo</label>
+                    {{ form.manifest_t2_meaning }}
+                    {% if form.manifest_t2_meaning.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_t2_meaning.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.manifest_t2_desc.id_for_label }}">Descripción</label>
+                    {{ form.manifest_t2_desc }}
+                    {% if form.manifest_t2_desc.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_t2_desc.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Tarjeta 4 — A</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.manifest_a_meaning.id_for_label }}">Subtítulo</label>
+                    {{ form.manifest_a_meaning }}
+                    {% if form.manifest_a_meaning.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_a_meaning.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.manifest_a_desc.id_for_label }}">Descripción</label>
+                    {{ form.manifest_a_desc }}
+                    {% if form.manifest_a_desc.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_a_desc.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Tarjeta 5 — L</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.manifest_l_meaning.id_for_label }}">Subtítulo</label>
+                    {{ form.manifest_l_meaning }}
+                    {% if form.manifest_l_meaning.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_l_meaning.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.manifest_l_desc.id_for_label }}">Descripción</label>
+                    {{ form.manifest_l_desc }}
+                    {% if form.manifest_l_desc.errors %}<div class="nosotros-field-hint text-danger">{{ form.manifest_l_desc.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="nosotros-section-meta"><i class="bi bi-stars"></i> Bloque oscuro</div>
+            <h3 class="section-title">Valores Total Living</h3>
+            <p class="nosotros-field-hint" style="margin-top:-0.35rem;margin-bottom:1rem;">
+                Entre manifiesto y misión/visión. Iconos: clase <code>bi-…</code> (<a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener noreferrer">catálogo</a>).
+            </p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="{{ form.values_title.id_for_label }}">Título de la sección</label>
+                    {{ form.values_title }}
+                    {% if form.values_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.values_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.values_subtitle.id_for_label }}">Subtítulo</label>
+                    {{ form.values_subtitle }}
+                    {% if form.values_subtitle.errors %}<div class="nosotros-field-hint text-danger">{{ form.values_subtitle.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Valor 1</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.value_1_icon.id_for_label }}">Icono</label>
+                    {{ form.value_1_icon }}
+                    {% if form.value_1_icon.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_1_icon.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.value_1_title.id_for_label }}">Nombre</label>
+                    {{ form.value_1_title }}
+                    {% if form.value_1_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_1_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.value_1_text.id_for_label }}">Descripción</label>
+                    {{ form.value_1_text }}
+                    {% if form.value_1_text.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_1_text.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Valor 2</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.value_2_icon.id_for_label }}">Icono</label>
+                    {{ form.value_2_icon }}
+                    {% if form.value_2_icon.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_2_icon.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.value_2_title.id_for_label }}">Nombre</label>
+                    {{ form.value_2_title }}
+                    {% if form.value_2_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_2_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.value_2_text.id_for_label }}">Descripción</label>
+                    {{ form.value_2_text }}
+                    {% if form.value_2_text.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_2_text.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Valor 3</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.value_3_icon.id_for_label }}">Icono</label>
+                    {{ form.value_3_icon }}
+                    {% if form.value_3_icon.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_3_icon.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.value_3_title.id_for_label }}">Nombre</label>
+                    {{ form.value_3_title }}
+                    {% if form.value_3_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_3_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.value_3_text.id_for_label }}">Descripción</label>
+                    {{ form.value_3_text }}
+                    {% if form.value_3_text.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_3_text.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Valor 4</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.value_4_icon.id_for_label }}">Icono</label>
+                    {{ form.value_4_icon }}
+                    {% if form.value_4_icon.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_4_icon.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.value_4_title.id_for_label }}">Nombre</label>
+                    {{ form.value_4_title }}
+                    {% if form.value_4_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_4_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.value_4_text.id_for_label }}">Descripción</label>
+                    {{ form.value_4_text }}
+                    {% if form.value_4_text.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_4_text.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="nosotros-manifest-chip">Valor 5</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.value_5_icon.id_for_label }}">Icono</label>
+                    {{ form.value_5_icon }}
+                    {% if form.value_5_icon.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_5_icon.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.value_5_title.id_for_label }}">Nombre</label>
+                    {{ form.value_5_title }}
+                    {% if form.value_5_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_5_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.value_5_text.id_for_label }}">Descripción</label>
+                    {{ form.value_5_text }}
+                    {% if form.value_5_text.errors %}<div class="nosotros-field-hint text-danger">{{ form.value_5_text.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="nosotros-section-meta"><i class="bi bi-bullseye"></i> Tras Valores</div>
+            <h3 class="section-title">Misión y visión</h3>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="{{ form.mission_vision_title.id_for_label }}">Título de la sección</label>
+                    {{ form.mission_vision_title }}
+                    {% if form.mission_vision_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.mission_vision_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.mission_title.id_for_label }}">Título — Misión</label>
+                    {{ form.mission_title }}
+                    {% if form.mission_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.mission_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.vision_title.id_for_label }}">Título — Visión</label>
+                    {{ form.vision_title }}
+                    {% if form.vision_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.vision_title.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.mission_text.id_for_label }}">Texto misión</label>
+                    {{ form.mission_text }}
+                    {% if form.mission_text.errors %}<div class="nosotros-field-hint text-danger">{{ form.mission_text.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group full">
+                    <label for="{{ form.vision_text.id_for_label }}">Texto visión</label>
+                    {{ form.vision_text }}
+                    {% if form.vision_text.errors %}<div class="nosotros-field-hint text-danger">{{ form.vision_text.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="nosotros-section-meta"><i class="bi bi-people-fill"></i> Cierre</div>
+            <h3 class="section-title">Banner de equipo</h3>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="{{ form.team_banner_title.id_for_label }}">Título del banner</label>
+                    {{ form.team_banner_title }}
+                    {% if form.team_banner_title.errors %}<div class="nosotros-field-hint text-danger">{{ form.team_banner_title.errors }}</div>{% endif %}
+                    <div class="nosotros-field-hint">Imagen del banner sigue en plantilla pública.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nosotros-form-actions">
+            <div class="form-actions" style="border-top:none;padding-top:0;margin-top:0;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i>Guardar cambios
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'developments/panel/shell.html' %}
+
+{% block title %}Gestión de Desarrollos{% endblock %}
+
+{% block dev_panel_body %}
+<div class="properties-container">
+    <div class="page-header">
+        <h1 class="page-title">B. Gestión de desarrollos</h1>
+        <a href="{% url 'developments:panel_add' %}" class="btn-primary" style="font-size:1rem;padding:0.75rem 1.4rem;">
+            <i class="bi bi-plus-lg"></i> Agregar nuevo desarrollo
+        </a>
+    </div>
+
+    <form method="get" class="form-section" style="margin-bottom:1.25rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
+        <div class="form-group" style="margin:0;">
+            <label for="f_city">Ciudad</label>
+            <input type="text" id="f_city" name="city" class="form-control" value="{{ filter_city }}" placeholder="Filtrar…" list="city_list">
+            <datalist id="city_list">
+                {% for c in city_choices %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+        </div>
+        <div class="form-group" style="margin:0;">
+            <label for="f_status">Estatus de obra</label>
+            <select id="f_status" name="construction_status" class="form-control">
+                <option value="">Todos</option>
+                {% for val, label in construction_status_choices %}
+                <option value="{{ val }}" {% if filter_status == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-secondary">Filtrar</button>
+        {% if filter_city or filter_status %}
+        <a href="{% url 'developments:panel_list' %}" class="btn-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+
+    <div class="properties-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Operación</th>
+                    <th>Unidades</th>
+                    <th>Precio Desde</th>
+                    <th>Estado</th>
+                    <th>Destacado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for development in developments %}
+                <tr>
+                    <td>{{ development.id }}</td>
+                    <td>
+                        <strong>{{ development.name }}</strong>
+                        <div class="text-muted" style="font-size:0.8rem;">/{{ development.slug }}/</div>
+                    </td>
+                    <td>{{ development.city }}, {{ development.state }}</td>
+                    <td>{{ development.get_operation_type_display }}<br><small class="text-muted">{{ development.get_construction_status_display }}</small></td>
+                    <td>{{ development.available_units }}/{{ development.total_units }}</td>
+                    <td>${{ development.price_from|floatformat:0 }}</td>
+                    <td>
+                        {% if development.is_active %}
+                        <span class="badge badge-disponible">Activo</span>
+                        {% else %}
+                        <span class="badge badge-vendida">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>{% if development.is_featured %}⭐{% else %}-{% endif %}</td>
+                    <td class="actions-cell">
+                        <div class="actions-group">
+                            <a href="{% url 'developments:panel_edit' development.pk %}" class="btn-action btn-edit" title="Editar">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </a>
+                            <a href="{% url 'developments:panel_images' development.pk %}" class="btn-action btn-images" title="Imágenes">
+                                <i class="bi bi-images"></i> Imágenes
+                            </a>
+                            <a href="{% url 'developments:panel_delete' development.pk %}" class="btn-action btn-delete" title="Eliminar">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align: center;">No hay desarrollos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,468 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Editar Propiedad{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS (OpenStreetMap - GRATIS) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<style>
+.form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.form-section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--olive-green);
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--creamy-beige);
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.checkbox-item:hover {
+    background: var(--creamy-beige);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    margin: 0;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* IMPORTANTE: Si no pones altura, el mapa será invisible (blanco) */
+#map {
+    height: 450px;
+    width: 100%;
+    border-radius: 10px;
+    border: 2px solid #D6B585;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5 fw-bold" style="font-family: 'Montserrat', sans-serif; color: var(--olive-green);">
+                <i class="bi bi-pencil-square"></i> Editar Propiedad
+            </h1>
+            <p class="lead text-muted">Modifique la información de la propiedad</p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Información Básica -->
+        <div class="form-section">
+            <h3 class="form-section-title"><i class="bi bi-info-circle"></i> Información Básica</h3>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Título de la Propiedad *</label>
+                    <input type="text" name="title" class="form-control form-control-lg" value="{{ property.title }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Tipo *</label>
+                    <select name="property_type" class="form-select form-select-lg" required>
+                        {% for value, label in property_types|default:property_types_catalog %}
+                        <option value="{{ value }}" {% if property.property_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Descripción *</label>
+                    <textarea name="description" class="form-control" rows="4" required>{{ property.description }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured" {% if property.is_featured %}checked{% endif %} style="width: 3rem; height: 1.5rem;">
+                        <label class="form-check-label fw-semibold ms-2" for="is_featured" style="font-size: 1.1rem;">
+                            <i class="bi bi-star-fill text-warning"></i> Marcar como Destacada (Aparecerá en el Carrusel Principal)
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_new" id="is_new" {% if property.is_new %}checked{% endif %} style="width: 3rem; height: 1.5rem;">
+                        <label class="form-check-label fw-semibold ms-2" for="is_new" style="font-size: 1.1rem;">
+                            <i class="bi bi-badge-tm text-success"></i> Marcar como Nueva
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Precio y Operación -->
+        <div class="form-section">
+            <h3 class="form-section-title"><i class="bi bi-currency-dollar"></i> Precio y Operación</h3>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Precio *</label>
+                    <input type="number" name="price" class="form-control form-control-lg" step="0.01" value="{{ property.price|floatformat:2|default:'' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Operación *</label>
+                    <select name="operation_type" class="form-select form-select-lg" required>
+                        <option value="venta" {% if property.operation_type == 'venta' %}selected{% endif %}>Venta</option>
+                        <option value="renta" {% if property.operation_type == 'renta' %}selected{% endif %}>Renta</option>
+                        <option value="venta_renta" {% if property.operation_type == 'venta_renta' %}selected{% endif %}>Venta o Renta</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Cuota de Mantenimiento (MXN)</label>
+                    <input type="number" name="maintenance_fee" class="form-control form-control-lg" value="{{ property.maintenance_fee|floatformat:2|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Ubicación -->
+        <div class="form-section">
+            <h3 class="form-section-title"><i class="bi bi-geo-alt"></i> Ubicación</h3>
+            
+            <!-- Buscador de ubicación -->
+            <div class="mb-4">
+                <label for="location-search" class="form-label fw-semibold">
+                    <i class="bi bi-search"></i> Buscar Ubicación
+                </label>
+                <div class="input-group input-group-lg">
+                    <input type="text" id="location-search" class="form-control" 
+                           placeholder="Ej: Polanco, CDMX o Monterrey, Nuevo León"
+                           value="{% if property.address %}{{ property.address }}, {{ property.city }}{% endif %}">
+                    <button class="btn btn-primary" type="button" id="search-btn">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+                <small class="text-muted">O haz clic en el mapa para marcar la ubicación exacta</small>
+            </div>
+            
+            <!-- Mapa Interactivo -->
+            <div class="mb-4">
+                <div id="map"></div>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Dirección *</label>
+                    <input type="text" name="address" id="id_address" class="form-control form-control-lg" value="{{ property.address }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Ciudad *</label>
+                    <input type="text" name="city" id="id_city" class="form-control form-control-lg" value="{{ property.city }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Estado *</label>
+                    <input type="text" name="state" id="id_state" class="form-control form-control-lg" value="{{ property.state }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Código Postal</label>
+                    <input type="text" name="zip_code" id="id_zip_code" class="form-control form-control-lg" value="{{ property.zip_code|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Latitud</label>
+                    <input type="number" name="latitude" id="id_latitude" class="form-control" step="0.000001" value="{% if property.latitude %}{{ property.latitude }}{% endif %}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Longitud</label>
+                    <input type="number" name="longitude" id="id_longitude" class="form-control" step="0.000001" value="{% if property.longitude %}{{ property.longitude }}{% endif %}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <!-- Características Físicas -->
+        <div class="form-section">
+            <h3 class="form-section-title"><i class="bi bi-rulers"></i> Características Físicas</h3>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Terreno (m²) *</label>
+                    <input type="number" name="lot_area" class="form-control form-control-lg" step="0.01" value="{{ property.lot_area|default:0 }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Construcción (m²) *</label>
+                    <input type="number" name="construction_area" class="form-control form-control-lg" step="0.01" value="{{ property.construction_area|default:0 }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Medida Frente (m)</label>
+                    <input type="number" name="front_measure" class="form-control form-control-lg" step="0.01" value="{{ property.front_measure|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Medida Fondo (m)</label>
+                    <input type="number" name="back_measure" class="form-control form-control-lg" step="0.01" value="{{ property.back_measure|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Recámaras</label>
+                    <input type="number" name="bedrooms" class="form-control form-control-lg" value="{{ property.bedrooms|default:0 }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Baños Completos</label>
+                    <input type="number" name="bathrooms" class="form-control form-control-lg" value="{{ property.bathrooms|default:0 }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Medios Baños</label>
+                    <input type="number" name="half_bathrooms" class="form-control form-control-lg" value="{{ property.half_bathrooms|default:0 }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Estacionamientos</label>
+                    <input type="number" name="parking_spaces" class="form-control form-control-lg" value="{{ property.parking_spaces|default:0 }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Niveles Construidos</label>
+                    <input type="number" name="floors" class="form-control form-control-lg" value="{{ property.floors|default:1 }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Año de Construcción</label>
+                    <input type="number" name="year_built" class="form-control form-control-lg" value="{{ property.year_built|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Ambientes</label>
+                    <input type="number" name="rooms" class="form-control form-control-lg" value="{{ property.rooms|default:0 }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title"><i class="bi bi-diagram-3"></i> Catálogos normalizados activos</h3>
+            <p class="text-muted mb-0">
+                Esta vista quedó en modo legado. Para editar amenidades, distribución y servicios con el nuevo esquema normalizado,
+                usa el editor del panel administrativo.
+            </p>
+        </div>
+
+        <!-- Imágenes -->
+        <div class="form-section">
+            <h3 class="form-section-title"><i class="bi bi-images"></i> Imágenes</h3>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Agregar Nuevas Imágenes (Múltiples)</label>
+                <input type="file" name="images" class="form-control form-control-lg" multiple accept="image/*">
+                <small class="text-muted">Puede seleccionar múltiples imágenes para agregar. Las imágenes existentes se mantienen.</small>
+            </div>
+            <div class="mt-3">
+                <a href="{% url 'properties:manage_images' property.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-images"></i> Gestionar Imágenes Existentes
+                </a>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a href="{% url 'properties:detail' property.pk %}" class="btn btn-outline-secondary btn-lg w-100">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+            <div class="col-md-6">
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS (OpenStreetMap - GRATIS) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+let map;
+let marker;
+
+function initMap() {
+    // Verificar que Leaflet esté disponible
+    if (typeof L === 'undefined') {
+        console.error('Leaflet no está disponible');
+        return;
+    }
+    
+    // Usar coordenadas existentes o por defecto
+    {% if property.latitude and property.longitude %}
+    const defaultLat = {{ property.latitude }};
+    const defaultLng = {{ property.longitude }};
+    const defaultZoom = 16;
+    {% else %}
+    const defaultLat = 19.4326;
+    const defaultLng = -99.1332;
+    const defaultZoom = 13;
+    {% endif %}
+    
+    // 1. Inicializar mapa
+    map = L.map('map').setView([defaultLat, defaultLng], defaultZoom);
+    
+    // 2. Cargar la capa de diseño (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    // 3. Agregar un marcador arrastrable
+    marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
+    
+    // 4. Guardar coordenadas al mover el pin
+    marker.on('dragend', function(e) {
+        const position = marker.getLatLng();
+        updateCoordinates(position.lat, position.lng);
+        reverseGeocode(position.lat, position.lng);
+    });
+    
+    // Click en el mapa para colocar marcador
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateCoordinates(e.latlng.lat, e.latlng.lng);
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Búsqueda de ubicación
+    const searchInput = document.getElementById('location-search');
+    const searchBtn = document.getElementById('search-btn');
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            searchLocation(searchInput.value);
+        });
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchLocation(searchInput.value);
+            }
+        });
+    }
+}
+
+async function searchLocation(query) {
+    if (!query) {
+        alert('Por favor escribe una ubicación.');
+        return;
+    }
+    
+    const searchBtn = document.getElementById('search-btn');
+    searchBtn.disabled = true;
+    searchBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Buscando...';
+    
+    try {
+        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+        
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'TotalLivingApp/1.0'
+            }
+        });
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+            const result = data[0];
+            const lat = parseFloat(result.lat);
+            const lng = parseFloat(result.lon);
+            
+            map.setView([lat, lng], 15);
+            marker.setLatLng([lat, lng]);
+            updateCoordinates(lat, lng);
+            
+            if (result.address) {
+                fillAddressFields(result.address);
+            }
+            
+            searchBtn.disabled = false;
+            searchBtn.innerHTML = '<i class="bi bi-search"></i> Buscar';
+            
+            marker.bindPopup(`<b>Ubicación encontrada</b><br>${result.display_name}`).openPopup();
+        } else {
+            searchBtn.disabled = false;
+            searchBtn.innerHTML = '<i class="bi bi-search"></i> Buscar';
+            alert('No se encontró. Prueba: "Reforma 222, CDMX" o haz click en el mapa.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = '<i class="bi bi-search"></i> Buscar';
+        alert('Haz click directamente en el mapa para marcar la ubicación.');
+    }
+}
+
+function fillAddressFields(address) {
+    if (address.road || address.street) {
+        const road = address.road || address.street;
+        const number = address.house_number || '';
+        document.getElementById('id_address').value = number ? `${road} ${number}` : road;
+    }
+    if (address.city || address.town || address.village || address.municipality) {
+        document.getElementById('id_city').value = address.city || address.town || address.village || address.municipality;
+    }
+    if (address.state) {
+        document.getElementById('id_state').value = address.state;
+    }
+    if (address.postcode) {
+        document.getElementById('id_zip_code').value = address.postcode;
+    }
+}
+
+async function reverseGeocode(lat, lng) {
+    try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'TotalLivingApp/1.0'
+            }
+        });
+        const data = await response.json();
+        
+        if (data && data.address) {
+            fillAddressFields(data.address);
+            document.getElementById('location-search').value = data.display_name;
+            marker.bindPopup(`<b>Ubicación seleccionada</b><br>${data.display_name}`).openPopup();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function updateCoordinates(lat, lng) {
+    document.getElementById('id_latitude').value = lat.toFixed(6);
+    document.getElementById('id_longitude').value = lng.toFixed(6);
+}
+
+// Esperar a que Leaflet esté cargado
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof L !== 'undefined') {
+        initMap();
+    } else {
+        // Esperar un poco más si Leaflet aún no está listo
+        setTimeout(function() {
+            if (typeof L !== 'undefined') {
+                initMap();
+            }
+        }, 200);
+    }
+});
+</script>
+{% endblock %}

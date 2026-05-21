@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if profile %}{{ profile.full_name }} - Total Living{% else %}Perfil no encontrado - Total Living{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .team-profile-page {
+        background: #f6f7f9;
+        padding: 44px 0 60px;
+    }
+    .team-profile-card {
+        background: #fff;
+        border: 1px solid rgba(64, 69, 46, 0.14);
+        border-radius: 18px;
+        box-shadow: 0 12px 28px rgba(20, 22, 18, 0.08);
+        overflow: hidden;
+    }
+    .team-profile-head {
+        background: linear-gradient(140deg, #40452e, #2f342d);
+        color: #f2ece0;
+        padding: 26px;
+    }
+    .team-profile-body {
+        padding: 24px;
+    }
+    .team-photo {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid rgba(255, 255, 255, 0.35);
+        margin-bottom: 14px;
+    }
+    .team-photo-placeholder {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid rgba(255, 255, 255, 0.35);
+        margin-bottom: 14px;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #f2ece0;
+        background: rgba(255, 255, 255, 0.14);
+    }
+    .team-role {
+        margin: 0 0 8px;
+        font-weight: 700;
+    }
+    .team-tag {
+        display: inline-block;
+        background: rgba(215, 178, 122, 0.2);
+        color: #5f4a28;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 14px;
+    }
+    .team-section-title {
+        margin: 18px 0 10px;
+        color: #2f342d;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+    .team-list {
+        margin: 0;
+        padding-left: 18px;
+        color: #5f6878;
+        line-height: 1.65;
+    }
+    .team-actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="team-profile-page">
+    <div class="container">
+        <a href="{% url 'about' %}" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Volver a Nosotros</a>
+
+        {% if profile %}
+        <article class="team-profile-card">
+            <div class="team-profile-head">
+                {% if profile.photo_url %}
+                    <img class="team-photo" src="{{ profile.photo_url }}" alt="{{ profile.full_name }}">
+                {% else %}
+                    <div class="team-photo-placeholder">
+                        {{ profile.full_name|first|upper }}
+                    </div>
+                {% endif %}
+                <h1 class="h3 mb-1">{{ profile.full_name }}</h1>
+                <p class="team-role">{{ profile.role }}</p>
+            </div>
+            <div class="team-profile-body">
+                <span class="team-tag">{{ profile.tag }}</span>
+                <p class="mb-0">{{ profile.bio }}</p>
+
+                <h2 class="team-section-title">Especialidades</h2>
+                <ul class="team-list">
+                    {% for item in profile.expertise %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+
+                <div class="team-actions">
+                    {% if profile.email %}
+                    <a class="btn btn-dark" href="mailto:{{ profile.email }}"><i class="bi bi-envelope"></i> Correo</a>
+                    {% endif %}
+                    {% if profile.whatsapp %}
+                    <a class="btn btn-success" target="_blank" rel="noopener noreferrer" href="{{ profile.whatsapp }}"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+                    {% endif %}
+                    {% if profile.instagram %}
+                    <a class="btn btn-outline-dark" target="_blank" rel="noopener noreferrer" href="{{ profile.instagram }}"><i class="bi bi-instagram"></i> Instagram</a>
+                    {% endif %}
+                    {% if profile.facebook %}
+                    <a class="btn btn-outline-primary" target="_blank" rel="noopener noreferrer" href="{{ profile.facebook }}"><i class="bi bi-facebook"></i> Facebook</a>
+                    {% endif %}
+                    {% if profile.linkedin %}
+                    <a class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer" href="{{ profile.linkedin }}"><i class="bi bi-linkedin"></i> LinkedIn</a>
+                    {% endif %}
+                    {% if profile.tiktok %}
+                    <a class="btn btn-outline-dark" target="_blank" rel="noopener noreferrer" href="{{ profile.tiktok }}"><i class="bi bi-tiktok"></i> TikTok</a>
+                    {% endif %}
+                    {% if profile.x_url %}
+                    <a class="btn btn-outline-dark" target="_blank" rel="noopener noreferrer" href="{{ profile.x_url }}"><i class="bi bi-twitter-x"></i> X</a>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% else %}
+        <article class="team-profile-card">
+            <div class="team-profile-body">
+                <h1 class="h4 mb-2">Perfil no encontrado</h1>
+                <p class="mb-0">El asesor solicitado no existe o no está disponible.</p>
+            </div>
+        </article>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

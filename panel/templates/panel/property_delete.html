@@ -1,0 +1,38 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Propiedad{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-properties-tl.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="panel-properties-page">
+<div class="delete-container">
+    <div class="page-header">
+        <h1 class="page-title">Eliminar propiedad</h1>
+        <a href="{% url 'panel:properties' %}" class="btn-secondary">Volver al listado</a>
+    </div>
+    <div class="delete-box">
+        <div class="delete-icon">⚠️</div>
+        <h2>¿Eliminar esta propiedad?</h2>
+        <p class="delete-warning">Esta acción no se puede deshacer</p>
+        
+        <div class="property-info">
+            <h3>{{ property.title }}</h3>
+            <p>{{ property.get_property_type_display }} en {{ property.city }}</p>
+            <p class="price">{{ property.get_price_display }}</p>
+        </div>
+
+        <form method="post" class="delete-form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="{% url 'panel:properties' %}" class="btn-secondary">Cancelar</a>
+                <button type="submit" class="btn-danger">Sí, Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}

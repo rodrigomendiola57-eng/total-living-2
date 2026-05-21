@@ -1,0 +1,77 @@
+{% load i18n %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+           href="{% url 'home' %}">
+            {% trans "Inicio" %}
+        </a>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle {% if '/properties/' in request.path %}active{% endif %}" href="#"
+           id="propiedadesDropdown{{ nav_id_suffix|default:'' }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {% trans "Propiedades" %}
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="propiedadesDropdown{{ nav_id_suffix|default:'' }}">
+            <li><a class="dropdown-item" href="{% url 'properties:comprar_todas' %}">{% trans "Propiedades en venta" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'properties:renta' %}">{% trans "Propiedades en renta" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'developments:list' %}">{% trans "Desarrollos" %}</a></li>
+        </ul>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle {% if 'contact' in request.path %}active{% endif %}" href="#"
+           id="asesoriaDropdown{{ nav_id_suffix|default:'' }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {% trans "Asesoría inmobiliaria" %}
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="asesoriaDropdown{{ nav_id_suffix|default:'' }}">
+            <li><a class="dropdown-item" href="{% url 'contact:advisory_purchase' %}">{% trans "Asesoría compra" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'contact:advisory_sale' %}">{% trans "Asesoría venta" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'contact:contact' %}?servicio=inversion">{% trans "Inversión" %}</a></li>
+        </ul>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if 'regiones' in request.path %}active{% endif %}" href="{% url 'regions:list' %}">
+            {% trans "Zonas" %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">
+            {% trans "Nosotros" %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if 'contact' in request.path %}active{% endif %}"
+           href="{% url 'contact:contact' %}">
+            {% trans "Contacto" %}
+        </a>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="languageDropdown{{ nav_id_suffix|default:'' }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {% trans "Idioma" %}
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown{{ nav_id_suffix|default:'' }}">
+            <li>
+                <form action="{% url 'set_language' %}" method="post" class="m-0">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                    <input name="language" type="hidden" value="es">
+                    <button type="submit" class="dropdown-item">{% trans "Español" %}</button>
+                </form>
+            </li>
+            <li>
+                <form action="{% url 'set_language' %}" method="post" class="m-0">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                    <input name="language" type="hidden" value="en">
+                    <button type="submit" class="dropdown-item">English</button>
+                </form>
+            </li>
+        </ul>
+    </li>
+    {% if user.is_authenticated and user.is_staff %}
+    <li class="nav-item">
+        <a class="nav-link panel-access" href="{% url 'panel:dashboard' %}" title="Panel de Gestión">
+            {% trans "Panel" %}
+        </a>
+    </li>
+    {% endif %}
+</ul>
