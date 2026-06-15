@@ -9,9 +9,9 @@ services:
     name: total-living
     runtime: python
     region: ohio
-    plan: starter
+    plan: free
     buildCommand: ./build.sh
-    startCommand: gunicorn total_living.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 90
+    startCommand: gunicorn total_living.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 90
     preDeployCommand: python manage.py migrate --noinput
     healthCheckPath: /health/live/
     envVars:
