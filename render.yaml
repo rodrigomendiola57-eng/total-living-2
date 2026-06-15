@@ -12,6 +12,8 @@ services:
     preDeployCommand: python manage.py migrate --noinput
     healthCheckPath: /health/live/
     envVars:
+      - key: ENVIRONMENT
+        value: production
       - key: DJANGO_SETTINGS_MODULE
         value: total_living.settings.production
       - key: DEBUG
