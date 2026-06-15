@@ -7,7 +7,7 @@ services:
     runtime: python
     region: ohio
     plan: starter
-    buildCommand: bash build.sh
+    buildCommand: pip install -r requirements.txt && DJANGO_SETTINGS_MODULE=total_living.settings.production ENVIRONMENT=production python manage.py collectstatic --no-input
     startCommand: gunicorn total_living.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 90
     preDeployCommand: python manage.py migrate --noinput
     healthCheckPath: /health/live/
