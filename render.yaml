@@ -1,0 +1,98 @@
+# Blueprint Render — Total Living (Django + RDS AWS + S3)
+# Aplicar: Render Dashboard → Blueprints → New Blueprint Instance → repo total-living-2
+#
+# Antes del primer deploy, completa en el panel las variables marcadas sync: false
+# (DATABASE_URL de RDS, claves AWS, PUBLIC_SITE_URL, email opcional).
+
+services:
+  - type: web
+    name: total-living
+    runtime: python
+    region: ohio
+    plan: starter
+    buildCommand: ./build.sh
+    startCommand: gunicorn total_living.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 90
+    preDeployCommand: python manage.py migrate --noinput
+    healthCheckPath: /health/live/
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DJANGO_SETTINGS_MODULE
+        value: total_living.settings.production
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENFORCE_STRONG_SECRET_KEY
+        value: "True"
+      # Dominio propio totalliving.mx (sin depender de onrender en público).
+      - key: ALLOWED_HOSTS
+        value: totalliving.mx,www.totalliving.mx
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://totalliving.mx,https://www.totalliving.mx
+      - key: PUBLIC_SITE_URL
+        value: https://www.totalliving.mx
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
+      - key: SESSION_COOKIE_SECURE
+        value: "True"
+      - key: CSRF_COOKIE_SECURE
+        value: "True"
+      - key: SERVE_LOCAL_MEDIA
+        value: "False"
+      # RDS staging/prod (no Postgres de Render). Obligatorio antes del deploy.
+      - key: DATABASE_URL
+        sync: false
+      # S3 — media en bucket; estáticos con WhiteNoise (collectstatic en build).
+      - key: USE_OBJECT_STORAGE
+        value: "True"
+      - key: OBJECT_STORAGE_PROVIDER
+        value: aws
+      - key: USE_S3_MEDIA
+        value: "True"
+      - key: USE_S3_STATIC
+        value: "False"
+      - key: AWS_STORAGE_BUCKET_NAME
+        value: totalliving-media-s3-prod-rm-us-east-1-001
+      - key: AWS_S3_REGION_NAME
+        value: us-east-1
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_QUERYSTRING_AUTH
+        value: "True"
+      - key: AWS_QUERYSTRING_EXPIRE
+        value: "900"
+      # Panel (rutas no obvias)
+      - key: ADMIN_URL_PATH
+        value: gestion-total-living-2026/
+      - key: PANEL_URL_PATH
+        value: acceso-interno-staff-2026/
+      # Email (formularios de contacto) — opcional al inicio
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_USE_SSL
+        value: "False"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      # Mapas HTTPS (evita mixed content)
+      - key: MAP_TILE_URL
+        value: https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png
+      - key: MAP_TILE_ATTRIBUTION
+        value: "&copy; OpenStreetMap contributors &copy; CARTO"
+      - key: MAP_TILE_SUBDOMAINS
+        value: abcd
+      - key: MAP_TILE_MAX_ZOOM
+        value: "20"
+      # Redis opcional (rate limit multi-worker)
+      - key: REDIS_URL
+        sync: false
