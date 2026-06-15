@@ -48,14 +48,23 @@ if not ALLOWED_HOSTS:
 # Cookies de sesión (explícito para auditorías de seguridad).
 SESSION_COOKIE_HTTPONLY = True
 
-# Database - PostgreSQL
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+# Database - PostgreSQL (Render/RDS). Durante collectstatic sin DATABASE_URL usa memoria.
+_db_url = (os.environ.get('DATABASE_URL') or config('DATABASE_URL', default='')).strip()
+if _db_url:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=_db_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default='sqlite:///:memory:',
+            conn_max_age=0,
+        )
+    }
 
 # Security settings
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)

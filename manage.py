@@ -5,19 +5,34 @@ import sys
 from pathlib import Path
 
 
+def _configure_settings_module() -> None:
+    """Elige settings según entorno; Render siempre usa production."""
+    if os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'):
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'total_living.settings.production'
+        os.environ.setdefault('ENVIRONMENT', 'production')
+        return
+
+    env = (os.environ.get('ENVIRONMENT') or '').strip().lower()
+    if env == 'production':
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'total_living.settings.production'
+        return
+    if env == 'staging':
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'total_living.settings.staging'
+        return
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'runserver':
+        if (os.environ.get('RUNSERVER_USE_PRODUCTION') or '').strip() != '1':
+            os.environ['DJANGO_SETTINGS_MODULE'] = 'total_living.settings.development'
+            return
+
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'total_living.settings.development')
+
+
 def main():
     """Run administrative tasks."""
     project_root = Path(__file__).resolve().parent
     os.chdir(project_root)
-
-    # PowerShell/Cursor dejan DJANGO_SETTINGS_MODULE=production de sesiones anteriores;
-    # `setdefault` NO lo sobrescribe → runserver carga prod y falla ALLOWED_HOSTS en local.
-    # Para probar producción en runserver: RUNSERVER_USE_PRODUCTION=1 (PowerShell: $env:RUNSERVER_USE_PRODUCTION='1')
-    if len(sys.argv) > 1 and sys.argv[1] == 'runserver':
-        if (os.environ.get('RUNSERVER_USE_PRODUCTION') or '').strip() != '1':
-            os.environ['DJANGO_SETTINGS_MODULE'] = 'total_living.settings.development'
-
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'total_living.settings.development')
+    _configure_settings_module()
 
     try:
         from django.core.management import execute_from_command_line
