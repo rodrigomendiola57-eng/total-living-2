@@ -7,7 +7,7 @@ services:
     runtime: python
     region: ohio
     plan: starter
-    buildCommand: ./build.sh
+    buildCommand: bash build.sh
     startCommand: gunicorn total_living.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 90
     preDeployCommand: python manage.py migrate --noinput
     healthCheckPath: /health/live/
@@ -21,9 +21,9 @@ services:
       - key: ENFORCE_STRONG_SECRET_KEY
         value: "True"
       - key: ALLOWED_HOSTS
-        value: totalliving.mx,www.totalliving.mx
+        value: totalliving.mx,www.totalliving.mx,total-living.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://totalliving.mx,https://www.totalliving.mx
+        value: https://totalliving.mx,https://www.totalliving.mx,https://total-living.onrender.com
       - key: PUBLIC_SITE_URL
         value: https://www.totalliving.mx
       - key: SECURE_SSL_REDIRECT
