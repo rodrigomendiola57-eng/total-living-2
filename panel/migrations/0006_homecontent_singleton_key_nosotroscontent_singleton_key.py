@@ -32,7 +32,6 @@ class Migration(migrations.Migration):
             name='singleton_key',
             field=models.CharField(
                 blank=True,
-                db_index=True,
                 editable=False,
                 help_text='Clave fija para garantizar un único registro de configuración.',
                 max_length=40,
@@ -44,7 +43,6 @@ class Migration(migrations.Migration):
             name='singleton_key',
             field=models.CharField(
                 blank=True,
-                db_index=True,
                 editable=False,
                 help_text='Clave fija para garantizar un único registro de configuración.',
                 max_length=40,
