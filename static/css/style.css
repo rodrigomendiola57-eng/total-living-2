@@ -365,8 +365,8 @@ main {
 /* Tablets y móviles - Menú hamburguesa */
 @media (max-width: 991.98px) {
     .navbar {
-        min-height: 80px !important;
-        max-height: 80px !important;
+        min-height: 100px !important;
+        max-height: 100px !important;
         padding: 0.4rem 0 !important;
         position: relative;
         overflow: visible !important;
@@ -414,7 +414,7 @@ main {
 
     .tl-mobile-nav .offcanvas-body {
         padding: 0.5rem 0.75rem !important;
-        max-height: calc(100vh - 80px) !important;
+        max-height: calc(100vh - 100px) !important;
         overflow-y: auto;
     }
     
@@ -501,26 +501,40 @@ main {
     
     .navbar-brand {
         flex-shrink: 0;
-        margin-right: 0.5rem !important;
-        max-width: calc(100% - 60px);
+        margin-right: 0.35rem !important;
+        max-width: calc(100% - 52px);
     }
     
     .navbar-brand .navbar-logo-icon {
-        height: 60px !important;
-        max-width: 75px !important;
+        height: 76px !important;
+        max-width: 92px !important;
+        margin-right: 0.45rem !important;
     }
     
     .navbar-brand .navbar-logo {
-        width: 180px !important;
+        width: 270px !important;
         height: auto !important;
-        max-height: 55px !important;
+        max-height: 78px !important;
+        min-width: 200px !important;
+    }
+
+    .tl-mobile-nav .offcanvas-header .navbar-logo-icon {
+        height: 58px !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    .tl-mobile-nav .offcanvas-header .navbar-logo {
+        width: 240px !important;
+        height: auto !important;
+        max-height: 58px !important;
     }
 }
 
 @media (max-width: 768px) {
     .navbar {
-        min-height: 70px !important;
-        max-height: 70px !important;
+        min-height: 92px !important;
+        max-height: 92px !important;
         padding: 0.3rem 0 !important;
     }
     
@@ -530,23 +544,34 @@ main {
     }
     
     .navbar-brand {
-        margin-right: 0.3rem !important;
-        max-width: calc(100% - 55px);
+        margin-right: 0.25rem !important;
+        max-width: calc(100% - 48px);
     }
     
     .navbar-brand .navbar-logo-icon {
-        height: 50px !important;
-        max-width: 65px !important;
+        height: 70px !important;
+        max-width: 86px !important;
+        margin-right: 0.35rem !important;
     }
     
     .navbar-brand .navbar-logo {
-        width: 150px !important;
+        width: 248px !important;
         height: auto !important;
-        max-height: 45px !important;
+        max-height: 72px !important;
+        min-width: 185px !important;
+    }
+
+    .tl-mobile-nav .offcanvas-header .navbar-logo-icon {
+        height: 54px !important;
+    }
+
+    .tl-mobile-nav .offcanvas-header .navbar-logo {
+        width: 225px !important;
+        max-height: 54px !important;
     }
     
     .tl-mobile-nav .offcanvas-body {
-        max-height: calc(100vh - 70px) !important;
+        max-height: calc(100vh - 92px) !important;
         padding: 0.4rem 0.6rem !important;
     }
     
@@ -568,27 +593,38 @@ main {
 
 @media (max-width: 480px) {
     .navbar {
-        min-height: 65px !important;
-        max-height: 65px !important;
+        min-height: 86px !important;
+        max-height: 86px !important;
         padding: 0.25rem 0 !important;
     }
     
     .navbar-brand {
-        max-width: calc(100% - 50px);
+        max-width: calc(100% - 46px);
     }
     
     .navbar-brand .navbar-logo-icon {
-        height: 45px !important;
-        max-width: 55px !important;
+        height: 64px !important;
+        max-width: 78px !important;
+        margin-right: 0.3rem !important;
     }
     
     .navbar-brand .navbar-logo {
-        width: 130px !important;
-        max-height: 40px !important;
+        width: 228px !important;
+        max-height: 66px !important;
+        min-width: 170px !important;
+    }
+
+    .tl-mobile-nav .offcanvas-header .navbar-logo-icon {
+        height: 50px !important;
+    }
+
+    .tl-mobile-nav .offcanvas-header .navbar-logo {
+        width: 210px !important;
+        max-height: 50px !important;
     }
     
     .tl-mobile-nav .offcanvas-body {
-        max-height: calc(100vh - 65px) !important;
+        max-height: calc(100vh - 86px) !important;
         padding: 0.35rem 0.5rem !important;
     }
     

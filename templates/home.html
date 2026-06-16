@@ -1387,20 +1387,44 @@ body.home-immersive.home-nav-visible .navbar {
     }
 }
 
-/* Móviles */
+/* Móviles — carrusel a pantalla completa (máxima altura vertical del teléfono) */
 @media (max-width: 768px) {
+    .hero-carousel-section {
+        min-height: 100lvh;
+        min-height: 100dvh;
+        min-height: 100svh;
+    }
+
     .hero-carousel,
     .hero-carousel .carousel-item,
     .hero-carousel .carousel-item img {
-        height: 100svh;
-        min-height: 100svh;
-        max-height: 100svh;
+        height: 100lvh !important;
+        min-height: 100lvh !important;
+        max-height: none !important;
+    }
+
+    @supports (height: 100dvh) {
+        .hero-carousel-section {
+            min-height: 100dvh;
+        }
+
+        .hero-carousel,
+        .hero-carousel .carousel-item,
+        .hero-carousel .carousel-item img {
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+        }
+    }
+
+    body.home-immersive .hero-carousel-section {
+        margin-top: 0;
     }
     
     .carousel-overlay {
         padding: 0;
-        justify-content: flex-start;
-        padding-top: 70px;
+        justify-content: flex-end;
+        padding-top: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     
     .carousel-header {
@@ -1422,8 +1446,8 @@ body.home-immersive.home-nav-visible .navbar {
     }
     
     .carousel-content {
-        padding: 18px 14px 60px !important;
-        margin-top: auto;
+        padding: 12px 14px calc(52px + env(safe-area-inset-bottom, 0px)) !important;
+        margin-top: 0;
     }
     
     .carousel-content .row {
@@ -1515,15 +1539,9 @@ body.home-immersive.home-nav-visible .navbar {
         margin-top: 0;
     }
     
-    .carousel-control-prev,
-    .carousel-control-next {
-        width: 50px;
-    }
-    
-    .carousel-control-prev-icon,
-    .carousel-control-next-icon {
-        width: 30px;
-        height: 30px;
+    .hero-carousel .carousel-control-prev,
+    .hero-carousel .carousel-control-next {
+        display: none !important;
     }
     
     .carousel-indicators {
@@ -1731,13 +1749,23 @@ body.home-immersive.home-nav-visible .navbar {
     .hero-carousel,
     .hero-carousel .carousel-item,
     .hero-carousel .carousel-item img {
-        height: 100svh;
-        min-height: 100svh;
+        height: 100lvh !important;
+        min-height: 100lvh !important;
+        max-height: none !important;
+    }
+
+    @supports (height: 100dvh) {
+        .hero-carousel,
+        .hero-carousel .carousel-item,
+        .hero-carousel .carousel-item img {
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+        }
     }
     
     .carousel-overlay {
         padding: 0;
-        padding-top: 65px;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     
     .carousel-header {
@@ -1754,7 +1782,7 @@ body.home-immersive.home-nav-visible .navbar {
     }
     
     .carousel-content {
-        padding: 16px 12px 56px !important;
+        padding: 10px 12px calc(48px + env(safe-area-inset-bottom, 0px)) !important;
     }
     
     .carousel-content .col-lg-8,
@@ -1873,7 +1901,7 @@ body.home-immersive.home-nav-visible .navbar {
     </div>
     
     <div class="container-fluid px-0">
-        <div id="featuredCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel">
+        <div id="featuredCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel" data-bs-touch="true">
             <!-- Indicadores -->
             <div class="carousel-indicators">
                 {% for item in carousel_items %}
@@ -2329,10 +2357,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var carousel = document.getElementById('featuredCarousel');
     if (carousel) {
-        var bsCarousel = new bootstrap.Carousel(carousel, {
+        new bootstrap.Carousel(carousel, {
             interval: 5000,
             wrap: true,
-            pause: 'hover'
+            pause: 'hover',
+            touch: true
         });
     }
 
